@@ -69,10 +69,10 @@ configurations {
 dependencies {
     fsServerCompile project(':server')
 
-    fsServerCompile group: "com.espirit.ps.psci.module", name: "generic-configuration", version: "2.8.0"
-    fsServerCompile group: "com.espirit.ps.psci.module", name: "magic-icons", version: "2.1.0"
-    fsServerCompile group: "com.squareup.okhttp3", name: "okhttp", version: "4.1.0"
-    fsServerCompile group: "com.squareup.moshi", name: "moshi", version: "1.8.0"
+    fsModuleCompile group: "com.espirit.ps.psci.module", name: "generic-configuration", version: "2.8.0"
+    fsModuleCompile group: "com.espirit.ps.psci.module", name: "magic-icons", version: "2.1.0"
+    fsModuleCompile group: "com.squareup.okhttp3", name: "okhttp", version: "4.1.0"
+    fsModuleCompile group: "com.squareup.moshi", name: "moshi", version: "1.8.0"
     fsProvidedCompile group: 'de.espirit.firstspirit', name: 'fs-isolated-runtime', version: "${fsRuntimeVersion}"
     //fsProvidedCompile group: 'de.espirit.firstspirit', name: 'fs-isolated-server', version: "${fsRuntimeVersion}"
     //fsLicense group: 'de.espirit.firstspirit', name: 'fs-license', version: '5-SNAPSHOT', ext: 'conf'
@@ -127,7 +127,6 @@ firstSpiritModule {
     isolationDetectorUrl = 'https://fsdev.e-spirit.com/FsmDependencyDetector/'
     firstSpiritVersion = "${fsIsolationCheckVersion}"
     complianceLevel = 'HIGHEST'
-    moduleDirName = 'src/main/resources'
 }
 
 release {
