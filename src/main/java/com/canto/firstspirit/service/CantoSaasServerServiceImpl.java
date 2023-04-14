@@ -19,9 +19,8 @@ public class CantoSaasServerServiceImpl implements CantoSaasServerService, Servi
 
     private Map<CantoServiceConnection, CantoApi> apiConnectionPool;
 
-    @Override
     public CantoServiceConnection getConnection(final CantoConfiguration config) {
-        final CantoServiceConnection connection = CantoServiceConnection.fromConfig(config);
+        final CantoServiceConnection connection = CantoServiceConnectionImpl.fromConfig(config);
         if (!apiConnectionPool.containsKey(connection)) {
             final CantoApi cantoApi = new CantoApi(config.getTenant(), config.getToken(), config.getMDCDomain(), config.getMDCAccountId());
 
@@ -39,7 +38,7 @@ public class CantoSaasServerServiceImpl implements CantoSaasServerService, Servi
     public List<CantoAssetDTO> getAssetDTOs(final CantoServiceConnection connection, final Collection<String> identifiers) {
         Logging.logInfo("getAssetDTO in Service with " + Strings.implode(identifiers, ", "), getClass());
         final CantoApi cantoApi = getApiInstance(connection);
-        return cantoApi.getAssets(identifiers).stream().map(asset -> CantoAssetDTO.fromAsset(asset, cantoApi))
+        return cantoApi.getAssets(identifiers).stream().map(asset -> CantoAssetDTOImpl.fromAsset(asset, cantoApi))
                 .collect(Collectors.toList());
     }
 
@@ -51,7 +50,7 @@ public class CantoSaasServerServiceImpl implements CantoSaasServerService, Servi
         final CantoSearchResult cantoSearchResult = cantoApi.search(params.getKeyword());
         //todo: implement paging
 
-        return CantoSearchResultDTO.fromCantoSearchResult(params, cantoSearchResult, cantoApi);
+        return CantoSearchResultDTOImpl.fromCantoSearchResult(params, cantoSearchResult, cantoApi);
     }
 
     @Override

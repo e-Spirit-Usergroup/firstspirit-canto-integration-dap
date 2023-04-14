@@ -62,13 +62,13 @@ allprojects {
         targetCompatibility = JavaVersion.VERSION_11
 }
 
-
-
 configurations {
     fsLicense
 }
 
 dependencies {
+    fsServerCompile project(':server')
+
     fsServerCompile group: "com.espirit.ps.psci.module", name: "generic-configuration", version: "2.8.0"
     fsServerCompile group: "com.espirit.ps.psci.module", name: "magic-icons", version: "2.1.0"
     fsServerCompile group: "com.squareup.okhttp3", name: "okhttp", version: "4.1.0"

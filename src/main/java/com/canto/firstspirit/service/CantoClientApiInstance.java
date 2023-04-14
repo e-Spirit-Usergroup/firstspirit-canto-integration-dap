@@ -24,7 +24,7 @@ public class CantoClientApiInstance {
      */
     public static CantoClientApiInstance fromProjectBroker(SpecialistsBroker broker) {
         //todo: error handling
-        CantoConfiguration cantoConfiguration = CantoConfiguration.fromProjectBroker(broker);
+        CantoConfigurationImpl cantoConfiguration = CantoConfigurationImpl.fromProjectBroker(broker);
         CantoSaasServerService service = broker.requireSpecialist(ServicesBroker.TYPE).getService(CantoSaasServerService.class);
         CantoServiceConnection connection = service.getConnection(cantoConfiguration);
         return new CantoClientApiInstance(service, connection);
@@ -41,7 +41,7 @@ public class CantoClientApiInstance {
 
     }
 
-    public CantoSearchResultDTO findAssets (CantoSearchParams cantoSearchParams) {
+    public CantoSearchResultDTO findAssets (CantoSearchParamsImpl cantoSearchParams) {
         return service.findAssetDTOs(connection, cantoSearchParams);
     }
 

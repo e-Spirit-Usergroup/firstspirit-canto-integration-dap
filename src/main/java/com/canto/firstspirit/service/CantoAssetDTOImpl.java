@@ -4,9 +4,7 @@ import com.canto.firstspirit.api.CantoApi;
 import com.canto.firstspirit.api.model.CantoAsset;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-
-public class CantoAssetDTO implements Serializable {
+public class CantoAssetDTOImpl implements CantoAssetDTO {
     private static final long serialVersionUID = 1L;
 
     private String id;
@@ -19,10 +17,10 @@ public class CantoAssetDTO implements Serializable {
     private String mdcRenditionBaseUrl;
 
 
-    private CantoAssetDTO(){}
+    private CantoAssetDTOImpl(){}
 
     static CantoAssetDTO fromAsset(@NotNull CantoAsset asset, @NotNull CantoApi cantoApi) {
-        CantoAssetDTO assetDTO = new CantoAssetDTO();
+        CantoAssetDTOImpl assetDTO = new CantoAssetDTOImpl();
         assetDTO.id = asset.getId();
         assetDTO.name = asset.getName();
         assetDTO.previewUrl = cantoApi.getPreviewImageUrl(asset);
@@ -35,32 +33,40 @@ public class CantoAssetDTO implements Serializable {
         return assetDTO;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }
 
+    @Override
     public String getSchema() {
         return schema;
     }
 
+    @Override
     public String getId() {
         return this.id;
     }
 
+    @Override
     public String getName() {
         return this.name;
     }
 
+    @Override
     public String getThumbnailUrl() {
         return thumbnailUrl;
     }
 
+    @Override
     public String getPreviewUrl() {
         return previewUrl;
     }
+    @Override
     public String getMDCAssetBaseUrl() {
         return mdcAssetBaseUrl;
     }
+    @Override
     public String getMDCRenditionBaseUrl() {
         return mdcRenditionBaseUrl;
     }

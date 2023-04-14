@@ -10,7 +10,7 @@ public class CantoSearchParamsBuilder {
         return this;
     }
 
-    public CantoSearchParams create() {
-        return new CantoSearchParams(0, Integer.MAX_VALUE, keyword);
+    public CantoSearchParamsImpl create() {
+        return new CantoSearchParamsImpl(0, Integer.MAX_VALUE, keyword);
     }
 }

@@ -6,11 +6,9 @@ import java.util.List;
 
 public interface CantoSaasServerService {
 
-
-    CantoServiceConnection getConnection(CantoConfiguration config);
-
     List<CantoAssetDTO> getAssetDTOs(CantoServiceConnection connection, Collection<String> identifiers);
     CantoSearchResultDTO findAssetDTOs(CantoServiceConnection connection, CantoSearchParams params);
 
+    CantoServiceConnection getConnection(final CantoConfiguration config);
 
 }
