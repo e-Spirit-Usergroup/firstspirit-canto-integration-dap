@@ -1,0 +1,138 @@
+import de.espirit.firstspirit.server.module.ModuleInfo
+
+buildscript {
+    ext {
+        fsRuntimeVersion = '5.2.230212'
+        fsIsolationCheckVersion = '5.2.230212' // update regularly to test against newest FirstSpirit release
+        assertjVersion = '3.13.2'
+        junitVersion = '5.5.1'
+        mockitoVersion = '3.0.0'
+    }
+
+    repositories {
+        maven {
+            url = 'https://artifactory.e-spirit.hosting/artifactory/repo/'
+            credentials {
+                username = artifactory_hosting_username
+                password = artifactory_hosting_password
+            }
+        }
+    }
+
+    dependencies {
+        classpath "de.espirit.firstspirit:fs-isolated-server:${fsRuntimeVersion}"
+    }
+}
+
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'de.espirit.firstspirit-module' version '0.14.0'
+    id 'de.espirit.firstspirit' version '0.15.0'
+    id 'net.researchgate.release' version '2.8.0'
+}
+
+wrapper {
+    gradleVersion = '5.5.1'
+    distributionType = Wrapper.DistributionType.ALL
+}
+
+allprojects {
+    p ->
+        apply plugin: 'java'
+
+        group = 'com.canto'
+
+        repositories {
+            maven {
+                url = 'https://artifactory.e-spirit.hosting/artifactory/repo/'
+                credentials {
+                    // Do NOT edit these lines since the credentials will be read from the local Gradle configuration.
+                    username = artifactory_hosting_username
+                    password = artifactory_hosting_password
+                }
+            }
+            gradlePluginPortal()
+        }
+
+        compileJava.options.encoding = 'UTF-8'
+        compileTestJava.options.encoding = 'UTF-8'
+
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+}
+
+
+
+configurations {
+    fsLicense
+}
+
+dependencies {
+    fsServerCompile group: "com.espirit.ps.psci.module", name: "generic-configuration", version: "2.8.0"
+    fsServerCompile group: "com.espirit.ps.psci.module", name: "magic-icons", version: "2.1.0"
+    fsServerCompile group: "com.squareup.okhttp3", name: "okhttp", version: "4.1.0"
+    fsServerCompile group: "com.squareup.moshi", name: "moshi", version: "1.8.0"
+    fsProvidedCompile group: 'de.espirit.firstspirit', name: 'fs-isolated-runtime', version: "${fsRuntimeVersion}"
+    //fsProvidedCompile group: 'de.espirit.firstspirit', name: 'fs-isolated-server', version: "${fsRuntimeVersion}"
+    //fsLicense group: 'de.espirit.firstspirit', name: 'fs-license', version: '5-SNAPSHOT', ext: 'conf'
+    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: "${junitVersion}"
+    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: "${junitVersion}"
+    testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: "${mockitoVersion}"
+    testImplementation group: 'org.assertj', name: 'assertj-core', version: "${assertjVersion}"
+    testImplementation group: 'de.espirit.firstspirit', name: 'fs-isolated-webrt', version: "${fsRuntimeVersion}"
+    testRuntime group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: "${junitVersion}"
+}
+
+/*
+ * FirstSpirit Module Gradle Plugin configuration
+ */
+
+def serverHttpPort = 0
+new ServerSocket(0).withCloseable {
+    port1 -> serverHttpPort = port1.getLocalPort()
+}
+
+firstSpirit {
+    fsrunner {
+        httpPort = serverHttpPort
+        connectionMode = "HTTP_MODE"
+        //licenseFile = configurations.fsLicense.resolve().first().absolutePath
+        serverOpts = ["-DINTERNAL_SERVLET_ENGINE=0"]
+    }
+
+    moduleconfiguration {
+        fsm = "${assembleFSM.destinationDirectory.file(assembleFSM.archiveFileName).get().asFile}"
+    }
+}
+
+fsModuleInstall.dependsOn assembleFSM
+fsModuleInstall.dependsOn fsStart
+
+test {
+    useJUnitPlatform()
+}
+
+task integrationTest() {
+    group = 'verification'
+}
+integrationTest.dependsOn(fsStart, fsModuleInstall)
+integrationTest.finalizedBy(fsStop)
+
+firstSpiritModule {
+    moduleName = 'CantoSaasConnector'
+    displayName = 'Canto Connector'
+    vendor = 'Canto Inc.'
+    resourceMode = ModuleInfo.Mode.ISOLATED
+    isolationDetectorUrl = 'https://fsdev.e-spirit.com/FsmDependencyDetector/'
+    firstSpiritVersion = "${fsIsolationCheckVersion}"
+    complianceLevel = 'HIGHEST'
+    moduleDirName = 'src/main/resources'
+}
+
+release {
+    ignoredSnapshotDependencies = ['de.espirit.firstspirit:fs-license']
+}
+
+// publish artifacts after release
+afterReleaseBuild.dependsOn publish
