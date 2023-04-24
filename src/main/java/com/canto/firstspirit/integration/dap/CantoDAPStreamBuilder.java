@@ -1,6 +1,7 @@
 package com.canto.firstspirit.integration.dap;
 
 import com.canto.firstspirit.service.*;
+import com.canto.firstspirit.service.server.CantoSearchResultDTO;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataStream;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataStreamBuilder;
 import de.espirit.firstspirit.client.plugin.dataaccess.aspects.Filterable;

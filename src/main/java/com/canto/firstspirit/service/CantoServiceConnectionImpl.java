@@ -1,6 +1,9 @@
 package com.canto.firstspirit.service;
 
-public class CantoServiceConnectionImpl implements  CantoServiceConnection {
+import com.canto.firstspirit.service.server.CantoConfiguration;
+import com.canto.firstspirit.service.server.CantoServiceConnection;
+
+public class CantoServiceConnectionImpl implements CantoServiceConnection {
     private final int connectionId;
     private static final long serialVersionUID = 1L;
 

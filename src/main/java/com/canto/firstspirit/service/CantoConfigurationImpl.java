@@ -2,6 +2,7 @@ package com.canto.firstspirit.service;
 
 import com.canto.firstspirit.config.CantoProjectApp;
 import com.canto.firstspirit.config.CantoProjectAppConfiguration;
+import com.canto.firstspirit.service.server.CantoConfiguration;
 import com.espirit.ps.psci.genericconfiguration.Values;
 import de.espirit.firstspirit.agency.SpecialistsBroker;
 import org.jetbrains.annotations.NotNull;

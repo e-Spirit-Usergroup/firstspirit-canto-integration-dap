@@ -1,5 +1,7 @@
 package com.canto.firstspirit.service;
 
+import com.canto.firstspirit.service.server.CantoSearchParams;
+
 public class CantoSearchParamsImpl implements CantoSearchParams {
     private static final long serialVersionUID = 1L;
 

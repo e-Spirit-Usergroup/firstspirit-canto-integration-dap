@@ -1,6 +1,6 @@
 package com.canto.firstspirit.integration.dap;
 
-import com.canto.firstspirit.service.CantoAssetDTO;
+import com.canto.firstspirit.service.server.CantoAssetDTO;
 import org.jetbrains.annotations.NotNull;
 
 

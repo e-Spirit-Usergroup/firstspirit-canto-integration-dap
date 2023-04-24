@@ -1,5 +1,3 @@
-import de.espirit.firstspirit.server.module.ModuleInfo
-
 buildscript {
     ext {
         fsRuntimeVersion = '5.2.230212'
@@ -27,14 +25,8 @@ buildscript {
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'de.espirit.firstspirit-module' version '0.14.0'
-    id 'de.espirit.firstspirit' version '0.15.0'
-    id 'net.researchgate.release' version '2.8.0'
-}
-
-wrapper {
-    gradleVersion = '5.5.1'
-    distributionType = Wrapper.DistributionType.ALL
+    id 'de.espirit.firstspirit-module' version '4.1.1'
+    id 'net.researchgate.release' version '2.8.1'
 }
 
 allprojects {
@@ -68,20 +60,16 @@ configurations {
 
 dependencies {
     fsServerCompile project(':server')
+    fsWebCompile project(':server')
 
     fsModuleCompile group: "com.espirit.ps.psci.module", name: "generic-configuration", version: "2.8.0"
     fsModuleCompile group: "com.espirit.ps.psci.module", name: "magic-icons", version: "2.1.0"
     fsModuleCompile group: "com.squareup.okhttp3", name: "okhttp", version: "4.1.0"
     fsModuleCompile group: "com.squareup.moshi", name: "moshi", version: "1.8.0"
-    fsProvidedCompile group: 'de.espirit.firstspirit', name: 'fs-isolated-runtime', version: "${fsRuntimeVersion}"
-    //fsProvidedCompile group: 'de.espirit.firstspirit', name: 'fs-isolated-server', version: "${fsRuntimeVersion}"
-    //fsLicense group: 'de.espirit.firstspirit', name: 'fs-license', version: '5-SNAPSHOT', ext: 'conf'
-    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: "${junitVersion}"
-    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: "${junitVersion}"
-    testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: "${mockitoVersion}"
-    testImplementation group: 'org.assertj', name: 'assertj-core', version: "${assertjVersion}"
-    testImplementation group: 'de.espirit.firstspirit', name: 'fs-isolated-webrt', version: "${fsRuntimeVersion}"
-    testRuntime group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: "${junitVersion}"
+
+    compileOnly group: 'de.espirit.firstspirit', name: 'fs-isolated-runtime', version: "${fsRuntimeVersion}"
+
+    testImplementation 'junit:junit:4.13.2'
 }
 
 /*
@@ -93,37 +81,10 @@ new ServerSocket(0).withCloseable {
     port1 -> serverHttpPort = port1.getLocalPort()
 }
 
-firstSpirit {
-    fsrunner {
-        httpPort = serverHttpPort
-        connectionMode = "HTTP_MODE"
-        //licenseFile = configurations.fsLicense.resolve().first().absolutePath
-        serverOpts = ["-DINTERNAL_SERVLET_ENGINE=0"]
-    }
-
-    moduleconfiguration {
-        fsm = "${assembleFSM.destinationDirectory.file(assembleFSM.archiveFileName).get().asFile}"
-    }
-}
-
-fsModuleInstall.dependsOn assembleFSM
-fsModuleInstall.dependsOn fsStart
-
-test {
-    useJUnitPlatform()
-}
-
-task integrationTest() {
-    group = 'verification'
-}
-integrationTest.dependsOn(fsStart, fsModuleInstall)
-integrationTest.finalizedBy(fsStop)
-
 firstSpiritModule {
     moduleName = 'CantoSaasConnector'
     displayName = 'Canto Connector'
     vendor = 'Canto Inc.'
-    resourceMode = ModuleInfo.Mode.ISOLATED
     isolationDetectorUrl = 'https://fsdev.e-spirit.com/FsmDependencyDetector/'
     firstSpiritVersion = "${fsIsolationCheckVersion}"
     complianceLevel = 'HIGHEST'
@@ -132,6 +93,3 @@ firstSpiritModule {
 release {
     ignoredSnapshotDependencies = ['de.espirit.firstspirit:fs-license']
 }
-
-// publish artifacts after release
-afterReleaseBuild.dependsOn publish

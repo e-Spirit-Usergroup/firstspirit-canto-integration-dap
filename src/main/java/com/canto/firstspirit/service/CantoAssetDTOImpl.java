@@ -2,6 +2,7 @@ package com.canto.firstspirit.service;
 
 import com.canto.firstspirit.api.CantoApi;
 import com.canto.firstspirit.api.model.CantoAsset;
+import com.canto.firstspirit.service.server.CantoAssetDTO;
 import org.jetbrains.annotations.NotNull;
 
 public class CantoAssetDTOImpl implements CantoAssetDTO {

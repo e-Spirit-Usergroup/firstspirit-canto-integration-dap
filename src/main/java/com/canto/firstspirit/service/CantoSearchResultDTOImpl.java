@@ -2,6 +2,9 @@ package com.canto.firstspirit.service;
 
 import com.canto.firstspirit.api.CantoApi;
 import com.canto.firstspirit.api.model.CantoSearchResult;
+import com.canto.firstspirit.service.server.CantoAssetDTO;
+import com.canto.firstspirit.service.server.CantoSearchParams;
+import com.canto.firstspirit.service.server.CantoSearchResultDTO;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
