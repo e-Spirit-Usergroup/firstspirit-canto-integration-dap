@@ -1,6 +1,7 @@
 package com.canto.firstspirit.integration.dap;
 
 import com.canto.firstspirit.service.*;
+import com.canto.firstspirit.service.server.CantoSearchParams;
 import com.canto.firstspirit.service.server.CantoSearchResultDTO;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataStream;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataStreamBuilder;
@@ -63,7 +64,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
 
 
         public CantoDAPDataStream(){
-            CantoSearchParamsImpl searchParams = new CantoSearchParamsBuilder().keyword(parameterMap.get(paramKeyword)).create();
+            CantoSearchParams searchParams = new CantoSearchParamsBuilder().keyword(parameterMap.get(paramKeyword)).create();
             CantoSearchResultDTO cantoSearchResultDTO = cantoApi.findAssets(searchParams);
 
             total = cantoSearchResultDTO.getTotal();

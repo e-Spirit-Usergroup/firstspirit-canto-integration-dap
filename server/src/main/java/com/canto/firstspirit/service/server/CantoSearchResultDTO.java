@@ -1,10 +1,32 @@
 package com.canto.firstspirit.service.server;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
-public interface CantoSearchResultDTO extends Serializable {
-    int getTotal();
+public class CantoSearchResultDTO implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    List<CantoAssetDTO> getResults();
+    private int total;
+
+    private List<CantoAssetDTO> results;
+
+    private CantoSearchParams searchParams;
+
+    public CantoSearchResultDTO(int total, List<CantoAssetDTO> results, CantoSearchParams searchParams) {
+        this.total = total;
+        this.results = results;
+        this.searchParams = searchParams;
+    }
+
+
+
+    public int getTotal() {
+        return total;
+    }
+
+    public List<CantoAssetDTO> getResults() {
+        return Collections.unmodifiableList(results);
+    }
+
 }

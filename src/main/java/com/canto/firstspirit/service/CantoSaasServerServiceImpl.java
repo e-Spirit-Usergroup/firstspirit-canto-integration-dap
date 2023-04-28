@@ -2,6 +2,8 @@ package com.canto.firstspirit.service;
 
 import com.canto.firstspirit.api.CantoApi;
 import com.canto.firstspirit.api.model.CantoSearchResult;
+import com.canto.firstspirit.service.factory.CantoAssetDTOFactory;
+import com.canto.firstspirit.service.factory.CantoSearchResultDTOFactory;
 import com.canto.firstspirit.service.server.*;
 import com.espirit.moddev.components.annotations.ServiceComponent;
 import de.espirit.common.base.Logging;
@@ -21,17 +23,21 @@ public class CantoSaasServerServiceImpl implements CantoSaasServerService, Servi
     private Map<CantoServiceConnection, CantoApi> apiConnectionPool;
 
     public CantoServiceConnection getConnection(final CantoConfiguration config) {
-        final CantoServiceConnection connection = CantoServiceConnectionImpl.fromConfig(config);
+        final CantoServiceConnection connection = CantoServiceConnection.fromConfig(config);
         if (!apiConnectionPool.containsKey(connection)) {
             final CantoApi cantoApi = new CantoApi(config.getTenant(), config.getToken(), config.getMDCDomain(), config.getMDCAccountId());
 
             apiConnectionPool.put(connection, cantoApi);
+
+            Logging.logInfo("New Connection requested for Tenant: " + config.getTenant() + ". Created ConnectionId: " + connection.getConnectionId(), this.getClass());
+
         }
         return connection;
     }
 
-    private CantoApi getApiInstance(final CantoServiceConnection connection){
-        return Optional.ofNullable(apiConnectionPool.get(connection)).orElseThrow(()->new IllegalStateException("Requested connection not found."));
+    private CantoApi getApiInstance(final CantoServiceConnection connection) {
+        if(connection == null) throw new IllegalArgumentException("Requested Api Instance with null Connection");
+        return Optional.ofNullable(apiConnectionPool.get(connection)).orElseThrow(()-> new IllegalStateException("Requested Api Instance not found for ConnectionId: " + connection.getConnectionId()));
     }
 
     @NotNull
@@ -39,7 +45,7 @@ public class CantoSaasServerServiceImpl implements CantoSaasServerService, Servi
     public List<CantoAssetDTO> getAssetDTOs(final CantoServiceConnection connection, final Collection<String> identifiers) {
         Logging.logInfo("getAssetDTO in Service with " + Strings.implode(identifiers, ", "), getClass());
         final CantoApi cantoApi = getApiInstance(connection);
-        return cantoApi.getAssets(identifiers).stream().map(asset -> CantoAssetDTOImpl.fromAsset(asset, cantoApi))
+        return cantoApi.getAssets(identifiers).stream().map(asset -> CantoAssetDTOFactory.fromAsset(asset, cantoApi))
                 .collect(Collectors.toList());
     }
 
@@ -51,7 +57,7 @@ public class CantoSaasServerServiceImpl implements CantoSaasServerService, Servi
         final CantoSearchResult cantoSearchResult = cantoApi.search(params.getKeyword());
         //todo: implement paging
 
-        return CantoSearchResultDTOImpl.fromCantoSearchResult(params, cantoSearchResult, cantoApi);
+        return CantoSearchResultDTOFactory.fromCantoSearchResult(params, cantoSearchResult, cantoApi);
     }
 
     @Override

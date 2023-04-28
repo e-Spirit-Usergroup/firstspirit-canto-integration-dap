@@ -1,9 +1,7 @@
 package com.canto.firstspirit.service;
 
-import com.canto.firstspirit.service.server.CantoAssetDTO;
-import com.canto.firstspirit.service.server.CantoSaasServerService;
-import com.canto.firstspirit.service.server.CantoSearchResultDTO;
-import com.canto.firstspirit.service.server.CantoServiceConnection;
+import com.canto.firstspirit.integration.dap.factory.CantoConfigurationFactory;
+import com.canto.firstspirit.service.server.*;
 import de.espirit.firstspirit.access.ServicesBroker;
 import de.espirit.firstspirit.agency.SpecialistsBroker;
 
@@ -28,7 +26,7 @@ public class CantoClientApiInstance {
      */
     public static CantoClientApiInstance fromProjectBroker(SpecialistsBroker broker) {
         //todo: error handling
-        CantoConfigurationImpl cantoConfiguration = CantoConfigurationImpl.fromProjectBroker(broker);
+        CantoConfiguration cantoConfiguration = CantoConfigurationFactory.fromProjectBroker(broker);
         CantoSaasServerService service = broker.requireSpecialist(ServicesBroker.TYPE).getService(CantoSaasServerService.class);
         CantoServiceConnection connection = service.getConnection(cantoConfiguration);
         return new CantoClientApiInstance(service, connection);
@@ -45,7 +43,7 @@ public class CantoClientApiInstance {
 
     }
 
-    public CantoSearchResultDTO findAssets (CantoSearchParamsImpl cantoSearchParams) {
+    public CantoSearchResultDTO findAssets (CantoSearchParams cantoSearchParams) {
         return service.findAssetDTOs(connection, cantoSearchParams);
     }
 
