@@ -6,7 +6,6 @@ import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import de.espirit.common.base.Logging;
 import okhttp3.*;
-import okio.BufferedSource;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -152,19 +151,24 @@ public class CantoApi {
      * @return body source code
      * @throws IOException on failed request
      */
-    private BufferedSource getRequest(HttpUrl url) throws IOException {
+    private Response executeRequest(HttpUrl url) throws IOException {
+
 
         Request request = new Request.Builder().url(url).build();
-        try (Response response = client.newCall(request).execute()) {
 
-            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+        Response response = client.newCall(request).execute();
 
+        if (!response.isSuccessful()) {
+            response.close();
+            throw new IOException("Unexpected code " + response.code());
+        }
+
+        return response;
+/*
             ResponseBody body = response.body();
             if (body == null) throw new NullPointerException("Response body was null");
             return body.source();
-
-        }
-
+*/
     }
 
 
@@ -175,16 +179,18 @@ public class CantoApi {
                 .addPathSegments(id)
                 .build();
 
-        Logging.logInfo("getAsset " + url, getClass());
+        Logging.logInfo("[CantoApi][getAssetById] fetching " + url, LOGGER);
 
         CantoAsset asset = null;
 
-        try {
-            asset = cantoAssetJsonAdapter.fromJson(getRequest(url));
-        } catch (IOException e) {
-            // Ignore
+        try (Response response = executeRequest(url)) {
+            ResponseBody body = response.body();
+            if (body == null) throw new IllegalStateException("Response Body was null for url " + url);
+            asset = cantoAssetJsonAdapter.fromJson(body.source());
+        } catch (Exception e) {
+            Logging.logInfo("[CantoApi][getAssetById] Error occurred", e, LOGGER);
         }
-
+        Logging.logInfo("[CantoApi][getAssetById] returning Asset " + (asset == null ? null : asset.getId()), LOGGER);
         return Optional.ofNullable(asset);
     }
 
@@ -199,8 +205,10 @@ public class CantoApi {
 
         Logging.logInfo("search " + url, getClass());
 
-        try {
-            CantoSearchResult cantoSearchResult = cantoSearchResultJsonAdapter.fromJson(getRequest(url));
+        try (Response response = executeRequest(url)) {
+            ResponseBody body = response.body();
+            if (body == null) throw new IllegalStateException("Response Body was null for url " + url);
+            CantoSearchResult cantoSearchResult = cantoSearchResultJsonAdapter.fromJson(body.source());
 
             Logging.logInfo("searchResult " + cantoSearchResult, getClass());
 
@@ -211,10 +219,12 @@ public class CantoApi {
 
             return cantoSearchResult;
         } catch (Exception e) {
+            Logging.logError("searchResultException", e, this.getClass());
+
             CantoSearchResult result = new CantoSearchResult();
             result.setResults(Collections.emptyList());
-            Logging.logInfo("searchResultException " + e.getMessage(), getClass());
             return result;
         }
+
     }
 }

@@ -41,6 +41,8 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     private final CantoClientApiInstance cantoClientApiInstance;
 
     public CantoDAPSession(BaseContext baseContext) {
+
+        Logging.logInfo("CantoDapSession Created", this.getClass());
         this.context = baseContext;
 
         cantoClientApiInstance = CantoClientApiInstance.fromProjectBroker(context);
