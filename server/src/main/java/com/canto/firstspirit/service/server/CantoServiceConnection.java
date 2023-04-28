@@ -14,6 +14,7 @@ public class CantoServiceConnection implements Serializable {
         return new CantoServiceConnection(configuration.hashCode());
     }
 
+    @Override
     public boolean equals(final Object other) {
         return (other instanceof CantoServiceConnection
                 && connectionId == ((CantoServiceConnection) other).getConnectionId());

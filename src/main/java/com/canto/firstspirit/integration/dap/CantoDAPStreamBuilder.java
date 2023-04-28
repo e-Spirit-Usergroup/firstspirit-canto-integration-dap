@@ -11,6 +11,7 @@ import de.espirit.firstspirit.client.plugin.dataaccess.aspects.StreamBuilderAspe
 import de.espirit.firstspirit.client.plugin.report.Parameter;
 import de.espirit.firstspirit.client.plugin.report.ParameterMap;
 import de.espirit.firstspirit.client.plugin.report.ParameterText;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,15 +37,17 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
     }
 
     @Override
-    public <A> A getAspect(StreamBuilderAspectType<A> streamBuilderAspectType) {
+    public <A> A getAspect(@NotNull StreamBuilderAspectType<A> streamBuilderAspectType) {
         return aspects.get(streamBuilderAspectType);
     }
 
+    @NotNull
     @Override
     public DataStream<CantoDAPAsset> createDataStream() {
         return new CantoDAPDataStream();
     }
 
+    @NotNull
     @Override
     public List<Parameter<?>> getDefinedParameters() {
 
@@ -53,7 +56,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
     }
 
     @Override
-    public void setFilter(ParameterMap parameterMap) {
+    public void setFilter(@NotNull ParameterMap parameterMap) {
         this.parameterMap = parameterMap;
     }
 
@@ -71,6 +74,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
             cantoDAPAssets = cantoSearchResultDTO.getResults().stream().map(CantoDAPAsset::fromCantoAssetDTO).iterator();
         }
 
+        @NotNull
         @Override
         public List<CantoDAPAsset> getNext(int count) {
             List<CantoDAPAsset> result = new ArrayList<>();

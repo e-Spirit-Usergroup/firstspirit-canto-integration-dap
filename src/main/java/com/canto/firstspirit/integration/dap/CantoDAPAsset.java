@@ -5,9 +5,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class CantoDAPAsset {
 
-    int THUMBNAIL_WIDTH = 100;
-
-
     private final String _title;
     private final String _thumbnailUrl;
     private final String _previewUrl;

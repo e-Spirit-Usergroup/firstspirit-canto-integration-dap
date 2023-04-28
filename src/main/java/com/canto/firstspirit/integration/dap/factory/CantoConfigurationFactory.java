@@ -10,8 +10,8 @@ import org.jetbrains.annotations.NotNull;
 public class CantoConfigurationFactory {
     /**
      * Get a configuration from a broker with project binding
-     * @param broker
-     * @return
+     * @param broker project bound broker
+     * @return Canto Configuration based on ProjectApp Config
      */
     @NotNull
     public static CantoConfiguration fromProjectBroker(SpecialistsBroker broker){

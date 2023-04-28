@@ -5,14 +5,14 @@ import java.io.Serializable;
 public class CantoAssetDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String id;
-    private String name;
-    private String thumbnailUrl;
-    private String previewUrl;
-    private String schema;
-    private String description;
-    private String mdcAssetBaseUrl;
-    private String mdcRenditionBaseUrl;
+    private final String id;
+    private final String name;
+    private final String thumbnailUrl;
+    private final String previewUrl;
+    private final String schema;
+    private final String description;
+    private final String mdcAssetBaseUrl;
+    private final String mdcRenditionBaseUrl;
 
 
     public CantoAssetDTO(String id, String name, String thumbnailUrl, String previewUrl, String schema, String description, String mdcAssetBaseUrl, String mdcRenditionBaseUrl){

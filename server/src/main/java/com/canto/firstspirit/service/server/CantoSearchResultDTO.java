@@ -7,11 +7,11 @@ import java.util.List;
 public class CantoSearchResultDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private int total;
+    private final int total;
 
-    private List<CantoAssetDTO> results;
+    private final List<CantoAssetDTO> results;
 
-    private CantoSearchParams searchParams;
+    private final CantoSearchParams searchParams;
 
     public CantoSearchResultDTO(int total, List<CantoAssetDTO> results, CantoSearchParams searchParams) {
         this.total = total;
@@ -27,6 +27,10 @@ public class CantoSearchResultDTO implements Serializable {
 
     public List<CantoAssetDTO> getResults() {
         return Collections.unmodifiableList(results);
+    }
+
+    public CantoSearchParams getSearchParams() {
+        return searchParams;
     }
 
 }

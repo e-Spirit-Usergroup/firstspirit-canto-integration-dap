@@ -4,6 +4,7 @@ package com.canto.firstspirit.api;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
@@ -18,6 +19,7 @@ final class TokenRequestInterceptor implements Interceptor {
         this.token = token;
     }
 
+    @NotNull
     @Override
     public Response intercept(Interceptor.Chain chain) throws IOException {
         Request originalRequest = chain.request();

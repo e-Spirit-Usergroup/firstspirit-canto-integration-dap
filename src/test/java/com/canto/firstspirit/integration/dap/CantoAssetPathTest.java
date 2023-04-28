@@ -1,9 +1,10 @@
 package com.canto.firstspirit.integration.dap;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class CantoAssetPathTest {
 
@@ -11,9 +12,10 @@ class CantoAssetPathTest {
 	void fromJson() {
 		final CantoAssetPath path = CantoAssetPath.fromIdentifier("{\"schema\":\"my-schema\",\"id\":\"my-identifier\"}");
 
-		assertThat(path).isNotNull();
-		assertThat(path.getSchema()).isEqualTo("my-schema");
-		assertThat(path.getId()).isEqualTo("my-identifier");
-		assertThat(path.getPath()).isEqualTo("my-schema/my-identifier");
+		assertNotNull(path);
+		Assertions.assertEquals("my-schema", path.getSchema());
+		Assertions.assertEquals("my-identifier", path.getIdentifier());
+		Assertions.assertEquals("my-schema/my-identifier", path.getPath());
+
 	}
 }

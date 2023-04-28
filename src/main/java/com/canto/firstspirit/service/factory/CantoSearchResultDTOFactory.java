@@ -2,7 +2,6 @@ package com.canto.firstspirit.service.factory;
 
 import com.canto.firstspirit.api.CantoApi;
 import com.canto.firstspirit.api.model.CantoSearchResult;
-import com.canto.firstspirit.service.server.CantoAssetDTO;
 import com.canto.firstspirit.service.server.CantoSearchParams;
 import com.canto.firstspirit.service.server.CantoSearchResultDTO;
 import de.espirit.common.base.Logging;

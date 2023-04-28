@@ -4,10 +4,10 @@ import java.io.Serializable;
 import java.util.Objects;
 
 public class CantoConfiguration implements Serializable {
-    private String tenant;
-    private String token;
-    private String mdc_domain;
-    private String mdc_account_id;
+    private final String tenant;
+    private final String token;
+    private final String mdc_domain;
+    private final String mdc_account_id;
     private static final long serialVersionUID = 1L;
 
     public String getTenant() {

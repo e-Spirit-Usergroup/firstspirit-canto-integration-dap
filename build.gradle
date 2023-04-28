@@ -59,6 +59,8 @@ configurations {
 }
 
 dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+
     fsServerCompile project(':server')
     fsWebCompile project(':server')
 
@@ -69,7 +71,6 @@ dependencies {
 
     compileOnly group: 'de.espirit.firstspirit', name: 'fs-isolated-runtime', version: "${fsRuntimeVersion}"
 
-    testImplementation 'junit:junit:4.13.2'
 }
 
 /*
@@ -92,4 +93,8 @@ firstSpiritModule {
 
 release {
     ignoredSnapshotDependencies = ['de.espirit.firstspirit:fs-license']
+}
+
+test {
+    useJUnitPlatform()
 }

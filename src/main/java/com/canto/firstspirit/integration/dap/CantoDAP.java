@@ -19,6 +19,7 @@ import com.canto.firstspirit.config.CantoProjectApp;
 import com.espirit.moddev.components.annotations.PublicComponent;
 import com.espirit.ps.psci.magicicons.MagicIcon;
 import com.espirit.ps.psci.magicicons.usages.ReportIcon;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,10 +38,11 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
     private BaseContext context;
 
     @Override
-    public <A> A getAspect(final DataAccessAspectType<A> dataAccessAspectType) {
+    public <A> A getAspect(@NotNull final DataAccessAspectType<A> dataAccessAspectType) {
         return aspectMap.get(dataAccessAspectType);
     }
 
+    @NotNull
     @Override
     public String getLabel() {
         return "Canto";
@@ -51,13 +53,14 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
         return null;
     }
 
+    @NotNull
     @Override
     public DataAccessSessionBuilder<CantoDAPAsset> createSessionBuilder() {
-        return new CantoDAPSessionBuilder(this.context);
+        return new CantoDAPSessionBuilder();
     }
 
     @Override
-    public void setUp(final BaseContext baseContext) {
+    public void setUp(@NotNull final BaseContext baseContext) {
         this.context = baseContext;
         if(CantoProjectApp.isInstalled(context)) {
             aspectMap.put(Reporting.TYPE, this);
@@ -87,6 +90,7 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
         return null;
     }
 
+    @NotNull
     @Override
     public Collection<? extends ReportItem<CantoDAPAsset>> getItems() {
 
@@ -102,26 +106,27 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
     @SuppressWarnings("unused")
     private static class OpenImageInDialogItem implements ClientScriptProvidingReportItem<CantoDAPAsset> {
 
-        static String ICON_URL = MagicIcon.fromResource(CantoDAP.class, '/' + CANTOSASS_ICONS_PATH + "openInNewWindow.png").base64url();
-        static String SCRIPT_TEMPLATE = getScriptSrc();
+        static final String ICON_URL = MagicIcon.fromResource(CantoDAP.class, '/' + CANTOSASS_ICONS_PATH + "openInNewWindow.png").base64url();
+        static final String SCRIPT_TEMPLATE = getScriptSrc();
 
         @Override
-        public boolean isVisible(final ReportContext<CantoDAPAsset> reportContext) {
+        public boolean isVisible(@NotNull final ReportContext<CantoDAPAsset> reportContext) {
             return true;
         }
 
         @Override
-        public boolean isEnabled(final ReportContext<CantoDAPAsset> reportContext) {
+        public boolean isEnabled(@NotNull final ReportContext<CantoDAPAsset> reportContext) {
             return true;
         }
 
+        @NotNull
         @Override
-        public String getLabel(final ReportContext<CantoDAPAsset> cantoDAPAssetReportContext) {
+        public String getLabel(@NotNull final ReportContext<CantoDAPAsset> cantoDAPAssetReportContext) {
             return "Show Image";
         }
 
         @Override
-        public String getIconPath(final ReportContext<CantoDAPAsset> cantoDAPAssetReportContext) {
+        public String getIconPath(@NotNull final ReportContext<CantoDAPAsset> cantoDAPAssetReportContext) {
             return ICON_URL;
         }
 
@@ -137,10 +142,13 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
             final String scriptName = "openInNewWindow.js";
             final Class<CantoDAP> LOGGER = CantoDAP.class;
             final InputStream is = LOGGER.getResourceAsStream('/' + CANTOSASS_JS_PATH + scriptName);
+            if(is != null) {
+
             try {
                 return Streams.toString(is, StandardCharsets.UTF_8.name());
             } catch (final IOException e) {
                 Logging.logWarning("Could not get JS resource file "+scriptName, e, LOGGER);
+            }
             }
             return "";
         }
