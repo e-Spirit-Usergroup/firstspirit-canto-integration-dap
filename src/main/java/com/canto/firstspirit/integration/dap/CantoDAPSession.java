@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, TransferHandling<CantoDAPAsset>, TransferSupplying<CantoDAPAsset>, DataTemplating<CantoDAPAsset> {
     private final BaseContext context;
 
-    private SessionAspectMap sessionAspectMap = new SessionAspectMap();
+    final private SessionAspectMap sessionAspectMap = new SessionAspectMap();
     private final CantoClientApiInstance cantoClientApiInstance;
 
     public CantoDAPSession(BaseContext baseContext) {
@@ -54,10 +54,11 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     }
 
     @Override
-    public <A> A getAspect(SessionAspectType<A> sessionAspectType) {
+    public <A> A getAspect(@NotNull SessionAspectType<A> sessionAspectType) {
         return this.sessionAspectMap.get(sessionAspectType);
     }
 
+    @NotNull
     @Override
     public CantoDAPAsset getData(@NotNull final String s) throws NoSuchElementException {
         return getData(Collections.singleton(s))
@@ -66,6 +67,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
                 .orElseThrow(() -> new NoSuchElementException("Element with identifier " + s + " not found"));
     }
 
+    @NotNull
     @Override
     public List<CantoDAPAsset> getData(@NotNull final Collection<String> identifiers) {
         Logging.logInfo("getData: " + Strings.implode(identifiers, ", "), getClass());
@@ -79,6 +81,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
                 .collect(Collectors.toList());
     }
 
+    @NotNull
     @Override
     public String getIdentifier(@NotNull final CantoDAPAsset cantoDAPAsset) throws NoSuchElementException {
         return cantoDAPAsset.getIdentifier();
@@ -86,8 +89,9 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
 
     public static class CantoDAPJsonSupportingAspect implements JsonSupporting<CantoDAPAsset> {
 
+        @NotNull
         @Override
-        public JsonElement<?> handle(JsonGenerationContext jsonGenerationContext, CantoDAPAsset cantoDAPAsset) {
+        public JsonElement<?> handle(@NotNull JsonGenerationContext jsonGenerationContext, CantoDAPAsset cantoDAPAsset) {
             final JsonObject jsonResult = JsonObject.create();
             jsonResult.put(JsonPair.of("title", JsonStringValue.of(cantoDAPAsset.getTitle())));
             jsonResult.put(JsonPair.of("thumbnailUrl", JsonStringValue.of(cantoDAPAsset.getThumbnailUrl())));
@@ -98,17 +102,20 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
             return jsonResult;
         }
 
+        @NotNull
         @Override
         public Class<CantoDAPAsset> getSupportedClass() {
             return CantoDAPAsset.class;
         }
     }
 
+    @NotNull
     @Override
     public DataSnippetProvider<CantoDAPAsset> createDataSnippetProvider() {
         return new CantoDAPSnippetProvider(context);
     }
 
+    @NotNull
     @Override
     public DataStreamBuilder<CantoDAPAsset> createDataStreamBuilder() {
         return new CantoDAPStreamBuilder(cantoClientApiInstance);
@@ -129,14 +136,14 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     }
 
     @Override
-    public String getTemplate(CantoDAPAsset cantoDAPAsset, Language language) {
+    public String getTemplate(@NotNull CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
 
         return "<h2>${title}</h2>" +
                 "<div><img src=\"${image}\" /></div>";
     }
 
     @Override
-    public void registerParameters(ParameterSet parameterSet, CantoDAPAsset cantoDAPAsset, Language language) {
+    public void registerParameters(ParameterSet parameterSet, CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
         parameterSet.addText("title", cantoDAPAsset.getTitle());
         parameterSet.addText("image", cantoDAPAsset.getThumbnailUrl());
         /*

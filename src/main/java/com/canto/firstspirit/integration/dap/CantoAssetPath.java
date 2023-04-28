@@ -10,19 +10,14 @@ import java.io.IOException;
 
 public class CantoAssetPath {
 
-	private String schema;
-	private String id;
+	private final String schema;
+	private final String id;
 
 
 	public CantoAssetPath(final String schema, final String id) {
 		this.schema = schema;
 		this.id = id;
 	}
-
-
-	public CantoAssetPath() {
-	}
-
 
 	public String getSchema() {
 		return schema;

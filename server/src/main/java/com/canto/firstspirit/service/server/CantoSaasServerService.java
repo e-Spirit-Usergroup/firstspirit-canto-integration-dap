@@ -1,4 +1,4 @@
-package com.canto.firstspirit.service;
+package com.canto.firstspirit.service.server;
 
 
 import java.util.Collection;

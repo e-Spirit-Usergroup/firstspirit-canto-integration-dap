@@ -1,6 +1,8 @@
 package com.canto.firstspirit.integration.dap;
 
 import com.canto.firstspirit.service.*;
+import com.canto.firstspirit.service.server.CantoSearchParams;
+import com.canto.firstspirit.service.server.CantoSearchResultDTO;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataStream;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataStreamBuilder;
 import de.espirit.firstspirit.client.plugin.dataaccess.aspects.Filterable;
@@ -9,6 +11,7 @@ import de.espirit.firstspirit.client.plugin.dataaccess.aspects.StreamBuilderAspe
 import de.espirit.firstspirit.client.plugin.report.Parameter;
 import de.espirit.firstspirit.client.plugin.report.ParameterMap;
 import de.espirit.firstspirit.client.plugin.report.ParameterText;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,15 +37,17 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
     }
 
     @Override
-    public <A> A getAspect(StreamBuilderAspectType<A> streamBuilderAspectType) {
+    public <A> A getAspect(@NotNull StreamBuilderAspectType<A> streamBuilderAspectType) {
         return aspects.get(streamBuilderAspectType);
     }
 
+    @NotNull
     @Override
     public DataStream<CantoDAPAsset> createDataStream() {
         return new CantoDAPDataStream();
     }
 
+    @NotNull
     @Override
     public List<Parameter<?>> getDefinedParameters() {
 
@@ -51,7 +56,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
     }
 
     @Override
-    public void setFilter(ParameterMap parameterMap) {
+    public void setFilter(@NotNull ParameterMap parameterMap) {
         this.parameterMap = parameterMap;
     }
 
@@ -62,13 +67,14 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
 
 
         public CantoDAPDataStream(){
-            CantoSearchParamsImpl searchParams = new CantoSearchParamsBuilder().keyword(parameterMap.get(paramKeyword)).create();
+            CantoSearchParams searchParams = new CantoSearchParamsBuilder().keyword(parameterMap.get(paramKeyword)).create();
             CantoSearchResultDTO cantoSearchResultDTO = cantoApi.findAssets(searchParams);
 
             total = cantoSearchResultDTO.getTotal();
             cantoDAPAssets = cantoSearchResultDTO.getResults().stream().map(CantoDAPAsset::fromCantoAssetDTO).iterator();
         }
 
+        @NotNull
         @Override
         public List<CantoDAPAsset> getNext(int count) {
             List<CantoDAPAsset> result = new ArrayList<>();

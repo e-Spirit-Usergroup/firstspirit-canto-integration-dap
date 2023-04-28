@@ -5,10 +5,7 @@ import com.canto.firstspirit.api.model.CantoSearchResult;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import de.espirit.common.base.Logging;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
 import okio.BufferedSource;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,7 +15,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 
 
 public class CantoApi {
@@ -61,10 +57,10 @@ public class CantoApi {
         HttpUrl url = getMDCUrl()
                 .addPathSegment("asset")
                 .addPathSegment(this.mdc_account_id)
-                .addPathSegments(asset.getScheme()+"_"+asset.getId())
+                .addPathSegments(asset.getScheme() + "_" + asset.getId())
                 .build();
 
-        Logging.logInfo("getMDCAssetBaseUrl " + url.toString(), getClass());
+        Logging.logInfo("getMDCAssetBaseUrl " + url, getClass());
 
         return url.toString();
     }
@@ -73,10 +69,10 @@ public class CantoApi {
         HttpUrl url = getMDCUrl()
                 .addPathSegment("image")
                 .addPathSegment(this.mdc_account_id)
-                .addPathSegments(asset.getScheme()+"_"+asset.getId())
+                .addPathSegments(asset.getScheme() + "_" + asset.getId())
                 .build();
 
-        Logging.logInfo("getMDCRenditionBaseUrl " + url.toString(), getClass());
+        Logging.logInfo("getMDCRenditionBaseUrl " + url, getClass());
 
         return url.toString();
     }
@@ -91,7 +87,7 @@ public class CantoApi {
                 .addPathSegment("original")
                 .build();
 
-        Logging.logInfo("getImage " + url.toString(), getClass());
+        Logging.logInfo("getImage " + url, getClass());
 
         return url.toString();
     }
@@ -111,7 +107,7 @@ public class CantoApi {
                 .addPathSegment(Integer.toString(resolution))
                 .build();
 
-        Logging.logInfo("preview " + url.toString(), getClass());
+        Logging.logInfo("preview " + url, getClass());
 
         return url.toString();
     }
@@ -146,9 +142,7 @@ public class CantoApi {
 
     public List<CantoAsset> getAssets(@NotNull Collection<String> identifiers) {
 
-        /*return identifiers.stream().map(id -> getAssetById(id).orElseGet(() -> CantoAsset.createDummyAsset(id)))
-                .collect(Collectors.toList());*/
-        return identifiers.stream().map(id -> getAssetById(id).orElseGet(null))
+        return identifiers.stream().map(id -> getAssetById(id).orElse(null))
                 .collect(Collectors.toList());
 
     }
@@ -161,15 +155,16 @@ public class CantoApi {
     private BufferedSource getRequest(HttpUrl url) throws IOException {
 
         Request request = new Request.Builder().url(url).build();
-        Response response = client.newCall(request).execute();
+        try (Response response = client.newCall(request).execute()) {
 
-        if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
-        try {
-            return response.body().source();
-        } catch (NullPointerException e) {
-            throw new IOException(e.getMessage());
+            ResponseBody body = response.body();
+            if (body == null) throw new NullPointerException("Response body was null");
+            return body.source();
+
         }
+
     }
 
 
@@ -180,14 +175,14 @@ public class CantoApi {
                 .addPathSegments(id)
                 .build();
 
-        Logging.logInfo("getAsset " + url.toString(), getClass());
+        Logging.logInfo("getAsset " + url, getClass());
 
         CantoAsset asset = null;
 
         try {
             asset = cantoAssetJsonAdapter.fromJson(getRequest(url));
         } catch (IOException e) {
-
+            // Ignore
         }
 
         return Optional.ofNullable(asset);
@@ -202,12 +197,12 @@ public class CantoApi {
                 .addQueryParameter("keyword", keyword)
                 .build();
 
-        Logging.logInfo("search " + url.toString(), getClass());
+        Logging.logInfo("search " + url, getClass());
 
         try {
             CantoSearchResult cantoSearchResult = cantoSearchResultJsonAdapter.fromJson(getRequest(url));
 
-            Logging.logInfo("searchResult " + cantoSearchResult.toString(), getClass());
+            Logging.logInfo("searchResult " + cantoSearchResult, getClass());
 
             if (cantoSearchResult != null && cantoSearchResult.getResults() == null) {
                 cantoSearchResult.setResults(Collections.emptyList());

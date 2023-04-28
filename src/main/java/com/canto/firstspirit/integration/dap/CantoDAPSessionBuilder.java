@@ -5,26 +5,21 @@ import de.espirit.firstspirit.client.plugin.dataaccess.DataAccessSession;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataAccessSessionBuilder;
 import de.espirit.firstspirit.client.plugin.dataaccess.aspects.SessionBuilderAspectMap;
 import de.espirit.firstspirit.client.plugin.dataaccess.aspects.SessionBuilderAspectType;
-import com.espirit.moddev.components.annotations.WebAppComponent;
-import com.espirit.moddev.components.annotations.WebResource;
-import static de.espirit.firstspirit.module.descriptor.WebAppDescriptor.WebAppScope.GLOBAL;
-
+import org.jetbrains.annotations.NotNull;
 
 public class CantoDAPSessionBuilder implements DataAccessSessionBuilder<CantoDAPAsset> {
-    private final BaseContext context;
-    private SessionBuilderAspectMap sessionBuilderAspectMap = new SessionBuilderAspectMap();
+    private final SessionBuilderAspectMap sessionBuilderAspectMap = new SessionBuilderAspectMap();
 
-    public CantoDAPSessionBuilder(BaseContext context) {
-        this.context = context;
-    }
+    public CantoDAPSessionBuilder() {}
 
     @Override
-    public <A> A getAspect(SessionBuilderAspectType<A> sessionBuilderAspectType) {
+    public <A> A getAspect(@NotNull SessionBuilderAspectType<A> sessionBuilderAspectType) {
         return this.sessionBuilderAspectMap.get(sessionBuilderAspectType);
     }
 
+    @NotNull
     @Override
-    public DataAccessSession<CantoDAPAsset> createSession(BaseContext baseContext) {
+    public DataAccessSession<CantoDAPAsset> createSession(@NotNull BaseContext baseContext) {
         return new CantoDAPSession(baseContext);
     }
 }

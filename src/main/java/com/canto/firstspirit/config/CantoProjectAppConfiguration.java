@@ -11,10 +11,6 @@ public class CantoProjectAppConfiguration extends GenericConfigPanel<ProjectEnvi
     public static final String PARAM_MDC_DOMAIN = "mdc_domain";
     public static final String PARAM_MDC_ACCOUNT_ID = "mdc_account_id";
 
-    /*
-    public static final String PARAM_CLIENTID = "clientid";
-    public static final String PARAM_CLIENTSECRET = "clientsecret";
-    */
 
     @Override
     protected void configure() {

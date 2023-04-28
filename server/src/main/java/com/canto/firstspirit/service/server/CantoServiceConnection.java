@@ -1,15 +1,17 @@
-package com.canto.firstspirit.service;
+package com.canto.firstspirit.service.server;
 
-public class CantoServiceConnectionImpl implements  CantoServiceConnection {
+import java.io.Serializable;
+
+public class CantoServiceConnection implements Serializable {
     private final int connectionId;
     private static final long serialVersionUID = 1L;
 
-    public CantoServiceConnectionImpl(final int connectionId) {
+    public CantoServiceConnection(final int connectionId) {
         this.connectionId = connectionId;
     }
 
     public static CantoServiceConnection fromConfig(final CantoConfiguration configuration) {
-        return new CantoServiceConnectionImpl(configuration.hashCode());
+        return new CantoServiceConnection(configuration.hashCode());
     }
 
     @Override
@@ -18,7 +20,6 @@ public class CantoServiceConnectionImpl implements  CantoServiceConnection {
                 && connectionId == ((CantoServiceConnection) other).getConnectionId());
     }
 
-    @Override
     public int getConnectionId() {
         return connectionId;
     }

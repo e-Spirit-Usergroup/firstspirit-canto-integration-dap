@@ -1,20 +1,21 @@
-package com.canto.firstspirit.service;
+package com.canto.firstspirit.service.server;
 
-public class CantoSearchParamsImpl implements CantoSearchParams {
+import java.io.Serializable;
+
+public class CantoSearchParams implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private final int start;
     private final int limit;
 
 
-    @Override
     public String getKeyword() {
         return keyword;
     }
 
     private final String keyword;
 
-    public CantoSearchParamsImpl(int start, int limit, String keyword) {
+    public CantoSearchParams(int start, int limit, String keyword) {
         this.start = start;
         this.limit = limit;
         this.keyword = keyword;

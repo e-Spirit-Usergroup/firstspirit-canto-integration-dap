@@ -1,5 +1,7 @@
 package com.canto.firstspirit.service;
 
+import com.canto.firstspirit.service.server.CantoSearchParams;
+
 public class CantoSearchParamsBuilder {
 
     private String keyword;
@@ -10,7 +12,7 @@ public class CantoSearchParamsBuilder {
         return this;
     }
 
-    public CantoSearchParamsImpl create() {
-        return new CantoSearchParamsImpl(0, Integer.MAX_VALUE, keyword);
+    public CantoSearchParams create() {
+        return new CantoSearchParams(0, Integer.MAX_VALUE, keyword);
     }
 }
