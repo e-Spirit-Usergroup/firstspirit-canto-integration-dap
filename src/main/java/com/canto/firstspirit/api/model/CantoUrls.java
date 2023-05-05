@@ -11,7 +11,9 @@ public class CantoUrls {
     private String PNG;
     private String LowJPG;
 
-    public CantoUrls(String preview, String detail, String download, String metadata, String highJPG, String png, String lowJPG) {
+    private String directUrlPreview;
+
+    public CantoUrls(String preview, String detail, String download, String metadata, String highJPG, String png, String lowJPG, String directUrlPreview) {
         this.preview = preview;
         this.detail = detail;
         this.download = download;
@@ -19,6 +21,7 @@ public class CantoUrls {
         HighJPG = highJPG;
         PNG = png;
         LowJPG = lowJPG;
+        this.directUrlPreview = directUrlPreview;
     }
 
     public CantoUrls() {
@@ -50,5 +53,9 @@ public class CantoUrls {
 
     public String getLowJPG() {
         return LowJPG;
+    }
+
+    public String getDirectUrlPreview() {
+        return directUrlPreview;
     }
 }

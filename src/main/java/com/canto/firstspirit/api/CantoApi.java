@@ -9,7 +9,6 @@ import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -87,7 +86,7 @@ public class CantoApi {
 
         CantoAsset asset = null;
 
-        try (Response response = executeRequest(url)) {
+        try (Response response = executeGetRequest(url)) {
             ResponseBody body = response.body();
             if (body == null) throw new IllegalStateException("Response Body was null for url " + url);
             asset = cantoAssetJsonAdapter.fromJson(body.source());
@@ -105,7 +104,7 @@ public class CantoApi {
      * @return
      */
     public List<CantoAsset> fetchAssets(@NotNull List<String> identifiers) {
-
+        // TODO: batch Post Request
         return identifiers.stream().map(id -> fetchAssetById(id).orElse(null))
                 .collect(Collectors.toList());
 
@@ -127,7 +126,7 @@ public class CantoApi {
 
         Logging.logInfo("search " + url, getClass());
 
-        try (Response response = executeRequest(url)) {
+        try (Response response = executeGetRequest(url)) {
             ResponseBody body = response.body();
             if (body == null) throw new IllegalStateException("Response Body was null for url " + url);
             CantoSearchResult cantoSearchResult = cantoSearchResultJsonAdapter.fromJson(body.source());
@@ -156,11 +155,9 @@ public class CantoApi {
      * @return body source code
      * @throws IOException on failed request
      */
-    private Response executeRequest(HttpUrl url) throws IOException {
-
+    private Response executeGetRequest(HttpUrl url) throws IOException {
 
         Request request = new Request.Builder().url(url).build();
-
         Response response = client.newCall(request).execute();
 
         if (!response.isSuccessful()) {
@@ -175,5 +172,31 @@ public class CantoApi {
             return body.source();
 */
     }
+
+
+    /**
+     * @param url Request URL
+     * @return body source code
+     * @throws IOException on failed request
+     */
+    private Response executePostRequest(HttpUrl url, String jsonBody) throws IOException {
+        RequestBody requestBody = RequestBody.create(jsonBody, MediaType.parse("application/json"));
+        Request request = new Request.Builder().url(url).post(requestBody).build();
+        Response response = client.newCall(request).execute();
+
+        if (!response.isSuccessful()) {
+            response.close();
+            throw new IOException("Unexpected code " + response.code());
+        }
+
+        return response;
+/*
+            ResponseBody body = response.body();
+            if (body == null) throw new NullPointerException("Response body was null");
+            return body.source();
+*/
+    }
+
+
 
 }

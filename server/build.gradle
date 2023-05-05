@@ -1,7 +1,5 @@
 plugins {
     id 'java'
-    id 'de.espirit.firstspirit-module' version '4.1.1'
-    id 'net.researchgate.release' version '2.8.1'
 }
 
 dependencies {

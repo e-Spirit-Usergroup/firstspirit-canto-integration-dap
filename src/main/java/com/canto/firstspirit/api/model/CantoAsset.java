@@ -1,6 +1,9 @@
 package com.canto.firstspirit.api.model;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("unused")
 public class CantoAsset {
@@ -31,9 +34,12 @@ public class CantoAsset {
 
     private List<CantoVersionHistory> versionHistory;
 
+    @Nullable
+    private Map<String, String> additional;
+
     private boolean isDummy = false;
 
-    public CantoAsset(String name, String ownerName, String time, Long width, Long height, Long dpi, CantoUrls url, String id, String scheme, String owner, String description, Long size, List<CantoVersionHistory> versionHistory) {
+    public CantoAsset(String name, String ownerName, String time, Long width, Long height, Long dpi, CantoUrls url, String id, String scheme, String owner, String description, Long size, List<CantoVersionHistory> versionHistory, Map<String, String> additional) {
         this.name = name;
         this.ownerName = ownerName;
         this.time = time;
@@ -47,6 +53,7 @@ public class CantoAsset {
         this.description = description;
         this.size = size;
         this.versionHistory = versionHistory;
+        this.additional = additional;
     }
 
     public CantoAsset() {
@@ -163,5 +170,12 @@ public class CantoAsset {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public @Nullable Map<String, String> getAdditional() {
+        return additional;
+    }
+    public void setAdditional(@Nullable Map<String, String> additional) {
+        this.additional = additional;
     }
 }

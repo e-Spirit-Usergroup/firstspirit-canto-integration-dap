@@ -55,6 +55,9 @@ public class CantoDAPAsset {
         return _previewUrl;
     }
 
+
+
+
     public String getMDCRenditionBaseUrl() {
         return _mdc_rendition_baseurl;
     }
