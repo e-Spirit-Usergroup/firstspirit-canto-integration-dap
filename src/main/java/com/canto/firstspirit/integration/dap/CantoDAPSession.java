@@ -1,5 +1,7 @@
 package com.canto.firstspirit.integration.dap;
 
+import com.canto.firstspirit.integration.dap.model.CantoAssetPath;
+import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
 import de.espirit.common.base.Logging;
 import de.espirit.common.tools.Strings;
 import de.espirit.firstspirit.access.BaseContext;
@@ -24,7 +26,7 @@ import de.espirit.firstspirit.json.JsonPair;
 import de.espirit.firstspirit.json.values.JsonStringValue;
 import de.espirit.firstspirit.ui.gadgets.aspects.transfer.TransferType;
 
-import com.canto.firstspirit.service.CantoClientApiInstance;
+import com.canto.firstspirit.service.CantoServiceProjectAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -38,14 +40,14 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     private final BaseContext context;
 
     final private SessionAspectMap sessionAspectMap = new SessionAspectMap();
-    private final CantoClientApiInstance cantoClientApiInstance;
+    private final CantoServiceProjectAdapter cantoServiceProjectAdapter;
 
     public CantoDAPSession(BaseContext baseContext) {
 
         Logging.logInfo("CantoDapSession Created", this.getClass());
         this.context = baseContext;
 
-        cantoClientApiInstance = CantoClientApiInstance.fromProjectBroker(context);
+        cantoServiceProjectAdapter = CantoServiceProjectAdapter.fromProjectBroker(context);
 
         sessionAspectMap.put(TransferHandling.TYPE, this);
         sessionAspectMap.put(TransferSupplying.TYPE, this);
@@ -78,7 +80,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
                 .map(CantoAssetPath::getPath)
                 .collect(Collectors.toList());
         Logging.logInfo("getData: " + Strings.implode(assetPaths, ", "), getClass());
-        return cantoClientApiInstance.getAssets(assetPaths).stream()
+        return cantoServiceProjectAdapter.getAssets(assetPaths).stream()
                 .map(CantoDAPAsset::fromCantoAssetDTO)
                 .collect(Collectors.toList());
     }
@@ -120,7 +122,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     @NotNull
     @Override
     public DataStreamBuilder<CantoDAPAsset> createDataStreamBuilder() {
-        return new CantoDAPStreamBuilder(cantoClientApiInstance);
+        return new CantoDAPStreamBuilder(cantoServiceProjectAdapter);
     }
 
     @Override

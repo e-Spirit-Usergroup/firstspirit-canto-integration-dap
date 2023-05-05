@@ -1,4 +1,4 @@
-package com.canto.firstspirit.service.server;
+package com.canto.firstspirit.service.server.model;
 
 import java.io.Serializable;
 

@@ -1,8 +1,9 @@
 package com.canto.firstspirit.integration.dap;
 
+import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
 import com.canto.firstspirit.service.*;
-import com.canto.firstspirit.service.server.CantoSearchParams;
-import com.canto.firstspirit.service.server.CantoSearchResultDTO;
+import com.canto.firstspirit.service.server.model.CantoSearchParams;
+import com.canto.firstspirit.service.server.model.CantoSearchResultDTO;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataStream;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataStreamBuilder;
 import de.espirit.firstspirit.client.plugin.dataaccess.aspects.Filterable;
@@ -21,7 +22,7 @@ import java.util.List;
 
 public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, Filterable {
     private final StreamBuilderAspectMap aspects = new StreamBuilderAspectMap();
-    private final CantoClientApiInstance cantoApi;
+    private final CantoServiceProjectAdapter cantoApi;
     private ParameterMap parameterMap;
     private final ParameterText paramKeyword;
     private final ParameterText paramTag;
@@ -29,7 +30,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
 
 
 
-    public CantoDAPStreamBuilder(CantoClientApiInstance cantoApi) {
+    public CantoDAPStreamBuilder(CantoServiceProjectAdapter cantoApi) {
         this.cantoApi = cantoApi;
         aspects.put(Filterable.TYPE,this);
         paramKeyword = Parameter.Factory.createText("keyword", "Keyword","");
@@ -67,7 +68,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
 
 
         public CantoDAPDataStream(){
-            CantoSearchParams searchParams = new CantoSearchParamsBuilder().keyword(parameterMap.get(paramKeyword)).create();
+            CantoSearchParams searchParams = new CantoSearchParams(parameterMap.get(paramKeyword));
             CantoSearchResultDTO cantoSearchResultDTO = cantoApi.findAssets(searchParams);
 
             total = cantoSearchResultDTO.getTotal();

@@ -1,19 +1,22 @@
 package com.canto.firstspirit.service.factory;
 
 import com.canto.firstspirit.api.CantoApi;
+import com.canto.firstspirit.api.CantoAssetUtils;
 import com.canto.firstspirit.api.model.CantoAsset;
-import com.canto.firstspirit.service.server.CantoAssetDTO;
+import com.canto.firstspirit.service.server.model.CantoAssetDTO;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CantoAssetDTOFactory {
 
-    public static CantoAssetDTO fromAsset(@NotNull CantoAsset asset, @NotNull CantoApi cantoApi) {
+    public static @Nullable CantoAssetDTO fromAsset(@Nullable CantoAsset asset, @NotNull CantoApi cantoApi) {
+        if(asset == null) return null;
 
         return new CantoAssetDTO(
                 asset.getId(),
                 asset.getName(),
-                cantoApi.getPreviewImageUrl(asset),
-                cantoApi.getPreviewImageUrl(asset),
+                CantoAssetUtils.getThumbnailUrl(asset),
+                CantoAssetUtils.getPreviewUrl(asset),
                 asset.getScheme(),
                 asset.getDescription(),
                 cantoApi.getMDCAssetBaseUrl(asset),

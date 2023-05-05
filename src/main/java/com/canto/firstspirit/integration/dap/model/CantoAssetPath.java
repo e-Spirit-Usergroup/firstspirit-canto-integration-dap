@@ -1,4 +1,4 @@
-package com.canto.firstspirit.integration.dap;
+package com.canto.firstspirit.integration.dap.model;
 
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;

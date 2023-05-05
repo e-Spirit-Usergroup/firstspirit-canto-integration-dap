@@ -76,103 +76,7 @@ public class CantoApi {
         return url.toString();
     }
 
-    @PublicApi
-    public String getImageUrl(String assetID) {
-        /* https://{canto.tenant}/download/{SCHEME}/{ASSET_ID}/original */
-
-        HttpUrl url = getApiUrl()
-                .addPathSegment("download")
-                .addPathSegments(assetID)
-                .addPathSegment("original")
-                .build();
-
-        Logging.logInfo("getImage " + url, getClass());
-
-        return url.toString();
-    }
-
-    @PublicApi
-    public String getImageUrl(@NotNull CantoAsset asset) {
-        return getImageUrl(asset.getScheme() + "/" + asset.getId());
-    }
-
-    @PublicApi
-    public String getPreviewImageUrl(String assetID, int resolution) {
-
-        /* https://{canto.tenant}/preview/{asset}/{res} */
-        HttpUrl url = getApiUrl()
-                .addPathSegment("preview")
-                .addPathSegments(assetID)
-                .addPathSegment(Integer.toString(resolution))
-                .build();
-
-        Logging.logInfo("preview " + url, getClass());
-
-        return url.toString();
-    }
-
-
-    @PublicApi
-    public String getThumbnailUrl(String assetID) {
-        return getPreviewImageUrl(assetID, 100);
-    }
-
-    @PublicApi
-    public String getThumbnailUrl(@NotNull CantoAsset asset) {
-        return getPreviewImageUrl(asset, 100);
-    }
-
-    @PublicApi
-    public String getPreviewImageUrl(String assetID) {
-        return getPreviewImageUrl(assetID, 800);
-    }
-
-    @PublicApi
-    public String getPreviewImageUrl(@NotNull CantoAsset asset) {
-
-        return getPreviewImageUrl(asset.getScheme() + "/" + asset.getId());
-    }
-
-    @PublicApi
-    public String getPreviewImageUrl(@NotNull CantoAsset asset, int resolution) {
-        return getPreviewImageUrl(asset.getScheme() + "/" + asset.getId(), resolution);
-    }
-
-
-    public List<CantoAsset> getAssets(@NotNull Collection<String> identifiers) {
-
-        return identifiers.stream().map(id -> getAssetById(id).orElse(null))
-                .collect(Collectors.toList());
-
-    }
-
-    /**
-     * @param url Request URL
-     * @return body source code
-     * @throws IOException on failed request
-     */
-    private Response executeRequest(HttpUrl url) throws IOException {
-
-
-        Request request = new Request.Builder().url(url).build();
-
-        Response response = client.newCall(request).execute();
-
-        if (!response.isSuccessful()) {
-            response.close();
-            throw new IOException("Unexpected code " + response.code());
-        }
-
-        return response;
-/*
-            ResponseBody body = response.body();
-            if (body == null) throw new NullPointerException("Response body was null");
-            return body.source();
-*/
-    }
-
-
-    private Optional<CantoAsset> getAssetById(String id) {
+    private Optional<CantoAsset> fetchAssetById(String id) {
 
         HttpUrl url = getApiUrl()
                 .addPathSegments("api/v1")
@@ -194,7 +98,25 @@ public class CantoApi {
         return Optional.ofNullable(asset);
     }
 
-    public CantoSearchResult search(String keyword) {
+
+    /**
+     * Fetch multiple Assets based on a Collection of identifiers
+     * @param identifiers
+     * @return
+     */
+    public List<CantoAsset> fetchAssets(@NotNull List<String> identifiers) {
+
+        return identifiers.stream().map(id -> fetchAssetById(id).orElse(null))
+                .collect(Collectors.toList());
+
+    }
+
+    /**
+     * Search Assets based on keyword.
+     * @param keyword passed as search filter
+     * @return Wrapper with a list of fetched CantoAssets including some MetaData about the search
+     */
+    public CantoSearchResult fetchSearch(String keyword) {
 
         // Logging.logWarning("test", CantoApi.class);
         HttpUrl url = getApiUrl()
@@ -227,4 +149,31 @@ public class CantoApi {
         }
 
     }
+
+
+    /**
+     * @param url Request URL
+     * @return body source code
+     * @throws IOException on failed request
+     */
+    private Response executeRequest(HttpUrl url) throws IOException {
+
+
+        Request request = new Request.Builder().url(url).build();
+
+        Response response = client.newCall(request).execute();
+
+        if (!response.isSuccessful()) {
+            response.close();
+            throw new IOException("Unexpected code " + response.code());
+        }
+
+        return response;
+/*
+            ResponseBody body = response.body();
+            if (body == null) throw new NullPointerException("Response body was null");
+            return body.source();
+*/
+    }
+
 }
