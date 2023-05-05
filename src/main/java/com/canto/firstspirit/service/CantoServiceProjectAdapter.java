@@ -1,6 +1,6 @@
 package com.canto.firstspirit.service;
 
-import com.canto.firstspirit.integration.dap.factory.CantoConfigurationFactory;
+import com.canto.firstspirit.service.factory.CantoConfigurationFactory;
 import com.canto.firstspirit.service.server.*;
 import de.espirit.firstspirit.access.ServicesBroker;
 import de.espirit.firstspirit.agency.SpecialistsBroker;

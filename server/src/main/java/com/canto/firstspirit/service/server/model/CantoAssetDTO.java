@@ -2,6 +2,9 @@ package com.canto.firstspirit.service.server;
 
 import java.io.Serializable;
 
+/**
+ * This class represents the DTO created by the service based on a CantoAsset from the CantoApi
+ */
 public class CantoAssetDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
