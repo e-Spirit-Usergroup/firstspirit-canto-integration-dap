@@ -1,6 +1,6 @@
-package com.canto.firstspirit.integration.dap;
+package com.canto.firstspirit.integration.dap.model;
 
-import com.canto.firstspirit.service.server.CantoAssetDTO;
+import com.canto.firstspirit.service.server.model.CantoAssetDTO;
 import org.jetbrains.annotations.NotNull;
 
 public class CantoDAPAsset {
@@ -15,9 +15,9 @@ public class CantoDAPAsset {
 
 
     @NotNull
-    static CantoDAPAsset fromCantoAssetDTO(@NotNull final CantoAssetDTO cantoAsset) {
+    public static CantoDAPAsset fromCantoAssetDTO(@NotNull final CantoAssetDTO cantoAssetDTO) {
         //todo: handle dummy case
-        return new CantoDAPAsset(cantoAsset.getSchema(), cantoAsset.getId(), cantoAsset.getName(), cantoAsset.getThumbnailUrl(), cantoAsset.getPreviewUrl(), cantoAsset.getDescription(), cantoAsset.getMDCRenditionBaseUrl(), cantoAsset.getMDCAssetBaseUrl());
+        return new CantoDAPAsset(cantoAssetDTO.getSchema(), cantoAssetDTO.getId(), cantoAssetDTO.getName(), cantoAssetDTO.getThumbnailUrl(), cantoAssetDTO.getPreviewUrl(), cantoAssetDTO.getDescription(), cantoAssetDTO.getMDCRenditionBaseUrl(), cantoAssetDTO.getMDCAssetBaseUrl());
     }
 
 
@@ -54,6 +54,9 @@ public class CantoDAPAsset {
     public String getPreviewUrl() {
         return _previewUrl;
     }
+
+
+
 
     public String getMDCRenditionBaseUrl() {
         return _mdc_rendition_baseurl;

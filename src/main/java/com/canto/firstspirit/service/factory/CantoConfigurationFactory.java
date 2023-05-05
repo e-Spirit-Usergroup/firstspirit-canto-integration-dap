@@ -1,8 +1,8 @@
-package com.canto.firstspirit.integration.dap.factory;
+package com.canto.firstspirit.service.factory;
 
 import com.canto.firstspirit.config.CantoProjectApp;
 import com.canto.firstspirit.config.CantoProjectAppConfiguration;
-import com.canto.firstspirit.service.server.CantoConfiguration;
+import com.canto.firstspirit.service.server.model.CantoConfiguration;
 import com.espirit.ps.psci.genericconfiguration.Values;
 import de.espirit.firstspirit.agency.SpecialistsBroker;
 import org.jetbrains.annotations.NotNull;

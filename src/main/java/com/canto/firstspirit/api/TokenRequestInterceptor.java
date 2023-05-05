@@ -23,10 +23,6 @@ final class TokenRequestInterceptor implements Interceptor {
     @Override
     public Response intercept(Interceptor.Chain chain) throws IOException {
         Request originalRequest = chain.request();
-        /*if (originalRequest.body() == null || originalRequest.header("Content-Encoding") != null) {
-            return chain.proceed(originalRequest);
-        }*/
-
         Request authorizedRequest = originalRequest.newBuilder()
                 .header("Authorization", "Bearer " + this.token)
                 .build();

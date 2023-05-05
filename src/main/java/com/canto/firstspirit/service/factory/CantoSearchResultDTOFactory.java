@@ -2,8 +2,8 @@ package com.canto.firstspirit.service.factory;
 
 import com.canto.firstspirit.api.CantoApi;
 import com.canto.firstspirit.api.model.CantoSearchResult;
-import com.canto.firstspirit.service.server.CantoSearchParams;
-import com.canto.firstspirit.service.server.CantoSearchResultDTO;
+import com.canto.firstspirit.service.server.model.CantoSearchParams;
+import com.canto.firstspirit.service.server.model.CantoSearchResultDTO;
 import de.espirit.common.base.Logging;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,9 +16,9 @@ public class CantoSearchResultDTOFactory {
         Logging.logDebug(cantoSearchResult.toString(), CantoSearchResultDTO.class);
         final var total = cantoSearchResult.getFound().intValue();
         final var results = cantoSearchResult.getResults()
-                .stream().map(
-                r-> CantoAssetDTOFactory.fromAsset(r,cantoApi)).collect(Collectors.toList()
-        );
+                .stream()
+                .map(cantoAsset -> CantoAssetDTOFactory.fromAsset(cantoAsset, cantoApi))
+                .collect(Collectors.toList());
 
         return new CantoSearchResultDTO(total,
                 results,

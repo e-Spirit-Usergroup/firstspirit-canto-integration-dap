@@ -1,4 +1,4 @@
-package com.canto.firstspirit.service.server;
+package com.canto.firstspirit.service.server.model;
 
 import java.io.Serializable;
 
@@ -19,6 +19,10 @@ public class CantoSearchParams implements Serializable {
         this.start = start;
         this.limit = limit;
         this.keyword = keyword;
+    }
+
+    public CantoSearchParams(String keyword) {
+        this(0, Integer.MAX_VALUE, keyword);
     }
 
     @Override

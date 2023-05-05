@@ -1,5 +1,6 @@
 package com.canto.firstspirit.integration.dap;
 
+import com.canto.firstspirit.integration.dap.model.CantoAssetPath;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

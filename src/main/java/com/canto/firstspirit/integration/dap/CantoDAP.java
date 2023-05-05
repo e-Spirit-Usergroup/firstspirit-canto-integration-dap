@@ -1,5 +1,6 @@
 package com.canto.firstspirit.integration.dap;
 
+import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
 import de.espirit.common.base.Logging;
 import de.espirit.common.tools.Streams;
 import de.espirit.firstspirit.access.BaseContext;
