@@ -19,8 +19,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@ServiceComponent(name = "CantoSaasServerService", displayName = "CantoSaaS Connector Service")
-public class CantoSaasServerServiceImpl implements CantoSaasServerService, Service<CantoSaasServerService> {
+@ServiceComponent(name = "CantoSaasService", displayName = "CantoSaaS Connector Service")
+public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaasService> {
 
     private Map<Integer, CantoApi> apiConnectionPool;
 
@@ -89,12 +89,12 @@ public class CantoSaasServerServiceImpl implements CantoSaasServerService, Servi
     }
 
     @Override
-    public Class<? extends CantoSaasServerService> getServiceInterface() {
-        return CantoSaasServerService.class;
+    public Class<? extends CantoSaasService> getServiceInterface() {
+        return CantoSaasService.class;
     }
 
     @Override
-    public Class<? extends ServiceProxy<CantoSaasServerService>> getProxyClass() {
+    public Class<? extends ServiceProxy<CantoSaasService>> getProxyClass() {
         return null;
     }
 

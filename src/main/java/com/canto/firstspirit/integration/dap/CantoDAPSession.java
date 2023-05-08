@@ -26,7 +26,7 @@ import de.espirit.firstspirit.json.JsonPair;
 import de.espirit.firstspirit.json.values.JsonStringValue;
 import de.espirit.firstspirit.ui.gadgets.aspects.transfer.TransferType;
 
-import com.canto.firstspirit.service.CantoServiceProjectAdapter;
+import com.canto.firstspirit.service.CantoSaasServiceProjectBoundClient;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -40,14 +40,14 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     private final BaseContext context;
 
     final private SessionAspectMap sessionAspectMap = new SessionAspectMap();
-    private final CantoServiceProjectAdapter cantoServiceProjectAdapter;
+    private final CantoSaasServiceProjectBoundClient cantoSaasServiceClient;
 
     public CantoDAPSession(BaseContext baseContext) {
 
         Logging.logInfo("CantoDapSession Created", this.getClass());
         this.context = baseContext;
 
-        cantoServiceProjectAdapter = CantoServiceProjectAdapter.fromProjectBroker(context);
+        cantoSaasServiceClient = CantoSaasServiceProjectBoundClient.fromProjectBroker(context);
 
         sessionAspectMap.put(TransferHandling.TYPE, this);
         sessionAspectMap.put(TransferSupplying.TYPE, this);
@@ -80,7 +80,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
                 .map(CantoAssetPath::getPath)
                 .collect(Collectors.toList());
         Logging.logInfo("getData: " + Strings.implode(assetPaths, ", "), getClass());
-        return cantoServiceProjectAdapter.getAssets(assetPaths).stream()
+        return cantoSaasServiceClient.getAssets(assetPaths).stream()
                 .map(CantoDAPAsset::fromCantoAssetDTO)
                 .collect(Collectors.toList());
     }
@@ -122,7 +122,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     @NotNull
     @Override
     public DataStreamBuilder<CantoDAPAsset> createDataStreamBuilder() {
-        return new CantoDAPStreamBuilder(cantoServiceProjectAdapter);
+        return new CantoDAPStreamBuilder(cantoSaasServiceClient);
     }
 
     @Override
