@@ -22,7 +22,7 @@ import java.util.List;
 
 public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, Filterable {
     private final StreamBuilderAspectMap aspects = new StreamBuilderAspectMap();
-    private final CantoServiceProjectAdapter cantoApi;
+    private final CantoSaasServiceProjectBoundClient cantoApi;
     private ParameterMap parameterMap;
     private final ParameterText paramKeyword;
     private final ParameterText paramTag;
@@ -30,7 +30,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
 
 
 
-    public CantoDAPStreamBuilder(CantoServiceProjectAdapter cantoApi) {
+    public CantoDAPStreamBuilder(CantoSaasServiceProjectBoundClient cantoApi) {
         this.cantoApi = cantoApi;
         aspects.put(Filterable.TYPE,this);
         paramKeyword = Parameter.Factory.createText("keyword", "Keyword","");

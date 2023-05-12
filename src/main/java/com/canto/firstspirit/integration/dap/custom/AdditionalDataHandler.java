@@ -1,0 +1,15 @@
+package com.canto.firstspirit.integration.dap.custom;
+
+import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
+
+/**
+ * Template to handle AdditionalData that may be saves within the DAP
+ * Implement custom Logic here, add method calls to {@link CantoDAPAsset} methods.
+ */
+public class AdditionalDataHandler {
+    public static String enrichURL(CantoDAPAsset asset, String url) {
+        String sizeParam = asset.getAdditionalData("size");
+        return sizeParam != null ? url + "/" + sizeParam : url;
+    }
+
+}

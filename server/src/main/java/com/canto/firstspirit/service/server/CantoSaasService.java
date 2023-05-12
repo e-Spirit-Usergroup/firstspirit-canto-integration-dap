@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public interface CantoSaasServerService {
+public interface CantoSaasService {
     /**
      * Fetches Assets via Canto Api and returns result
      * Preserves Order of Incoming Ids and matching identifiers
