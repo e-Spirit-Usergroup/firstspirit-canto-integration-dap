@@ -49,7 +49,7 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
 
     @NotNull
     @Override
-    public List<@Nullable CantoAssetDTO> fetchAssetDTOs(@NotNull final CantoServiceConnection connection, @NotNull final List<String> identifiers) {
+    public List<@Nullable CantoAssetDTO> fetchAssetsByIdentifiers(@NotNull final CantoServiceConnection connection, @NotNull final List<CantoAssetIdentifier> identifiers) {
         Logging.logInfo("getAssetDTO in Service with " + Strings.implode(identifiers, ", "), getClass());
         final CantoApi cantoApi = getApiInstance(connection);
         return cantoApi.fetchAssets(identifiers)
@@ -59,7 +59,7 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
     }
 
     @Override
-    public CantoSearchResultDTO fetchSearchAssetDTOs(@NotNull final CantoServiceConnection connection, @NotNull final CantoSearchParams params) {
+    public CantoSearchResultDTO fetchSearch(@NotNull final CantoServiceConnection connection, @NotNull final CantoSearchParams params) {
         Logging.logInfo("CantoSearch in Service with " + params, getClass());
         final CantoApi cantoApi = getApiInstance(connection);
 

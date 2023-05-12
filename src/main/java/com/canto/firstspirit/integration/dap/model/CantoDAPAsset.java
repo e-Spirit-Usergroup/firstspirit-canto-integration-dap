@@ -44,7 +44,7 @@ public class CantoDAPAsset {
     }
 
     public String getPath() {
-        return _assetIdentifier.getPath();
+        return _assetIdentifier.getAsCantoAssetIdentifier().getPath();
     }
 
     public String getTitle() {

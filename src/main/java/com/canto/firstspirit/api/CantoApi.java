@@ -2,6 +2,7 @@ package com.canto.firstspirit.api;
 
 import com.canto.firstspirit.api.model.CantoAsset;
 import com.canto.firstspirit.api.model.CantoSearchResult;
+import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import de.espirit.common.base.Logging;
@@ -75,6 +76,9 @@ public class CantoApi {
         return url.toString();
     }
 
+
+
+
     private Optional<CantoAsset> fetchAssetById(String id) {
 
         HttpUrl url = getApiUrl()
@@ -99,15 +103,26 @@ public class CantoApi {
 
 
     /**
-     * Fetch multiple Assets based on a Collection of identifiers
-     * @param identifiers
-     * @return
+     * Fetch multiple Assets based on a Collection of identifiers.
+     * @param assetIdentifiers of form {scheme}/{cantoId}
+     * @return List of CantoAssets in the same order as identifiers. Missing Assets are replaced by null
      */
-    public List<CantoAsset> fetchAssets(@NotNull List<String> identifiers) {
+    public List<CantoAsset> fetchAssets(@NotNull List<? extends CantoAssetIdentifier> assetIdentifiers) {
         // TODO: batch Post Request
-        return identifiers.stream().map(id -> fetchAssetById(id).orElse(null))
+        return assetIdentifiers.stream()
+                .map(id ->
+                        fetchAssetById(id.getPath()).orElse(null))
                 .collect(Collectors.toList());
 
+    }
+
+    /**
+     * Search Assets based on keyword. Limits search to 100 elements
+     * @param keyword passed as search filter
+     * @return Wrapper with a list of fetched CantoAssets including some MetaData about the search
+     */
+    public CantoSearchResult fetchSearch(String keyword) {
+        return fetchSearch(keyword, 0,100);
     }
 
     /**
@@ -115,13 +130,15 @@ public class CantoApi {
      * @param keyword passed as search filter
      * @return Wrapper with a list of fetched CantoAssets including some MetaData about the search
      */
-    public CantoSearchResult fetchSearch(String keyword) {
+    public CantoSearchResult fetchSearch(String keyword, int start, int limit) {
 
         // Logging.logWarning("test", CantoApi.class);
         HttpUrl url = getApiUrl()
                 .addPathSegments("api/v1/search")
                 .addQueryParameter("scheme", "image")
                 .addQueryParameter("keyword", keyword)
+                .addQueryParameter("start", String.valueOf(start))
+                .addQueryParameter("limit", String.valueOf(limit))
                 .build();
 
         Logging.logInfo("search " + url, getClass());

@@ -22,7 +22,7 @@ import java.util.List;
 
 public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, Filterable {
     private final StreamBuilderAspectMap aspects = new StreamBuilderAspectMap();
-    private final CantoSaasServiceProjectBoundClient cantoApi;
+    private final CantoSaasServiceProjectBoundClient cantoSaasServiceClient;
     private ParameterMap parameterMap;
     private final ParameterText paramKeyword;
     private final ParameterText paramTag;
@@ -30,8 +30,8 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
 
 
 
-    public CantoDAPStreamBuilder(CantoSaasServiceProjectBoundClient cantoApi) {
-        this.cantoApi = cantoApi;
+    public CantoDAPStreamBuilder(CantoSaasServiceProjectBoundClient cantoSaasServiceClient) {
+        this.cantoSaasServiceClient = cantoSaasServiceClient;
         aspects.put(Filterable.TYPE,this);
         paramKeyword = Parameter.Factory.createText("keyword", "Keyword","");
         paramTag = Parameter.Factory.createText("tag", "Tag","");
@@ -69,7 +69,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
 
         public CantoDAPDataStream(){
             CantoSearchParams searchParams = new CantoSearchParams(parameterMap.get(paramKeyword));
-            CantoSearchResultDTO cantoSearchResultDTO = cantoApi.findAssets(searchParams);
+            CantoSearchResultDTO cantoSearchResultDTO = cantoSaasServiceClient.fetchSearch(searchParams);
 
             total = cantoSearchResultDTO.getTotal();
             cantoDAPAssets = cantoSearchResultDTO.getResults().stream().map(CantoDAPAsset::fromCantoAssetDTO).iterator();

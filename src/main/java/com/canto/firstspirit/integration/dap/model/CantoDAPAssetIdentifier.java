@@ -1,10 +1,12 @@
 package com.canto.firstspirit.integration.dap.model;
 
+import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,21 +16,20 @@ import java.util.Map;
  * Identifiers must include schema and id to fetch asset from Canto
  * Identifiers may include additionalData, that is saved within a key-value String Map
  */
-public class CantoDAPAssetIdentifier {
+public class CantoDAPAssetIdentifier implements Serializable {
+
+	@NotNull
+	private final Map<String, String> additionalData;
 
 	private final String schema;
 	private final String id;
-	@NotNull
-	private final Map<String, String> additionalData;
 
 	/**
 	 * Sets Default Value for Moshi
 	 */
 	@SuppressWarnings("unused")
 	private CantoDAPAssetIdentifier() {
-		additionalData = new HashMap<>();
-		schema = "";
-		id = "";
+		this("","", new HashMap<>());
 	}
 
 	public CantoDAPAssetIdentifier(final String schema, final String id) {
@@ -41,25 +42,11 @@ public class CantoDAPAssetIdentifier {
 		this.additionalData = additionalData != null ? additionalData : new HashMap<>();
 	}
 
-	public @NotNull String getSchema() {
-		return schema;
-	}
-
-
-	public @NotNull String getId() {
-		return id;
-	}
-
 	public String getIdentifier() {
 		final Moshi moshi = new Moshi.Builder().build();
 		JsonAdapter<CantoDAPAssetIdentifier> jsonAdapter = moshi.adapter(CantoDAPAssetIdentifier.class);
 
 		return jsonAdapter.toJson(this);
-	}
-
-
-	public String getPath() {
-		return schema + '/' + id;
 	}
 
 	public void setAdditionalData(@NotNull String name, @Nullable String value) {
@@ -83,6 +70,10 @@ public class CantoDAPAssetIdentifier {
 							"CantoDAPAssetIdentifier itself is null"
 							: "Id: [" + dapIdentifier.id + "], schema: [" + dapIdentifier.id + "]"));
 		}
+	}
+
+	public CantoAssetIdentifier getAsCantoAssetIdentifier() {
+		return new CantoAssetIdentifier(schema, id);
 	}
 
 	public static CantoDAPAssetIdentifier fromIdentifier(@NotNull final String identifier) {

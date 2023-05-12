@@ -1,6 +1,7 @@
 package com.canto.firstspirit.integration.dap;
 
 import com.canto.firstspirit.integration.dap.model.CantoDAPAssetIdentifier;
+import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -12,10 +13,12 @@ class CantoDAPAssetIdentifierTest {
 	void fromJson() {
 		final CantoDAPAssetIdentifier path = CantoDAPAssetIdentifier.fromIdentifier("{\"schema\":\"my-schema\",\"id\":\"my-identifier\"}");
 
+		final CantoAssetIdentifier assetIdentifier = path.getAsCantoAssetIdentifier();
+
 		assertNotNull(path);
-		Assertions.assertEquals("my-schema", path.getSchema());
-		Assertions.assertEquals("my-identifier", path.getId());
-		Assertions.assertEquals("my-schema/my-identifier", path.getPath());
+		Assertions.assertEquals("my-schema", assetIdentifier.getSchema());
+		Assertions.assertEquals("my-identifier", assetIdentifier.getId());
+		Assertions.assertEquals("my-schema/my-identifier", assetIdentifier.getPath());
 		Assertions.assertNull(path.getAdditionalData(""));
 	}
 

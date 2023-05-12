@@ -46,13 +46,12 @@ public class CantoSaasServiceProjectBoundClient {
         return new CantoSaasServiceProjectBoundClient(service, connection);
     }
 
-    public List<@Nullable CantoAssetDTO> getAssets(List<String> identifiers) {
-        return service.fetchAssetDTOs(connection, identifiers);
+    public List<@Nullable CantoAssetDTO> fetchAssetDTOs(List<CantoAssetIdentifier> identifiers) {
+        return service.fetchAssetsByIdentifiers(connection, identifiers);
     }
 
-    public CantoSearchResultDTO findAssets (CantoSearchParams cantoSearchParams) {
-        return service.fetchSearchAssetDTOs(connection, cantoSearchParams);
+    public CantoSearchResultDTO fetchSearch(CantoSearchParams cantoSearchParams) {
+        return service.fetchSearch(connection, cantoSearchParams);
     }
-
 
 }

@@ -39,7 +39,7 @@ public class CantoAsset {
 
     private boolean isDummy = false;
 
-    public CantoAsset(String name, String ownerName, String time, Long width, Long height, Long dpi, CantoUrls url, String id, String scheme, String owner, String description, Long size, List<CantoVersionHistory> versionHistory, Map<String, String> additional) {
+    public CantoAsset(String name, String ownerName, String time, Long width, Long height, Long dpi, CantoUrls url, String id, String scheme, String owner, String description, Long size, List<CantoVersionHistory> versionHistory, @Nullable Map<String, String> additional) {
         this.name = name;
         this.ownerName = ownerName;
         this.time = time;
