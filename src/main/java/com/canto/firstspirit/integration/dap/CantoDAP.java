@@ -31,9 +31,9 @@ import java.util.Collections;
 @PublicComponent(name = "CantoSaasDAP", displayName = "CantoSaaS Connector DAP")
 public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, ReportItemsProviding<CantoDAPAsset> {
 
-    private static final String CANTOSASS_RESOURCES_PATH = "cantosaas/";
-    private static final String CANTOSASS_ICONS_PATH = CANTOSASS_RESOURCES_PATH+"icons/";
-    private static final String CANTOSASS_JS_PATH = CANTOSASS_RESOURCES_PATH+"js/";
+    private static final String CANTOSAAS_RESOURCES_PATH = "cantosaas/";
+    private static final String CANTOSAAS_ICONS_PATH = CANTOSAAS_RESOURCES_PATH +"icons/";
+    private static final String CANTOSAAS_JS_PATH = CANTOSAAS_RESOURCES_PATH +"js/";
 
     private final DataAccessAspectMap aspectMap = new DataAccessAspectMap();
     private BaseContext context;
@@ -79,9 +79,9 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
     public Image<?> getReportIcon(final boolean b) {
         final ImageAgent imageAgent = context.requireSpecialist(ImageAgent.TYPE);
         if (context.is(BaseContext.Env.WEBEDIT)) {
-            return imageAgent.getImageFromUrl(CANTOSASS_ICONS_PATH + "canto_logo_small.png");
+            return imageAgent.getImageFromUrl(CANTOSAAS_ICONS_PATH + "canto_logo_small.png");
         }
-        final MagicIcon magicIcon = MagicIcon.fromResource(getClass(), '/' + CANTOSASS_ICONS_PATH+"canto_logo.png");
+        final MagicIcon magicIcon = MagicIcon.fromResource(getClass(), '/' + CANTOSAAS_ICONS_PATH +"canto_logo.png");
         return ReportIcon.create(magicIcon,context).getIcon(b);
     }
 
@@ -107,7 +107,7 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
     @SuppressWarnings("unused")
     private static class OpenImageInDialogItem implements ClientScriptProvidingReportItem<CantoDAPAsset> {
 
-        static final String ICON_URL = MagicIcon.fromResource(CantoDAP.class, '/' + CANTOSASS_ICONS_PATH + "openInNewWindow.png").base64url();
+        static final String ICON_URL = MagicIcon.fromResource(CantoDAP.class, '/' + CANTOSAAS_ICONS_PATH + "openInNewWindow.png").base64url();
         static final String SCRIPT_TEMPLATE = getScriptSrc();
 
         @Override
@@ -142,7 +142,7 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
         private static String getScriptSrc(){
             final String scriptName = "openInNewWindow.js";
             final Class<CantoDAP> LOGGER = CantoDAP.class;
-            final InputStream is = LOGGER.getResourceAsStream('/' + CANTOSASS_JS_PATH + scriptName);
+            final InputStream is = LOGGER.getResourceAsStream('/' + CANTOSAAS_JS_PATH + scriptName);
             if(is != null) {
 
             try {

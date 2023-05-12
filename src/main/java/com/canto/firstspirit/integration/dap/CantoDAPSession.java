@@ -1,6 +1,6 @@
 package com.canto.firstspirit.integration.dap;
 
-import com.canto.firstspirit.integration.dap.model.CantoAssetPath;
+import com.canto.firstspirit.integration.dap.model.CantoDAPAssetIdentifier;
 import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
 import de.espirit.common.base.Logging;
 import de.espirit.common.tools.Strings;
@@ -76,12 +76,12 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     public List<CantoDAPAsset> getData(@NotNull final Collection<String> identifiers) {
         Logging.logInfo("getData: " + Strings.implode(identifiers, ", "), getClass());
         final List<String> assetPaths = identifiers.stream()
-                .map(CantoAssetPath::fromIdentifier).filter(Objects::nonNull)
-                .map(CantoAssetPath::getPath)
+                .map(CantoDAPAssetIdentifier::fromIdentifier).filter(Objects::nonNull)
+                .map(CantoDAPAssetIdentifier::getPath)
                 .collect(Collectors.toList());
         Logging.logInfo("getData: " + Strings.implode(assetPaths, ", "), getClass());
         return cantoSaasServiceClient.getAssets(assetPaths).stream()
-                .map(CantoDAPAsset::fromCantoAssetDTO)
+                .map(cantoAssetDTO -> cantoAssetDTO != null ? CantoDAPAsset.fromCantoAssetDTO(cantoAssetDTO) : null)
                 .collect(Collectors.toList());
     }
 

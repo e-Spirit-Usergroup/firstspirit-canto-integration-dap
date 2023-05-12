@@ -2,23 +2,9 @@ buildscript {
     ext {
         fsRuntimeVersion = '5.2.230212'
         fsIsolationCheckVersion = '5.2.230212' // update regularly to test against newest FirstSpirit release
-        assertjVersion = '3.13.2'
-        junitVersion = '5.5.1'
-        mockitoVersion = '3.0.0'
-    }
-
-    repositories {
-        maven {
-            url = 'https://artifactory.e-spirit.hosting/artifactory/repo/'
-            credentials {
-                username = artifactory_hosting_username
-                password = artifactory_hosting_password
-            }
-        }
-    }
-
-    dependencies {
-        classpath "de.espirit.firstspirit:fs-isolated-server:${fsRuntimeVersion}"
+        magicIconsVersion = '2.1.0'
+        okhttpVersion = '4.11.0'
+        moshiVersion = '1.14.0'
     }
 }
 
@@ -26,14 +12,14 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'de.espirit.firstspirit-module' version '4.1.1'
-    id 'net.researchgate.release' version '2.8.1'
+    id 'net.researchgate.release' version '3.0.2'
 }
+
 
 allprojects {
     p ->
         apply plugin: 'java'
-
-        group = 'com.canto'
+        group = project.property('groupId')
 
         repositories {
             maven {
@@ -48,9 +34,14 @@ allprojects {
         }
 
 
-
         dependencies {
             compileOnly group: 'org.jetbrains', name: 'annotations', version: '24.0.1'
+        }
+
+
+        tasks.withType(JavaCompile).configureEach {
+            options.encoding = 'UTF-8'
+            options.release.set(11)
         }
 
         compileJava.options.encoding = 'UTF-8'
@@ -66,17 +57,20 @@ configurations {
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+    testImplementation group: 'de.espirit.firstspirit', name: 'fs-isolated-runtime', version: "${fsRuntimeVersion}"
+    compileOnly group: 'de.espirit.firstspirit', name: 'fs-isolated-runtime', version: "${fsRuntimeVersion}"
 
     fsServerCompile project(':server')
     fsWebCompile project(':server')
 
     fsModuleCompile group: "com.espirit.ps.psci.module", name: "generic-configuration", version: "2.8.0"
-    fsModuleCompile group: "com.espirit.ps.psci.module", name: "magic-icons", version: "2.1.0"
-    fsModuleCompile group: "com.squareup.okhttp3", name: "okhttp", version: "4.1.0"
-    fsModuleCompile group: "com.squareup.moshi", name: "moshi", version: "1.8.0"
+    fsModuleCompile group: "com.espirit.ps.psci.module", name: "magic-icons", version: "${magicIconsVersion}"
+    fsModuleCompile group: "com.squareup.okhttp3", name: "okhttp", version: "${okhttpVersion}"
+    fsModuleCompile group: "com.squareup.moshi", name: "moshi", version: "${moshiVersion}"
 
-    compileOnly group: 'de.espirit.firstspirit', name: 'fs-isolated-runtime', version: "${fsRuntimeVersion}"
-
+    fsWebCompile group: "com.espirit.ps.psci.module", name: "magic-icons", version: "${magicIconsVersion}"
+    fsWebCompile group: "com.squareup.okhttp3", name: "okhttp", version: "${okhttpVersion}"
+    fsWebCompile group: "com.squareup.moshi", name: "moshi", version: "${moshiVersion}"
 }
 
 /*
@@ -89,18 +83,19 @@ new ServerSocket(0).withCloseable {
 }
 
 firstSpiritModule {
-    moduleName = 'CantoSaasConnector'
-    displayName = 'Canto Connector'
-    vendor = 'Canto Inc.'
-    isolationDetectorUrl = 'https://fsdev.e-spirit.com/FsmDependencyDetector/'
-    firstSpiritVersion = "${fsIsolationCheckVersion}"
-    complianceLevel = 'HIGHEST'
+    moduleName = project.property('firstSpiritModule.moduleName')
+    displayName = project.property('firstSpiritModule.displayName')
+    description = project.property('firstSpiritModule.description')
+    vendor = project.property('firstSpiritModule.vendor')
 }
 
-release {
-    ignoredSnapshotDependencies = ['de.espirit.firstspirit:fs-license']
-}
-
-test {
-    useJUnitPlatform()
+/*
+ * Verify gradle.properties values
+ */
+afterEvaluate {
+    ['groupId', 'firstSpiritModule.moduleName', 'firstSpiritModule.displayName', 'firstSpiritModule.vendor'].each {
+        if (!project.hasProperty(it) || (project.property(it) as String).trim().empty) {
+            throw new GradleException("Property '${it}' in gradle.properties must not be empty!")
+        }
+    }
 }

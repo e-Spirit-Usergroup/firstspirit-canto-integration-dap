@@ -11,6 +11,8 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'canto-connector'
+if (!rootProjectName) {
+    throw new GradleException("Property 'rootProjectName' in gradle.properties must not be empty!")
+}
+rootProject.name = rootProjectName
 include 'server'
-
