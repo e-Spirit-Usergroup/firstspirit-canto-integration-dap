@@ -9,20 +9,30 @@ import java.io.Serializable;
 
 
 /**
- * Handles Serialization and Deserialization of Canto DAP Asset Identifiers from and to JSON.
+ * Handles Serialization and Deserialization of {@link CantoAssetIdentifier} from and to JSON.
  * Identifiers must include schema and id to fetch asset from Canto
  * Identifiers may include additionalData, that is saved within a key-value String Map
+ * The {@link com.canto.firstspirit.integration.dap.CantoDAP} uses the stringified JSON as id for its FS_INDEX Elements
  */
 public class CantoAssetIdentifierSerializer implements Serializable {
 	static final Moshi moshi = new Moshi.Builder().build();
 	static JsonAdapter<CantoAssetIdentifier> jsonAdapter = moshi.adapter(CantoAssetIdentifier.class);
 
-
+	/**
+	 * Generate stringified JSON of given Asset. Used as Identifier of Canto DAP
+	 * @param cantoAssetIdentifier Asset to convert to JSON
+	 * @return stringified JSON
+	 */
 	public static String toJsonIdentifier(CantoAssetIdentifier cantoAssetIdentifier) {
 		return jsonAdapter.toJson(cantoAssetIdentifier);
 	}
 
-	@SuppressWarnings("")
+	/**
+	 * Verifies that id and schema are Set for a CantoAsset Identifier.
+	 * Used after parsing JSON to CantoAssetIdentifier to ensure validity.
+	 * Throws IllegalStateException if invalid
+	 * @param cantoAssetIdentifier identifier to check
+	 */
 	private static void verifyIdentifierValidity(CantoAssetIdentifier cantoAssetIdentifier) {
 		//noinspection ConstantValue
 		if(cantoAssetIdentifier == null
@@ -35,6 +45,14 @@ public class CantoAssetIdentifierSerializer implements Serializable {
 		}
 	}
 
+	/**
+	 * Creates CantoAssetIdentifier based on stringified JSON. JSON must include the
+	 * JSON must include schema and id
+	 * JSON may include additionalData Object
+	 * If schema or id is missing in created AssetId, IllegalStateException is thrown
+	 * @param identifier json string with schema, id and optional additionalData
+	 * @return CantoAssetIdentifier created based on JSON
+	 */
 	public static CantoAssetIdentifier fromJsonIdentifier(@NotNull final String identifier) {
 		try {
 			CantoAssetIdentifier cantoAssetIdentifier = jsonAdapter.fromJson(identifier);
