@@ -24,6 +24,7 @@ public class CantoAssetIdentifierSerializer implements Serializable {
 
 	@SuppressWarnings("")
 	private static void verifyIdentifierValidity(CantoAssetIdentifier cantoAssetIdentifier) {
+		//noinspection ConstantValue
 		if(cantoAssetIdentifier == null
 				|| cantoAssetIdentifier.getId() == null || cantoAssetIdentifier.getId().isBlank()
 				|| cantoAssetIdentifier.getSchema() == null || cantoAssetIdentifier.getSchema().isBlank()) {
