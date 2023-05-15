@@ -5,6 +5,7 @@ buildscript {
         magicIconsVersion = '2.1.0'
         okhttpVersion = '4.11.0'
         moshiVersion = '1.14.0'
+        genericConfigVersion = '2.8.0'
     }
 }
 
@@ -63,11 +64,12 @@ dependencies {
     fsServerCompile project(':server')
     fsWebCompile project(':server')
 
-    fsModuleCompile group: "com.espirit.ps.psci.module", name: "generic-configuration", version: "2.8.0"
+    fsModuleCompile group: "com.espirit.ps.psci.module", name: "generic-configuration", version: "${genericConfigVersion}"
     fsModuleCompile group: "com.espirit.ps.psci.module", name: "magic-icons", version: "${magicIconsVersion}"
     fsModuleCompile group: "com.squareup.okhttp3", name: "okhttp", version: "${okhttpVersion}"
     fsModuleCompile group: "com.squareup.moshi", name: "moshi", version: "${moshiVersion}"
 
+    fsWebCompile group: "com.espirit.ps.psci.module", name: "generic-configuration", version: "${genericConfigVersion}"
     fsWebCompile group: "com.espirit.ps.psci.module", name: "magic-icons", version: "${magicIconsVersion}"
     fsWebCompile group: "com.squareup.okhttp3", name: "okhttp", version: "${okhttpVersion}"
     fsWebCompile group: "com.squareup.moshi", name: "moshi", version: "${moshiVersion}"

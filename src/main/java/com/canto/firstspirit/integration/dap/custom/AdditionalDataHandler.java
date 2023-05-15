@@ -7,9 +7,9 @@ import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
  * Implement custom Logic here, add method calls to {@link CantoDAPAsset} methods.
  */
 public class AdditionalDataHandler {
-    public static String enrichURL(CantoDAPAsset asset, String url) {
-        String sizeParam = asset.getAdditionalData("size");
-        return sizeParam != null ? url + "/" + sizeParam : url;
+    public static String urlWithMdcOperations(CantoDAPAsset asset, String url) {
+        String mdcOperations = asset.getAdditionalData("mdcOperations");
+        return mdcOperations != null ? url + "/" + mdcOperations : url;
     }
 
 }

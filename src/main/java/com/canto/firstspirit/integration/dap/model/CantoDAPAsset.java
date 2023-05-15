@@ -1,7 +1,9 @@
 package com.canto.firstspirit.integration.dap.model;
 
 import com.canto.firstspirit.integration.dap.custom.AdditionalDataHandler;
+import com.canto.firstspirit.service.CantoAssetIdentifierSerializer;
 import com.canto.firstspirit.service.server.model.CantoAssetDTO;
+import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,7 +14,7 @@ public class CantoDAPAsset {
     private final String _thumbnailUrl;
     private final String _previewUrl;
     private final String _description;
-    private final CantoDAPAssetIdentifier _assetIdentifier;
+    private final CantoAssetIdentifier _assetIdentifier;
     private final String _mdc_rendition_baseurl;
     private final String _mdc_asset_baseurl;
 
@@ -25,26 +27,25 @@ public class CantoDAPAsset {
 
 
     public CantoDAPAsset(final String schema, String identifier, String title, String thumbnailUrl, String previewUrl, String description, String mdc_rendition_baseurl, String mdc_asset_baseurl) {
-        _assetIdentifier = new CantoDAPAssetIdentifier(schema, identifier);
+        _assetIdentifier = new CantoAssetIdentifier(schema, identifier);
         _title = title;
         _thumbnailUrl = thumbnailUrl;
         _previewUrl = previewUrl;
         _description = description;
         _mdc_rendition_baseurl = mdc_rendition_baseurl;
         _mdc_asset_baseurl = mdc_asset_baseurl;
-        setAdditionalData("size", "?test");
     }
 
     public String getDescription() {
         return _description;
     }
 
-    public String getIdentifier() {
-        return _assetIdentifier.getIdentifier();
+    public String getJsonIdentifier() {
+        return CantoAssetIdentifierSerializer.toJsonIdentifier(this._assetIdentifier);
     }
 
     public String getPath() {
-        return _assetIdentifier.getAsCantoAssetIdentifier().getPath();
+        return _assetIdentifier.getPath();
     }
 
     public String getTitle() {
@@ -56,7 +57,7 @@ public class CantoDAPAsset {
     }
 
     public String getPreviewUrl() {
-        return AdditionalDataHandler.enrichURL(this, this._previewUrl);
+        return AdditionalDataHandler.urlWithMdcOperations(this, this._previewUrl);
     }
 
     /**

@@ -1,6 +1,6 @@
 package com.canto.firstspirit.integration.dap;
 
-import com.canto.firstspirit.integration.dap.model.CantoDAPAssetIdentifier;
+import com.canto.firstspirit.service.CantoAssetIdentifierSerializer;
 import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import de.espirit.common.base.Logging;
@@ -37,7 +37,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, TransferHandling<CantoDAPAsset>, TransferSupplying<CantoDAPAsset>, DataTemplating<CantoDAPAsset> {
+public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, TransferHandling<CantoDAPAsset>, TransferSupplying<CantoDAPAsset>, DataTemplating<CantoDAPAsset>, JsonSupporting<CantoDAPAsset> {
     private final BaseContext context;
 
     final private SessionAspectMap sessionAspectMap = new SessionAspectMap();
@@ -53,7 +53,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
         sessionAspectMap.put(TransferHandling.TYPE, this);
         sessionAspectMap.put(TransferSupplying.TYPE, this);
         sessionAspectMap.put(DataTemplating.TYPE, this);
-        sessionAspectMap.put(JsonSupporting.TYPE, new CantoDAPJsonSupportingAspect());
+        sessionAspectMap.put(JsonSupporting.TYPE, this);
 
 
     }
@@ -77,11 +77,12 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     public List<CantoDAPAsset> getData(@NotNull final Collection<String> identifiers) {
         Logging.logInfo("getData: " + Strings.implode(identifiers, ", "), getClass());
         final List<CantoAssetIdentifier> assetIdentifiers = identifiers.stream()
-                .map(CantoDAPAssetIdentifier::fromIdentifier)
+                .map(CantoAssetIdentifierSerializer::fromJsonIdentifier)
                 .filter(Objects::nonNull)
-                .map(CantoDAPAssetIdentifier::getAsCantoAssetIdentifier)
                 .collect(Collectors.toList());
+
         Logging.logInfo("getData: " + Strings.implode(assetIdentifiers, ", "), getClass());
+
         return cantoSaasServiceClient.fetchAssetDTOs(assetIdentifiers).stream()
                 .map(cantoAssetDTO -> cantoAssetDTO != null ? CantoDAPAsset.fromCantoAssetDTO(cantoAssetDTO) : null)
                 .collect(Collectors.toList());
@@ -90,30 +91,29 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     @NotNull
     @Override
     public String getIdentifier(@NotNull final CantoDAPAsset cantoDAPAsset) throws NoSuchElementException {
-        return cantoDAPAsset.getIdentifier();
+        return cantoDAPAsset.getJsonIdentifier();
     }
 
-    public static class CantoDAPJsonSupportingAspect implements JsonSupporting<CantoDAPAsset> {
 
-        @NotNull
-        @Override
-        public JsonElement<?> handle(@NotNull JsonGenerationContext jsonGenerationContext, CantoDAPAsset cantoDAPAsset) {
-            final JsonObject jsonResult = JsonObject.create();
-            jsonResult.put(JsonPair.of("title", JsonStringValue.of(cantoDAPAsset.getTitle())));
-            jsonResult.put(JsonPair.of("thumbnailUrl", JsonStringValue.of(cantoDAPAsset.getThumbnailUrl())));
-            jsonResult.put(JsonPair.of("path", JsonStringValue.of(cantoDAPAsset.getPath())));
-            jsonResult.put(JsonPair.of("description", JsonStringValue.of(cantoDAPAsset.getDescription())));
-            jsonResult.put(JsonPair.of("mdc_rendition_baseurl", JsonStringValue.of(cantoDAPAsset.getMDCRenditionBaseUrl())));
-            jsonResult.put(JsonPair.of("mdc_asset_baseurl", JsonStringValue.of(cantoDAPAsset.getMDCAssetBaseUrl())));
-            return jsonResult;
-        }
-
-        @NotNull
-        @Override
-        public Class<CantoDAPAsset> getSupportedClass() {
-            return CantoDAPAsset.class;
-        }
+    @NotNull
+    @Override
+    public JsonElement<?> handle(@NotNull JsonGenerationContext jsonGenerationContext, CantoDAPAsset cantoDAPAsset) {
+        final JsonObject jsonResult = JsonObject.create();
+        jsonResult.put(JsonPair.of("title", JsonStringValue.of(cantoDAPAsset.getTitle())));
+        jsonResult.put(JsonPair.of("thumbnailUrl", JsonStringValue.of(cantoDAPAsset.getThumbnailUrl())));
+        jsonResult.put(JsonPair.of("path", JsonStringValue.of(cantoDAPAsset.getPath())));
+        jsonResult.put(JsonPair.of("description", JsonStringValue.of(cantoDAPAsset.getDescription())));
+        jsonResult.put(JsonPair.of("mdc_rendition_baseurl", JsonStringValue.of(cantoDAPAsset.getMDCRenditionBaseUrl())));
+        jsonResult.put(JsonPair.of("mdc_asset_baseurl", JsonStringValue.of(cantoDAPAsset.getMDCAssetBaseUrl())));
+        return jsonResult;
     }
+
+    @NotNull
+    @Override
+    public Class<CantoDAPAsset> getSupportedClass() {
+        return CantoDAPAsset.class;
+    }
+
 
     @NotNull
     @Override

@@ -14,7 +14,8 @@ import com.espirit.moddev.components.annotations.WebResource;
 		description = "Web component for Canto SaaS Connector",
 		webXml = "WEB-INF/web.xml",
 		webResources = {
-				@WebResource(name = "", version = "", targetPath = "/", path = "cantosaas/")
+				@WebResource(name = "", version = "", targetPath = "/", path = "cantosaas/"),
+				@WebResource(name = "com.canto:${project.name}-cantosaas", version = "${project.version}", path = "cantosaas")
 		}
 )
 public class CantoSaasWebApp implements WebApp {
