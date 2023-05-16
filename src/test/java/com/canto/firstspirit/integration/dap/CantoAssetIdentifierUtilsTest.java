@@ -1,6 +1,6 @@
 package com.canto.firstspirit.integration.dap;
 
-import com.canto.firstspirit.service.CantoAssetIdentifierSerializer;
+import com.canto.firstspirit.service.factory.CantoAssetIdentifierSerializer;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

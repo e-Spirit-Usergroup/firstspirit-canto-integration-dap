@@ -7,12 +7,6 @@ public class CantoSearchParams implements Serializable {
 
     private final int start;
     private final int limit;
-
-
-    public String getKeyword() {
-        return keyword;
-    }
-
     private final String keyword;
 
     public CantoSearchParams(int start, int limit, String keyword) {
@@ -21,8 +15,16 @@ public class CantoSearchParams implements Serializable {
         this.keyword = keyword;
     }
 
-    public CantoSearchParams(String keyword) {
-        this(0, Integer.MAX_VALUE, keyword);
+    public String getKeyword() {
+        return keyword;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    public int getStart() {
+        return start;
     }
 
     @Override

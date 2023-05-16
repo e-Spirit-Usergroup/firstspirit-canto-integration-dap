@@ -1,4 +1,4 @@
-package com.canto.firstspirit.service;
+package com.canto.firstspirit.service.factory;
 
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import com.squareup.moshi.JsonAdapter;

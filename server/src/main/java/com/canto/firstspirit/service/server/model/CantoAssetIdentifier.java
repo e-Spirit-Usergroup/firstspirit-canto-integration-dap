@@ -19,7 +19,6 @@ public class CantoAssetIdentifier implements Serializable {
 
     private final Map<String, String> additionalData;
 
-
     public CantoAssetIdentifier(String schema, String id) {
         this(schema, id, new HashMap<>());
     }
@@ -52,6 +51,25 @@ public class CantoAssetIdentifier implements Serializable {
 
     public @Nullable String getAdditionalData(@NotNull String key) {
         return this.additionalData.get(key);
+    }
+
+    /**
+     * Compares id and scheme, does not regard additionalData entries.
+     * Identifiers are equal iff their identifier and scheme are equal
+     * @param other Object to compare against
+     * @return true, if other is Instance of {@link CantoAssetIdentifier} and identifier and scheme are equal. False Otherwise
+     */
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof CantoAssetIdentifier) {
+            return ((CantoAssetIdentifier) other).getId().equals(this.getId())
+                    && ((CantoAssetIdentifier) other).getSchema().equals(this.getSchema());
+        }
+        return false;
+    }
+
+    @Override public String toString() {
+        return "[CantoAssetIdentifier: " + this.getPath() + "]";
     }
 
 }

@@ -1,6 +1,6 @@
 package com.canto.firstspirit.integration.dap;
 
-import com.canto.firstspirit.service.CantoAssetIdentifierSerializer;
+import com.canto.firstspirit.service.factory.CantoAssetIdentifierSerializer;
 import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import de.espirit.common.base.Logging;
@@ -38,6 +38,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, TransferHandling<CantoDAPAsset>, TransferSupplying<CantoDAPAsset>, DataTemplating<CantoDAPAsset>, JsonSupporting<CantoDAPAsset> {
+
     private final BaseContext context;
 
     final private SessionAspectMap sessionAspectMap = new SessionAspectMap();
@@ -55,7 +56,6 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
         sessionAspectMap.put(DataTemplating.TYPE, this);
         sessionAspectMap.put(JsonSupporting.TYPE, this);
 
-
     }
 
     @Override
@@ -65,11 +65,11 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
 
     @NotNull
     @Override
-    public CantoDAPAsset getData(@NotNull final String s) throws NoSuchElementException {
-        return getData(Collections.singleton(s))
+    public CantoDAPAsset getData(@NotNull final String identifier) throws NoSuchElementException {
+        return getData(Collections.singleton(identifier))
                 .stream()
                 .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("Element with identifier " + s + " not found"));
+                .orElseThrow(() -> new NoSuchElementException("Element with identifier " + identifier + " not found"));
     }
 
     @NotNull

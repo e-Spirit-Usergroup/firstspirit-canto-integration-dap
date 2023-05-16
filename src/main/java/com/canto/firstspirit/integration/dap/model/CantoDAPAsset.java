@@ -1,7 +1,7 @@
 package com.canto.firstspirit.integration.dap.model;
 
 import com.canto.firstspirit.integration.dap.custom.AdditionalDataHandler;
-import com.canto.firstspirit.service.CantoAssetIdentifierSerializer;
+import com.canto.firstspirit.service.factory.CantoAssetIdentifierSerializer;
 import com.canto.firstspirit.service.server.model.CantoAssetDTO;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import org.jetbrains.annotations.NotNull;

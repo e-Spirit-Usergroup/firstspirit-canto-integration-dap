@@ -2,8 +2,10 @@ package com.canto.firstspirit.integration.dap;
 
 import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
 import com.canto.firstspirit.service.*;
+import com.canto.firstspirit.service.server.model.CantoAssetDTO;
 import com.canto.firstspirit.service.server.model.CantoSearchParams;
 import com.canto.firstspirit.service.server.model.CantoSearchResultDTO;
+import de.espirit.common.base.Logging;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataStream;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataStreamBuilder;
 import de.espirit.firstspirit.client.plugin.dataaccess.aspects.Filterable;
@@ -14,10 +16,7 @@ import de.espirit.firstspirit.client.plugin.report.ParameterMap;
 import de.espirit.firstspirit.client.plugin.report.ParameterText;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 
 public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, Filterable {
@@ -63,36 +62,77 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
 
     private class CantoDAPDataStream implements DataStream<CantoDAPAsset> {
 
-        private final Iterator<CantoDAPAsset> cantoDAPAssets;
-        private final int total;
+        private Queue<CantoDAPAsset> fetchedAssets;
 
+        private int total = 0;
+        private int availableAssets = 0;
+        private boolean hasNext = true;
+
+        CantoSearchParams searchParams;
 
         public CantoDAPDataStream(){
-            CantoSearchParams searchParams = new CantoSearchParams(parameterMap.get(paramKeyword));
-            CantoSearchResultDTO cantoSearchResultDTO = cantoSaasServiceClient.fetchSearch(searchParams);
+            searchParams = new CantoSearchParams(0,0, parameterMap.get(paramKeyword));
+            fetchedAssets = null;
+        }
 
-            total = cantoSearchResultDTO.getTotal();
-            cantoDAPAssets = cantoSearchResultDTO.getResults().stream().map(CantoDAPAsset::fromCantoAssetDTO).iterator();
+        /**
+         * Fetch the next page of assets if available.
+         * Sets hasNext to false, if offset is larger than total counts
+         */
+        private void fetchNextPage() {
+            final int pageSize = 50;
+
+            if(fetchedAssets == null) fetchedAssets = new LinkedList<>();
+
+            searchParams = new CantoSearchParams(searchParams.getStart() + searchParams.getLimit(), pageSize, searchParams.getKeyword());
+
+            if(searchParams.getStart() <= total) {
+                Logging.logInfo("Fetching next page, " + searchParams + ", total=" + total, this.getClass());
+
+                CantoSearchResultDTO cantoSearchResultDTO = cantoSaasServiceClient.fetchSearch(searchParams);
+                for (CantoAssetDTO assetDTO : cantoSearchResultDTO.getResults()) {
+                    fetchedAssets.add(CantoDAPAsset.fromCantoAssetDTO(assetDTO));
+                }
+                total = cantoSearchResultDTO.getTotal();
+                availableAssets = fetchedAssets.size();
+            } else {
+                hasNext = false;
+                Logging.logInfo("no next Page available. total fetched " + total, this.getClass());
+            }
         }
 
         @NotNull
         @Override
         public List<CantoDAPAsset> getNext(int count) {
-            List<CantoDAPAsset> result = new ArrayList<>();
-            for (int i = 0; i < count && cantoDAPAssets.hasNext(); i++) {
-                result.add(cantoDAPAssets.next());
+
+
+            Logging.logInfo("getNext, count=" + count + ", availableAssets=" + availableAssets + ", hasNext=" + hasNext + ", total=" + total, this.getClass());
+            if(availableAssets < count && hasNext) {
+                fetchNextPage();
             }
+
+            // To prevent buggy behaviour when FS keeps asking for 0 elements. Makes the DAP Flicker.
+            // Happens, when total count and actual count do not exactly match for any reason
+            if(count == 0) hasNext = false;
+
+            List<CantoDAPAsset> result = new ArrayList<>();
+            for(int i = 0; i < count && !fetchedAssets.isEmpty(); i++) {
+                result.add(fetchedAssets.poll());
+                availableAssets--;
+            }
+
             return result;
         }
 
         @Override
         public boolean hasNext() {
-            return cantoDAPAssets.hasNext();
+            return hasNext;
         }
 
         @Override
         public int getTotal() {
-            return total;
+            // -1 better than a count, that is not 100% sure to be correct, as it may produce buggy behaviour otherwise
+            return -1;
         }
 
         @Override
