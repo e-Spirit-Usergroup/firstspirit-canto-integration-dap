@@ -1,5 +1,7 @@
 package com.canto.firstspirit.service.server.model;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Serializable;
 import java.util.Map;
 
@@ -15,10 +17,11 @@ public class CantoAssetDTO implements Serializable {
     private final String previewUrl;
     private final String schema;
     private final String description;
+    @Nullable
     private final Map<String, String> additionalInfo;
 
 
-    public CantoAssetDTO(String id, String name, String thumbnailUrl, String previewUrl, String schema, String description, Map<String, String> additionalInfo){
+    public CantoAssetDTO(String id, String name, String thumbnailUrl, String previewUrl, String schema, String description, @Nullable Map<String, String> additionalInfo){
         this.id = id;
         this.name = name;
         this.thumbnailUrl = thumbnailUrl;
@@ -52,7 +55,7 @@ public class CantoAssetDTO implements Serializable {
         return previewUrl;
     }
 
-    public Map<String, String> getAdditionalInfo() {
+    public @Nullable Map<String, String> getAdditionalInfo() {
         return additionalInfo;
     }
 }

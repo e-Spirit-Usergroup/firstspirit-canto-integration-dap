@@ -8,7 +8,7 @@ import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
  */
 public class AdditionalDataHandler {
     public static String urlWithMdcOperations(CantoDAPAsset asset, String url) {
-        String mdcOperations = asset.getAdditionalData("mdcOperations");
+        String mdcOperations = asset.getAdditionalDataEntry("mdcOperations");
         return mdcOperations != null ? url + "/" + mdcOperations : url;
     }
 

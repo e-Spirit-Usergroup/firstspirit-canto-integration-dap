@@ -27,7 +27,7 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
     public CantoServiceConnection getConnection(@NotNull final CantoConfiguration config) {
         final CantoServiceConnection connection = CantoServiceConnection.fromConfig(config);
         if (!apiConnectionPool.containsKey(connection.getConnectionId())) {
-            final CantoApi cantoApi = new CantoApi(config.getTenant(), config.getToken(), config.getMDCDomain(), config.getMDCAccountId());
+            final CantoApi cantoApi = new CantoApi(config.getTenant(), config.getToken());
 
             apiConnectionPool.put(connection.getConnectionId(), cantoApi);
 
@@ -66,7 +66,7 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
         final CantoSearchResult cantoSearchResult = cantoApi.fetchSearch(params.getKeyword());
         //todo: implement paging
 
-        return CantoSearchResultDTOFactory.fromCantoSearchResult(params, cantoSearchResult, cantoApi);
+        return CantoSearchResultDTOFactory.fromCantoSearchResult(params, cantoSearchResult);
     }
 
     @Override

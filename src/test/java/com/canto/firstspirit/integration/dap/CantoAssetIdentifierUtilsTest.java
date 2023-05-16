@@ -19,7 +19,7 @@ class CantoAssetIdentifierUtilsTest {
 		Assertions.assertEquals("my-schema", assetIdentifier.getSchema());
 		Assertions.assertEquals("my-identifier", assetIdentifier.getId());
 		Assertions.assertEquals("my-schema/my-identifier", assetIdentifier.getPath());
-		Assertions.assertNull(identifier.getAdditionalData(""));
+		Assertions.assertNull(identifier.getAdditionalDataEntry(""));
 	}
 
 	@Test
@@ -32,11 +32,11 @@ class CantoAssetIdentifierUtilsTest {
 	void additionalDataSerialization() {
 		final CantoAssetIdentifier identifier = CantoAssetIdentifierSerializer.fromJsonIdentifier("{\"schema\":\"my-schema\",\"id\":\"my-identifier\"}");
 
-		identifier.setAdditionalData("test", "abc");
+		identifier.setAdditionalDataEntry("test", "abc");
 		CantoAssetIdentifier deserializedIdentifier = CantoAssetIdentifierSerializer.fromJsonIdentifier(
 				CantoAssetIdentifierSerializer.toJsonIdentifier(identifier));
 
-		Assertions.assertEquals("abc", deserializedIdentifier.getAdditionalData("test"));
+		Assertions.assertEquals("abc", deserializedIdentifier.getAdditionalDataEntry("test"));
 
 	}
 }

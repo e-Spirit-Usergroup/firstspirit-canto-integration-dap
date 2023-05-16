@@ -24,17 +24,14 @@ import de.espirit.firstspirit.generate.functions.json.JsonGenerationContext;
 import de.espirit.firstspirit.json.JsonElement;
 import de.espirit.firstspirit.json.JsonObject;
 import de.espirit.firstspirit.json.JsonPair;
+import de.espirit.firstspirit.json.values.JsonNullValue;
 import de.espirit.firstspirit.json.values.JsonStringValue;
 import de.espirit.firstspirit.ui.gadgets.aspects.transfer.TransferType;
 
 import com.canto.firstspirit.service.CantoSaasServiceProjectBoundClient;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, TransferHandling<CantoDAPAsset>, TransferSupplying<CantoDAPAsset>, DataTemplating<CantoDAPAsset>, JsonSupporting<CantoDAPAsset> {
@@ -99,13 +96,34 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     @Override
     public JsonElement<?> handle(@NotNull JsonGenerationContext jsonGenerationContext, CantoDAPAsset cantoDAPAsset) {
         final JsonObject jsonResult = JsonObject.create();
+
+        JsonElement<?> additionalInfoJSON = getMapAsJsonObject(cantoDAPAsset.getAdditionalInfo());
+
+        JsonElement<?> additionalDataJSON = getMapAsJsonObject(cantoDAPAsset.getAdditionalData());
+
         jsonResult.put(JsonPair.of("title", JsonStringValue.of(cantoDAPAsset.getTitle())));
         jsonResult.put(JsonPair.of("thumbnailUrl", JsonStringValue.of(cantoDAPAsset.getThumbnailUrl())));
+        jsonResult.put(JsonPair.of("previewUrl", JsonStringValue.of(cantoDAPAsset.getPreviewUrl())));
         jsonResult.put(JsonPair.of("path", JsonStringValue.of(cantoDAPAsset.getPath())));
+        jsonResult.put(JsonPair.of("id", JsonStringValue.of(cantoDAPAsset.getId())));
+        jsonResult.put(JsonPair.of("scheme", JsonStringValue.of(cantoDAPAsset.getSchema())));
         jsonResult.put(JsonPair.of("description", JsonStringValue.of(cantoDAPAsset.getDescription())));
-        jsonResult.put(JsonPair.of("mdc_rendition_baseurl", JsonStringValue.of(cantoDAPAsset.getMDCRenditionBaseUrl())));
-        jsonResult.put(JsonPair.of("mdc_asset_baseurl", JsonStringValue.of(cantoDAPAsset.getMDCAssetBaseUrl())));
+        jsonResult.put(JsonPair.of("additionalInfo", additionalInfoJSON));
+        jsonResult.put(JsonPair.of("additionalData", additionalDataJSON));
+
         return jsonResult;
+    }
+
+    private JsonElement<?> getMapAsJsonObject(Map<String, String> map) {
+        if (map != null) {
+            JsonObject result =  JsonObject.create();
+
+            map.forEach(
+                    (key, val) -> result.put(JsonPair.of(key, JsonStringValue.of(val)))
+            );
+            return result;
+        }
+        return JsonNullValue.NULL;
     }
 
     @NotNull

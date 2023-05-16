@@ -18,9 +18,7 @@ public class CantoConfigurationFactory {
         Values config = CantoProjectApp.getConfig(broker);
         String tenant = config.getString(CantoProjectAppConfiguration.PARAM_TENANT);
         String token = config.getString(CantoProjectAppConfiguration.PARAM_TOKEN);
-        String mdc_domain = config.getString(CantoProjectAppConfiguration.PARAM_MDC_DOMAIN);
-        String mdc_account_id = config.getString(CantoProjectAppConfiguration.PARAM_MDC_ACCOUNT_ID);
-        return new CantoConfiguration(tenant,token,mdc_domain,mdc_account_id);
+        return new CantoConfiguration(tenant,token);
     }
 
 }

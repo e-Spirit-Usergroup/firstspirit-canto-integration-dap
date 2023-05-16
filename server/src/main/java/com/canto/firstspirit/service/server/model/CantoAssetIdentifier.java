@@ -41,7 +41,7 @@ public class CantoAssetIdentifier implements Serializable {
         return schema + '/' + id;
     }
 
-    public void setAdditionalData(@NotNull String key, @Nullable String value) {
+    public void setAdditionalDataEntry(@NotNull String key, @Nullable String value) {
         if(value != null) {
             this.additionalData.put(key, value);
         } else {
@@ -49,8 +49,12 @@ public class CantoAssetIdentifier implements Serializable {
         }
     }
 
-    public @Nullable String getAdditionalData(@NotNull String key) {
+    public @Nullable String getAdditionalDataEntry(@NotNull String key) {
         return this.additionalData.get(key);
+    }
+
+    public Map<String, String> getAdditionalData() {
+        return additionalData;
     }
 
     /**

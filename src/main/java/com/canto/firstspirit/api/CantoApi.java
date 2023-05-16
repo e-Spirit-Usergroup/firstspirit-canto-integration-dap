@@ -20,8 +20,6 @@ import java.util.stream.Collectors;
 public class CantoApi {
 
     private final String tenant;
-    private final String mdc_domain;
-    private final String mdc_account_id;
 
     private final OkHttpClient client;
     private final Class<CantoApi> LOGGER = CantoApi.class;
@@ -32,10 +30,8 @@ public class CantoApi {
     private final JsonAdapter<CantoAsset> cantoAssetJsonAdapter = moshi.adapter(CantoAsset.class);
     private final JsonAdapter<CantoBatchResponse> cantoBatchResponseJsonAdapter = moshi.adapter(CantoBatchResponse.class);
 
-    public CantoApi(String tenant, String token, String mdc_domain, String mdc_account_id) {
+    public CantoApi(String tenant, String token) {
         this.tenant = tenant;
-        this.mdc_domain = mdc_domain;
-        this.mdc_account_id = mdc_account_id;
         this.client = new OkHttpClient
                 .Builder()
                 .addNetworkInterceptor(new TokenRequestInterceptor(token))
@@ -48,37 +44,6 @@ public class CantoApi {
                 .host(this.tenant)
                 .addPathSegments("api/v1");
     }
-
-    private HttpUrl.Builder getMDCUrl() {
-        return new HttpUrl.Builder()
-                .scheme("https")
-                .host(this.mdc_domain);
-    }
-
-    public String getMDCAssetBaseUrl(@NotNull CantoAsset asset) {
-        HttpUrl url = getMDCUrl()
-                .addPathSegment("asset")
-                .addPathSegment(this.mdc_account_id)
-                .addPathSegments(asset.getScheme() + "_" + asset.getId())
-                .build();
-
-        Logging.logInfo("getMDCAssetBaseUrl " + url, getClass());
-
-        return url.toString();
-    }
-
-    public String getMDCRenditionBaseUrl(@NotNull CantoAsset asset) {
-        HttpUrl url = getMDCUrl()
-                .addPathSegment("image")
-                .addPathSegment(this.mdc_account_id)
-                .addPathSegments(asset.getScheme() + "_" + asset.getId())
-                .build();
-
-        Logging.logInfo("getMDCRenditionBaseUrl " + url, getClass());
-
-        return url.toString();
-    }
-
 
     private Optional<CantoAsset> fetchAssetById(CantoAssetIdentifier assetId) {
 
