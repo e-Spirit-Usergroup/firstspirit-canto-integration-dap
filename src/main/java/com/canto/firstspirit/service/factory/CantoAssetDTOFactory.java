@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class CantoAssetDTOFactory {
 
-    public static @Nullable CantoAssetDTO fromAsset(@Nullable CantoAsset asset, @NotNull CantoApi cantoApi) {
+    public static @Nullable CantoAssetDTO fromAsset(@Nullable CantoAsset asset) {
         if(asset == null) return null;
 
         return new CantoAssetDTO(
@@ -19,9 +19,7 @@ public class CantoAssetDTOFactory {
                 CantoAssetUtils.getPreviewUrl(asset),
                 asset.getScheme(),
                 asset.getDescription(),
-                cantoApi.getMDCAssetBaseUrl(asset),
-                cantoApi.getMDCRenditionBaseUrl(asset)
-
+                asset.getAdditional()
         );
     }
 }

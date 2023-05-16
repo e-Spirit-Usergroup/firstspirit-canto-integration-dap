@@ -7,57 +7,56 @@ import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+
 @SuppressWarnings("unused")
 public class CantoDAPAsset {
 
-    private final String _title;
-    private final String _thumbnailUrl;
-    private final String _previewUrl;
-    private final String _description;
-    private final CantoAssetIdentifier _assetIdentifier;
-    private final String _mdc_rendition_baseurl;
-    private final String _mdc_asset_baseurl;
-
+    private final String title;
+    private final String thumbnailUrl;
+    private final String previewUrl;
+    private final String description;
+    private final CantoAssetIdentifier assetIdentifier;
+    private final Map<String, String> additionalInfo;
 
     @NotNull
     public static CantoDAPAsset fromCantoAssetDTO(@NotNull final CantoAssetDTO cantoAssetDTO) {
         //todo: handle dummy case
-        return new CantoDAPAsset(cantoAssetDTO.getSchema(), cantoAssetDTO.getId(), cantoAssetDTO.getName(), cantoAssetDTO.getThumbnailUrl(), cantoAssetDTO.getPreviewUrl(), cantoAssetDTO.getDescription(), cantoAssetDTO.getMDCRenditionBaseUrl(), cantoAssetDTO.getMDCAssetBaseUrl());
+        return new CantoDAPAsset(cantoAssetDTO.getSchema(), cantoAssetDTO.getId(), cantoAssetDTO.getName(), cantoAssetDTO.getThumbnailUrl(), cantoAssetDTO.getPreviewUrl(), cantoAssetDTO.getDescription(), cantoAssetDTO.getAdditionalInfo());
     }
 
 
-    public CantoDAPAsset(final String schema, String identifier, String title, String thumbnailUrl, String previewUrl, String description, String mdc_rendition_baseurl, String mdc_asset_baseurl) {
-        _assetIdentifier = new CantoAssetIdentifier(schema, identifier);
-        _title = title;
-        _thumbnailUrl = thumbnailUrl;
-        _previewUrl = previewUrl;
-        _description = description;
-        _mdc_rendition_baseurl = mdc_rendition_baseurl;
-        _mdc_asset_baseurl = mdc_asset_baseurl;
+    public CantoDAPAsset(final String schema, String identifier, String title, String thumbnailUrl, String previewUrl, String description, Map<String, String> additionalInfo) {
+        assetIdentifier = new CantoAssetIdentifier(schema, identifier);
+        this.title = title;
+        this.thumbnailUrl = thumbnailUrl;
+        this.previewUrl = previewUrl;
+        this.description = description;
+        this.additionalInfo = additionalInfo;
     }
 
     public String getDescription() {
-        return _description;
+        return description;
     }
 
     public String getJsonIdentifier() {
-        return CantoAssetIdentifierSerializer.toJsonIdentifier(this._assetIdentifier);
+        return CantoAssetIdentifierSerializer.toJsonIdentifier(this.assetIdentifier);
     }
 
     public String getPath() {
-        return _assetIdentifier.getPath();
+        return assetIdentifier.getPath();
     }
 
     public String getTitle() {
-        return _title;
+        return title;
     }
 
     public String getThumbnailUrl() {
-        return _thumbnailUrl;
+        return thumbnailUrl;
     }
 
     public String getPreviewUrl() {
-        return AdditionalDataHandler.urlWithMdcOperations(this, this._previewUrl);
+        return AdditionalDataHandler.urlWithMdcOperations(this, this.previewUrl);
     }
 
     /**
@@ -68,7 +67,7 @@ public class CantoDAPAsset {
      * @param value String to save
      */
     public void setAdditionalData(@NotNull String key, @Nullable String value) {
-        this._assetIdentifier.setAdditionalData(key, value);
+        this.assetIdentifier.setAdditionalData(key, value);
     }
 
     /**
@@ -78,15 +77,14 @@ public class CantoDAPAsset {
      * @return value from AdditionalData or null
      */
     public @Nullable String getAdditionalData(@NotNull String key) {
-        return this._assetIdentifier.getAdditionalData(key);
+        return this.assetIdentifier.getAdditionalData(key);
     }
 
-
-    public String getMDCRenditionBaseUrl() {
-        return _mdc_rendition_baseurl;
-    }
-
-    public String getMDCAssetBaseUrl() {
-        return _mdc_asset_baseurl;
+    /**
+     * returns additional from CantoApi
+     * @return Map containing additional Info from Canto Api, like MDC Urls
+     */
+    public Map<String, String> getAdditionalInfo() {
+        return additionalInfo;
     }
 }

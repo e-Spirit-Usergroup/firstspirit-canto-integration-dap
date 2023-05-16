@@ -1,6 +1,7 @@
 package com.canto.firstspirit.service.server.model;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * This class represents the DTO created by the service based on a CantoAsset from the CantoApi
@@ -14,19 +15,17 @@ public class CantoAssetDTO implements Serializable {
     private final String previewUrl;
     private final String schema;
     private final String description;
-    private final String mdcAssetBaseUrl;
-    private final String mdcRenditionBaseUrl;
+    private final Map<String, String> additionalInfo;
 
 
-    public CantoAssetDTO(String id, String name, String thumbnailUrl, String previewUrl, String schema, String description, String mdcAssetBaseUrl, String mdcRenditionBaseUrl){
+    public CantoAssetDTO(String id, String name, String thumbnailUrl, String previewUrl, String schema, String description, Map<String, String> additionalInfo){
         this.id = id;
         this.name = name;
         this.thumbnailUrl = thumbnailUrl;
         this.previewUrl = previewUrl;
         this.schema = schema;
         this.description = description;
-        this.mdcAssetBaseUrl = mdcAssetBaseUrl;
-        this.mdcRenditionBaseUrl = mdcRenditionBaseUrl;
+        this.additionalInfo = additionalInfo;
     }
 
     public String getDescription() {
@@ -53,11 +52,7 @@ public class CantoAssetDTO implements Serializable {
         return previewUrl;
     }
 
-    public String getMDCAssetBaseUrl() {
-        return mdcAssetBaseUrl;
-    }
-
-    public String getMDCRenditionBaseUrl() {
-        return mdcRenditionBaseUrl;
+    public Map<String, String> getAdditionalInfo() {
+        return additionalInfo;
     }
 }

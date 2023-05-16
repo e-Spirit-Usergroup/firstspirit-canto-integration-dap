@@ -54,7 +54,7 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
         final CantoApi cantoApi = getApiInstance(connection);
         return cantoApi.fetchAssets(identifiers)
                 .stream()
-                .map(asset -> CantoAssetDTOFactory.fromAsset(asset, cantoApi))
+                .map(CantoAssetDTOFactory::fromAsset)
                 .collect(Collectors.toList());
     }
 

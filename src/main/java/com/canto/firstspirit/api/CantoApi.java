@@ -110,8 +110,8 @@ public class CantoApi {
      */
     public List<CantoAsset> fetchAssets(@NotNull List<? extends CantoAssetIdentifier> assetIdentifiers) {
         if(assetIdentifiers.size() == 1) {
-            Logging.logInfo("[CantoApi][fetchAssets] Single id: " + Strings.implode(assetIdentifiers, ","), LOGGER);
-            return assetIdentifiers.stream().map(asset -> fetchAssetById(asset).orElse(null)).collect(Collectors.toList());
+            Logging.logInfo("[CantoApi][fetchAssets] Single id fetch: " + Strings.implode(assetIdentifiers, ","), LOGGER);
+            return Collections.singletonList(fetchAssetById(assetIdentifiers.get(0)).orElse(null));
         }
 
         Logging.logInfo("[CantoApi][fetchAssets] fetching ids: " + Strings.implode(assetIdentifiers, ","), LOGGER);
@@ -139,10 +139,10 @@ public class CantoApi {
             if (cantoBatchResponse == null)
                 throw new IllegalStateException("Unable to parse Result to CantoBatchResponse for url " + url);
 
-            Map<CantoAssetIdentifier, CantoAsset> fetchedAssets = cantoBatchResponse.getDocResult()
+            Map<String, CantoAsset> fetchedAssets = cantoBatchResponse.getDocResult()
                     .stream()
                     .collect(Collectors.toMap(asset ->
-                                    new CantoAssetIdentifier(asset.getScheme(), asset.getId()),
+                                    new CantoAssetIdentifier(asset.getScheme(), asset.getId()).getPath(),
                             Function.identity()
                     ));
 
@@ -151,7 +151,7 @@ public class CantoApi {
 
             // Ensure correct Order and replace missing Values with null
             return assetIdentifiers.stream()
-                    .map(fetchedAssets::get)
+                    .map(identifier -> fetchedAssets.get(identifier.getPath()))
                     .collect(Collectors.toList());
 
 

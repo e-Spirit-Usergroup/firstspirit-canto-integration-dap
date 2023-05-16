@@ -17,7 +17,7 @@ public class CantoSearchResultDTOFactory {
         final var total = cantoSearchResult.getFound().intValue();
         final var results = cantoSearchResult.getResults()
                 .stream()
-                .map(cantoAsset -> CantoAssetDTOFactory.fromAsset(cantoAsset, cantoApi))
+                .map(CantoAssetDTOFactory::fromAsset)
                 .collect(Collectors.toList());
 
         return new CantoSearchResultDTO(total,
