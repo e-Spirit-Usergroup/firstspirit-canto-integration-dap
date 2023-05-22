@@ -63,6 +63,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     @NotNull
     @Override
     public CantoDAPAsset getData(@NotNull final String identifier) throws NoSuchElementException {
+        Logging.logInfo("getData Single: " + identifier, getClass());
         return getData(Collections.singleton(identifier))
                 .stream()
                 .findFirst()
@@ -72,13 +73,11 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     @NotNull
     @Override
     public List<CantoDAPAsset> getData(@NotNull final Collection<String> identifiers) {
-        Logging.logInfo("getData: " + Strings.implode(identifiers, ", "), getClass());
+        Logging.logInfo("getData Multi: " + Strings.implode(identifiers, ", "), getClass());
         final List<CantoAssetIdentifier> assetIdentifiers = identifiers.stream()
                 .map(CantoAssetIdentifierSerializer::fromJsonIdentifier)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-
-        Logging.logInfo("getData: " + Strings.implode(assetIdentifiers, ", "), getClass());
 
         return cantoSaasServiceClient.fetchAssetDTOs(assetIdentifiers).stream()
                 .map(cantoAssetDTO -> cantoAssetDTO != null ? CantoDAPAsset.fromCantoAssetDTO(cantoAssetDTO) : null)
