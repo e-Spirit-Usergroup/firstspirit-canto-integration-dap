@@ -1,15 +1,17 @@
 package com.canto.firstspirit.integration.dap.model;
 
-import com.canto.firstspirit.integration.dap.custom.AdditionalDataHandler;
 import com.canto.firstspirit.service.factory.CantoAssetIdentifierSerializer;
 import com.canto.firstspirit.service.server.model.CantoAssetDTO;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
+import de.espirit.common.base.Logging;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class CantoDAPAsset {
+
+  private static final String MDC_URL_KEY = "MDC Image URL";
 
   private final String title;
   private final String thumbnailUrl;
@@ -20,7 +22,6 @@ public class CantoDAPAsset {
   private final Map<String, String> additionalInfo;
 
   @NotNull public static CantoDAPAsset fromCantoAssetDTO(@NotNull final CantoAssetDTO cantoAssetDTO) {
-    //todo: handle dummy case
     return new CantoDAPAsset(cantoAssetDTO.getSchema(),
                              cantoAssetDTO.getId(),
                              cantoAssetDTO.getName(),
@@ -61,8 +62,37 @@ public class CantoDAPAsset {
     return thumbnailUrl;
   }
 
+  /**
+   * returns PreviewURL. Default size 800
+   *
+   * @return url as String
+   */
   public String getPreviewUrl() {
-    return AdditionalDataHandler.urlWithMdcOperations(this, this.previewUrl);
+    return this.previewUrl;
+  }
+
+  /**
+   * get MDC Url. Logs Warning if MDC is not available. You can check availability via {@link #isMDCAvailable()} Throws
+   *
+   * @return MDC Url or empty String if not available.
+   */
+  public String getMDCUrl() {
+    if (!isMDCAvailable()) {
+      Logging.logWarning(this + "Requested MDCUrl not available.", this.getClass());
+    }
+    return this.additionalInfo != null ? this.additionalInfo.getOrDefault(MDC_URL_KEY, "") : "";
+  }
+
+  /**
+   * returns MDC URL if available, PreviewUrl otherwise
+   *
+   * @return url as String
+   */
+  public String getUrl() {
+    if (isMDCAvailable()) {
+      return getMDCUrl();
+    }
+    return this.getPreviewUrl();
   }
 
   public String getId() {
@@ -99,11 +129,26 @@ public class CantoDAPAsset {
   }
 
   /**
-   * returns additional from CantoApi
+   * returns 'additional' from CantoApi
    *
    * @return Map containing additional Info from Canto Api, like MDC Urls
    */
   public @Nullable Map<String, String> getAdditionalInfo() {
     return additionalInfo;
   }
+
+  /**
+   * true iff Mdc URL is filled and not empty
+   *
+   * @return indicator if MDC is Available
+   */
+  public boolean isMDCAvailable() {
+    final @Nullable String mdcUrl = additionalInfo != null ? additionalInfo.get(MDC_URL_KEY) : null;
+    return mdcUrl != null && !mdcUrl.isBlank();
+  }
+
+  @Override public String toString() {
+    return "[CantoDAPAsset: " + this.assetIdentifier + "]";
+  }
+
 }

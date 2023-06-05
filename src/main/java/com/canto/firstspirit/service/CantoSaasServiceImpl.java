@@ -38,8 +38,8 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
       apiConnectionPool.put(connection.getConnectionId(), cantoApi);
 
       Logging.logInfo(
-          "New Connection requested for Tenant: " + config.getTenant() + ". Created ConnectionId: " + connection.getConnectionId() + ". ApiPoolSize="
-              + apiConnectionPool.size(), this.getClass());
+          "[getServiceConnection] New Connection for Tenant: " + config.getTenant() + ". Created ConnectionId: " + connection.getConnectionId()
+              + ". ApiPoolSize=" + apiConnectionPool.size(), this.getClass());
     }
 
     return connection;
@@ -58,7 +58,7 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
 
   @NotNull @Override public List<@Nullable CantoAssetDTO> fetchAssetsByIdentifiers(@NotNull final CantoServiceConnection connection,
       @NotNull final List<CantoAssetIdentifier> identifiers) {
-    Logging.logInfo("getAssetDTO in Service with " + Strings.implode(identifiers, ", "), getClass());
+    Logging.logInfo("[fetchAssetsByIdentifiers] " + Strings.implode(identifiers, ", "), getClass());
     final CantoApi cantoApi = getApiInstance(connection);
     return cantoApi.fetchAssets(identifiers)
         .stream()
@@ -67,7 +67,7 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
   }
 
   @Override public CantoSearchResultDTO fetchSearch(@NotNull final CantoServiceConnection connection, @NotNull final CantoSearchParams params) {
-    Logging.logInfo("CantoSearch in Service with " + params, getClass());
+    Logging.logInfo("[fetchSearch] " + params, getClass());
     final CantoApi cantoApi = getApiInstance(connection);
 
     final CantoSearchResult cantoSearchResult = cantoApi.fetchSearch(params.getKeyword());
@@ -77,15 +77,14 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
   }
 
   @Override public void start() {
-    //todo: initialize
     apiConnectionPool = new HashMap<>();
-    Logging.logInfo("CantoSaasServerService started", this.getClass());
+    Logging.logInfo("[start] CantoSaasServerService started", this.getClass());
   }
 
   @Override public void stop() {
     //apiConnectionPool.forEach((key, value) -> value.close());
     apiConnectionPool = null;
-    Logging.logInfo("CantoSaasServerService stopped", this.getClass());
+    Logging.logInfo("[stop] CantoSaasServerService stopped", this.getClass());
   }
 
   @Override public boolean isRunning() {

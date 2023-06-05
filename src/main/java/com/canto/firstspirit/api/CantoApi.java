@@ -26,11 +26,22 @@ import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-
+/**
+ * Offers Access to the CantoApi. Meant to be used and managed through {@link com.canto.firstspirit.service.CantoSaasServiceImpl}.
+ * <br/> Manages its own accessToken based validity period. If used directly outside of service, access Token management will likely not work as
+ * desired and create lots of access tokens!
+ * <br/>
+ * <br/>
+ * <strong>Direct Use outside of Service not recommended. </strong>
+ */
 public class CantoApi {
 
   private final String tenant;
 
+  /**
+   * <strong>!! Do not access directly. use {@link #getClient()} instead !! </strong>
+   * <br/> Using {@link #getClient()} ensures valid Access Token
+   */
   private OkHttpClient _client;
   private final Class<CantoApi> LOGGER = CantoApi.class;
 
@@ -48,6 +59,16 @@ public class CantoApi {
   static JsonAdapter<CantoAccessTokenData> cantoAccessTokenDataJsonAdapter = moshi.adapter(CantoAccessTokenData.class);
 
 
+  /**
+   * Creates new CantoApi. Access Token will be generated via appId, appSecret and UserId. Each Api instantiation generates new Access Token.
+   * Instances meant to be managed by {@link com.canto.firstspirit.service.CantoSaasServiceImpl}
+   * <br/><strong>Direct Use outside of Service not recommended. </strong>
+   *
+   * @param tenant    tenant
+   * @param appId     appId
+   * @param appSecret appSecret
+   * @param userId    userId
+   */
   public CantoApi(String tenant, String appId, String appSecret, String userId) {
     this.tenant = tenant;
     this.appId = appId;
@@ -55,6 +76,13 @@ public class CantoApi {
     this.userId = userId;
   }
 
+  /**
+   * <strong>!! Always use this method to access private _client member !!</strong>
+   * <p>
+   * Checks access Token validity and fetches new Token if needed. Returns client with valid access token
+   *
+   * @return client
+   */
   private OkHttpClient getClient() {
     if (this._client == null || this.validUntilTimestamp < System.currentTimeMillis()) {
       // We need to fetch a new access token
@@ -64,18 +92,22 @@ public class CantoApi {
     return this._client;
   }
 
+  /**
+   * fetches new Access Token from CantoApi and sets client and validity. If not successful, sets client to null and validity to 0 and throws
+   * IllegalState Exception
+   */
   private void fetchClientWithNewToken() {
 
-    CantoAccessTokenData cantoAccessTokenData = generateAccessToken(appId, appSecret, userId);
+    CantoAccessTokenData cantoAccessTokenData = generateAccessToken();
 
     if (cantoAccessTokenData == null) {
-      Logging.logError("CantoApi was unable to retrieve AccessToken", this.getClass());
+      Logging.logError("[fetchClientWithNewToken] CantoApi was unable to retrieve AccessToken", this.getClass());
       this._client = null;
       this.validUntilTimestamp = 0;
       throw new IllegalStateException("No client with valid Access Token available");
 
     } else {
-      Logging.logInfo("CantoApi Access Token refreshed", this.getClass());
+      Logging.logInfo("[fetchClientWithNewToken] CantoApi Access Token refreshed", this.getClass());
       // Only use 90% of validity Period to ensure we don't get quirks at the end of the validity Period
       this.validUntilTimestamp = System.currentTimeMillis() + Math.round(cantoAccessTokenData.getExpiresInMs() * 0.9);
       this._client = new OkHttpClient.Builder().addNetworkInterceptor(new TokenRequestInterceptor(cantoAccessTokenData.getAccessToken()))
@@ -84,18 +116,29 @@ public class CantoApi {
     }
   }
 
+  /**
+   * returns UrlBuilder with BaseURL for different API Endpoint
+   *
+   * @return URL Builder with base URL
+   */
   private HttpUrl.Builder getApiUrl() {
     return new HttpUrl.Builder().scheme("https")
         .host(this.tenant)
         .addPathSegments("api/v1");
   }
 
+  /**
+   * fetch single Asset by Identifier
+   *
+   * @param assetId CantoAssetIdentifier
+   * @return Optional of Asset
+   */
   private Optional<CantoAsset> fetchAssetById(CantoAssetIdentifier assetId) {
 
     HttpUrl url = getApiUrl().addPathSegments(assetId.getPath())
         .build();
 
-    Logging.logInfo("[CantoApi][getAssetById] fetching " + url, LOGGER);
+    Logging.logInfo("[getAssetById] fetching " + url, LOGGER);
 
     CantoAsset asset = null;
 
@@ -106,9 +149,9 @@ public class CantoApi {
       }
       asset = cantoAssetJsonAdapter.fromJson(body.source());
     } catch (Exception e) {
-      Logging.logError("[CantoApi][getAssetById] Error occurred", e, LOGGER);
+      Logging.logError("[getAssetById] Error occurred", e, LOGGER);
     }
-    Logging.logInfo("[CantoApi][getAssetById] returning Asset " + (asset == null ? null : asset.getId()), LOGGER);
+    Logging.logDebug("[getAssetById] returning Asset " + (asset == null ? null : asset.getId()), LOGGER);
     return Optional.ofNullable(asset);
   }
 
@@ -119,12 +162,10 @@ public class CantoApi {
    * @return List of CantoAssets in the same order as identifiers. Missing Assets are replaced by null
    */
   public List<CantoAsset> fetchAssets(@NotNull List<? extends CantoAssetIdentifier> assetIdentifiers) {
+    Logging.logInfo("[fetchAssets] fetching ids: " + Strings.implode(assetIdentifiers, ","), LOGGER);
     if (assetIdentifiers.size() == 1) {
-      Logging.logInfo("[CantoApi][fetchAssets] Single id fetch: " + Strings.implode(assetIdentifiers, ","), LOGGER);
       return Collections.singletonList(fetchAssetById(assetIdentifiers.get(0)).orElse(null));
     }
-
-    Logging.logInfo("[CantoApi][fetchAssets] fetching ids: " + Strings.implode(assetIdentifiers, ","), LOGGER);
 
     List<Map<String, String>> requestList = assetIdentifiers.stream()
         .map(cantoAssetIdentifier -> Map.of("id", cantoAssetIdentifier.getId(), "scheme", cantoAssetIdentifier.getSchema()))
@@ -136,7 +177,7 @@ public class CantoApi {
     HttpUrl url = getApiUrl().addPathSegments("batch/content")
         .build();
 
-    Logging.logInfo("[CantoApi][fetchAssets] url:  " + url, LOGGER);
+    Logging.logDebug("[fetchAssets] url:  " + url, LOGGER);
 
     try (Response response = executePostRequest(url, stringifiedJsonBody)) {
       ResponseBody body = response.body();
@@ -154,7 +195,7 @@ public class CantoApi {
           .stream()
           .collect(Collectors.toMap(asset -> new CantoAssetIdentifier(asset.getScheme(), asset.getId()).getPath(), Function.identity()));
 
-      Logging.logInfo("[CantoApi][fetchAssets] " + cantoBatchResponse, LOGGER);
+      Logging.logDebug("[fetchAssets] " + cantoBatchResponse, LOGGER);
 
       // Ensure correct Order and replace missing Values with null
       return assetIdentifiers.stream()
@@ -199,7 +240,7 @@ public class CantoApi {
         .addQueryParameter("limit", String.valueOf(limit))
         .build();
 
-    Logging.logInfo("search " + url, getClass());
+    Logging.logInfo("[fetchSearch] " + url, getClass());
 
     try (Response response = executeGetRequest(url)) {
       ResponseBody body = response.body();
@@ -208,7 +249,7 @@ public class CantoApi {
       }
       CantoSearchResult cantoSearchResult = cantoSearchResultJsonAdapter.fromJson(body.source());
 
-      Logging.logInfo("searchResult " + cantoSearchResult, getClass());
+      Logging.logDebug("searchResult " + cantoSearchResult, getClass());
 
       if (cantoSearchResult != null && cantoSearchResult.getResults() == null) {
         cantoSearchResult.setResults(Collections.emptyList());
@@ -271,6 +312,13 @@ public class CantoApi {
   }
 
 
+  /**
+   * get body as String and close it.
+   * Helper method for error cases
+   *
+   * @param response response
+   * @return body as String
+   */
   private @Nullable String getAndCloseResponseBodyAsString(Response response) {
     ResponseBody body = response.body();
     String bodyText = null;
@@ -291,14 +339,11 @@ public class CantoApi {
    * Generates a new Access Token for Canto API via appId and appSecret. Access Tokens are valid for 30 Days Returns null on error or invalid
    * response
    *
-   * @param appId     Canto appId
-   * @param appSecret Canto appSecret
-   * @param userId    User access Token is generated for
    * @return CantoAccessTokenData on success, null otherwise
    */
-  public @Nullable CantoAccessTokenData generateAccessToken(String appId, String appSecret, String userId) {
+  public @Nullable CantoAccessTokenData generateAccessToken() {
 
-    Logging.logInfo("Generating new Access Token", CantoApi.class);
+    Logging.logInfo("[generateAccessToken] Generating new Access Token", CantoApi.class);
 
     if (appId.isBlank() || appSecret.isBlank() || userId.isBlank()) {
       Logging.logError("Unable to generate Access Token; appId, appSecret and userId must be provided", CantoApi.class);
@@ -329,7 +374,7 @@ public class CantoApi {
         CantoAccessTokenData cantoAccessTokenData = cantoAccessTokenDataJsonAdapter.fromJson(response.body()
                                                                                                  .source());
         if (CantoAccessTokenData.isValid(cantoAccessTokenData)) {
-          Logging.logInfo("Successfully generated new AccessToken: " + cantoAccessTokenData, CantoApi.class);
+          Logging.logInfo("[generateAccessToken] Successfully generated new AccessToken: " + cantoAccessTokenData, CantoApi.class);
           return cantoAccessTokenData;
         } else {
           Logging.logError("Invalid Access Token Data: " + cantoAccessTokenData, CantoApi.class);

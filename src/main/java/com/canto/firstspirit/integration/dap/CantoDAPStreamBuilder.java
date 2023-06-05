@@ -84,7 +84,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
       searchParams = new CantoSearchParams(searchParams.getStart() + searchParams.getLimit(), pageSize, searchParams.getKeyword());
 
       if (searchParams.getStart() <= total) {
-        Logging.logInfo("Fetching next page, " + searchParams + ", total=" + total, this.getClass());
+        Logging.logInfo("[fetchNextPage] Fetching next page, " + searchParams + ", total=" + total, this.getClass());
 
         CantoSearchResultDTO cantoSearchResultDTO = cantoSaasServiceClient.fetchSearch(searchParams);
         for (CantoAssetDTO assetDTO : cantoSearchResultDTO.getResults()) {
@@ -94,13 +94,13 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
         availableAssets = fetchedAssets.size();
       } else {
         hasNext = false;
-        Logging.logInfo("no next Page available. total fetched " + total, this.getClass());
+        Logging.logInfo("[fetchNextPage] no next Page available. total fetched " + total, this.getClass());
       }
     }
 
     @NotNull @Override public List<CantoDAPAsset> getNext(int count) {
 
-      Logging.logInfo("getNext, count=" + count + ", availableAssets=" + availableAssets + ", hasNext=" + hasNext + ", total=" + total,
+      Logging.logInfo("[getNext], count=" + count + ", availableAssets=" + availableAssets + ", hasNext=" + hasNext + ", total=" + total,
                       this.getClass());
       if (availableAssets < count && hasNext) {
         fetchNextPage();

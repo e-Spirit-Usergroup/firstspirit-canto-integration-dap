@@ -16,7 +16,7 @@ public class CantoDAPSessionBuilder implements DataAccessSessionBuilder<CantoDAP
   static private CantoDAPSession CACHED_SESSION = null;
 
   public CantoDAPSessionBuilder() {
-    Logging.logInfo("CantoDAPSessionBuilder Created", this.getClass());
+    Logging.logDebug("CantoDAPSessionBuilder Created", this.getClass());
   }
 
   @Override public <A> A getAspect(@NotNull SessionBuilderAspectType<A> sessionBuilderAspectType) {
@@ -27,11 +27,11 @@ public class CantoDAPSessionBuilder implements DataAccessSessionBuilder<CantoDAP
     // We only want to cache Sessions in the SiteArchitect to ensure separation of contexts on ServerSide.
     if (baseContext.is(BaseContext.Env.ARCHITECT)) {
       if (CACHED_SESSION == null) {
-        Logging.logInfo("Creating cached Session for BaseContext=" + baseContext, this.getClass());
+        Logging.logDebug("Creating cached Session for BaseContext=" + baseContext, this.getClass());
         CACHED_SESSION = new CantoDAPSession(baseContext);
       }
     }
-    Logging.logInfo("Create Session Called. Returning " + (CACHED_SESSION != null ? "CACHED_SESSION" : "new CantoDAPSession"), this.getClass());
+    Logging.logDebug("Create Session Called. Returning " + (CACHED_SESSION != null ? "CACHED_SESSION" : "new CantoDAPSession"), this.getClass());
     return CACHED_SESSION != null ? CACHED_SESSION : new CantoDAPSession(baseContext);
   }
 

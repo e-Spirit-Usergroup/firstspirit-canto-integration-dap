@@ -46,7 +46,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
 
   public CantoDAPSession(BaseContext baseContext) {
 
-    Logging.logInfo("CantoDapSession Created", this.getClass());
+    Logging.logDebug("CantoDapSession Created", this.getClass());
     this.context = baseContext;
 
     cantoSaasServiceClient = CantoSaasServiceProjectBoundClient.fromProjectBroker(context);
@@ -63,14 +63,14 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
   }
 
   @NotNull @Override public CantoDAPAsset getData(@NotNull final String identifier) throws NoSuchElementException {
-    Logging.logInfo("getData Single: " + identifier, getClass());
+    Logging.logInfo("[getData] Single: " + identifier, getClass());
     return getData(Collections.singleton(identifier)).stream()
         .findFirst()
         .orElseThrow(() -> new NoSuchElementException("Element with identifier " + identifier + " not found"));
   }
 
   @NotNull @Override public List<CantoDAPAsset> getData(@NotNull final Collection<String> identifiers) {
-    Logging.logInfo("getData Multi: " + Strings.implode(identifiers, ", "), getClass());
+    Logging.logInfo("[getData] Multi: " + Strings.implode(identifiers, ", "), getClass());
     final List<CantoAssetIdentifier> assetIdentifiers = identifiers.stream()
         .map(CantoAssetIdentifierSerializer::fromJsonIdentifier)
         .filter(Objects::nonNull)
