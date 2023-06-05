@@ -63,7 +63,7 @@ public class CantoApi {
 
     return this._client;
   }
-  
+
   private void fetchClientWithNewToken() {
 
     CantoAccessTokenData cantoAccessTokenData = generateAccessToken(appId, appSecret, userId);
@@ -75,7 +75,7 @@ public class CantoApi {
       throw new IllegalStateException("No client with valid Access Token available");
 
     } else {
-      Logging.logError("CantoApi Access Token refreshed", this.getClass());
+      Logging.logInfo("CantoApi Access Token refreshed", this.getClass());
       // Only use 90% of validity Period to ensure we don't get quirks at the end of the validity Period
       this.validUntilTimestamp = System.currentTimeMillis() + Math.round(cantoAccessTokenData.getExpiresInMs() * 0.9);
       this._client = new OkHttpClient.Builder().addNetworkInterceptor(new TokenRequestInterceptor(cantoAccessTokenData.getAccessToken()))
