@@ -4,32 +4,53 @@ import java.io.Serializable;
 import java.util.Objects;
 
 public class CantoConfiguration implements Serializable {
-    private final String tenant;
-    private final String token;
-    private static final long serialVersionUID = 1L;
 
-    public String getTenant() {
-        return tenant;
-    }
-    public String getToken() {
-        return token;
-    }
-    public CantoConfiguration(String tenant, String token) {
-        this.tenant = tenant;
-        this.token = token;
-    }
+  private final String tenant;
+
+  private final String appId;
+  private final String appSecret;
+  private final String userId;
+  private static final long serialVersionUID = 2L;
 
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CantoConfiguration that = (CantoConfiguration) o;
-        return tenant.equals(that.tenant) && token.equals(that.token);
-    }
+  public CantoConfiguration(String tenant, String appId, String appSecret, String userId) {
+    this.tenant = tenant;
+    this.appId = appId;
+    this.appSecret = appSecret;
+    this.userId = userId;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(tenant, token);
+
+  public String getTenant() {
+    return tenant;
+  }
+
+  public String getAppId() {
+    return appId;
+  }
+
+  public String getAppSecret() {
+    return appSecret;
+  }
+
+  public String getUserId() {
+    return userId;
+  }
+
+  @Override public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    CantoConfiguration that = (CantoConfiguration) o;
+    return tenant.equals(that.tenant) && appId.equals(that.appId) && appSecret.equals(that.appSecret) && userId.equals(that.userId);
+  }
+
+  @Override public int hashCode() {
+    return Objects.hash(tenant, appId, appSecret, userId);
+  }
+
+
 }
