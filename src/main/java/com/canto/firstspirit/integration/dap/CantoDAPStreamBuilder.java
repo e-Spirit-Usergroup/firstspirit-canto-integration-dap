@@ -1,7 +1,7 @@
 package com.canto.firstspirit.integration.dap;
 
 import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
-import com.canto.firstspirit.service.*;
+import com.canto.firstspirit.service.CantoSaasServiceProjectBoundClient;
 import com.canto.firstspirit.service.server.model.CantoAssetDTO;
 import com.canto.firstspirit.service.server.model.CantoSearchParams;
 import com.canto.firstspirit.service.server.model.CantoSearchResultDTO;
@@ -14,130 +14,124 @@ import de.espirit.firstspirit.client.plugin.dataaccess.aspects.StreamBuilderAspe
 import de.espirit.firstspirit.client.plugin.report.Parameter;
 import de.espirit.firstspirit.client.plugin.report.ParameterMap;
 import de.espirit.firstspirit.client.plugin.report.ParameterText;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
 
 
 public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, Filterable {
-    private final StreamBuilderAspectMap aspects = new StreamBuilderAspectMap();
-    private final CantoSaasServiceProjectBoundClient cantoSaasServiceClient;
-    private ParameterMap parameterMap;
-    private final ParameterText paramKeyword;
-    private final ParameterText paramTag;
+
+  private final StreamBuilderAspectMap aspects = new StreamBuilderAspectMap();
+  private final CantoSaasServiceProjectBoundClient cantoSaasServiceClient;
+  private ParameterMap parameterMap;
+  private final ParameterText paramKeyword;
+  private final ParameterText paramTag;
 
 
+  public CantoDAPStreamBuilder(CantoSaasServiceProjectBoundClient cantoSaasServiceClient) {
+    this.cantoSaasServiceClient = cantoSaasServiceClient;
+    aspects.put(Filterable.TYPE, this);
+    paramKeyword = Parameter.Factory.createText("keyword", "Keyword", "");
+    paramTag = Parameter.Factory.createText("tag", "Tag", "");
+  }
 
+  @Override public <A> A getAspect(@NotNull StreamBuilderAspectType<A> streamBuilderAspectType) {
+    return aspects.get(streamBuilderAspectType);
+  }
 
-    public CantoDAPStreamBuilder(CantoSaasServiceProjectBoundClient cantoSaasServiceClient) {
-        this.cantoSaasServiceClient = cantoSaasServiceClient;
-        aspects.put(Filterable.TYPE,this);
-        paramKeyword = Parameter.Factory.createText("keyword", "Keyword","");
-        paramTag = Parameter.Factory.createText("tag", "Tag","");
+  @NotNull @Override public DataStream<CantoDAPAsset> createDataStream() {
+    return new CantoDAPDataStream();
+  }
+
+  @NotNull @Override public List<Parameter<?>> getDefinedParameters() {
+
+    // return Collections.singletonList(paramKeyword);
+    return Arrays.asList(paramKeyword, paramTag);
+  }
+
+  @Override public void setFilter(@NotNull ParameterMap parameterMap) {
+    this.parameterMap = parameterMap;
+  }
+
+  private class CantoDAPDataStream implements DataStream<CantoDAPAsset> {
+
+    private Queue<CantoDAPAsset> fetchedAssets;
+
+    private int total = 0;
+    private int availableAssets = 0;
+    private boolean hasNext = true;
+
+    CantoSearchParams searchParams;
+
+    public CantoDAPDataStream() {
+      searchParams = new CantoSearchParams(0, 0, parameterMap.get(paramKeyword));
+      fetchedAssets = null;
     }
 
-    @Override
-    public <A> A getAspect(@NotNull StreamBuilderAspectType<A> streamBuilderAspectType) {
-        return aspects.get(streamBuilderAspectType);
+    /**
+     * Fetch the next page of assets if available. Sets hasNext to false, if offset is larger than total counts
+     */
+    private void fetchNextPage() {
+      final int pageSize = 50;
+
+      if (fetchedAssets == null) {
+        fetchedAssets = new LinkedList<>();
+      }
+
+      searchParams = new CantoSearchParams(searchParams.getStart() + searchParams.getLimit(), pageSize, searchParams.getKeyword());
+
+      if (searchParams.getStart() <= total) {
+        Logging.logInfo("Fetching next page, " + searchParams + ", total=" + total, this.getClass());
+
+        CantoSearchResultDTO cantoSearchResultDTO = cantoSaasServiceClient.fetchSearch(searchParams);
+        for (CantoAssetDTO assetDTO : cantoSearchResultDTO.getResults()) {
+          fetchedAssets.add(CantoDAPAsset.fromCantoAssetDTO(assetDTO));
+        }
+        total = cantoSearchResultDTO.getTotal();
+        availableAssets = fetchedAssets.size();
+      } else {
+        hasNext = false;
+        Logging.logInfo("no next Page available. total fetched " + total, this.getClass());
+      }
     }
 
-    @NotNull
-    @Override
-    public DataStream<CantoDAPAsset> createDataStream() {
-        return new CantoDAPDataStream();
+    @NotNull @Override public List<CantoDAPAsset> getNext(int count) {
+
+      Logging.logInfo("getNext, count=" + count + ", availableAssets=" + availableAssets + ", hasNext=" + hasNext + ", total=" + total,
+                      this.getClass());
+      if (availableAssets < count && hasNext) {
+        fetchNextPage();
+      }
+
+      // To prevent buggy behaviour when FS keeps asking for 0 elements. Makes the DAP Flicker.
+      // Happens, when total count and actual count do not exactly match for any reason
+      if (count == 0) {
+        hasNext = false;
+      }
+
+      List<CantoDAPAsset> result = new ArrayList<>();
+      for (int i = 0; i < count && !fetchedAssets.isEmpty(); i++) {
+        result.add(fetchedAssets.poll());
+        availableAssets--;
+      }
+
+      return result;
     }
 
-    @NotNull
-    @Override
-    public List<Parameter<?>> getDefinedParameters() {
-
-        // return Collections.singletonList(paramKeyword);
-        return Arrays.asList(paramKeyword, paramTag);
+    @Override public boolean hasNext() {
+      return hasNext;
     }
 
-    @Override
-    public void setFilter(@NotNull ParameterMap parameterMap) {
-        this.parameterMap = parameterMap;
+    @Override public int getTotal() {
+      // -1 better than a count, that is not 100% sure to be correct, as it may produce buggy behaviour otherwise
+      return -1;
     }
 
-    private class CantoDAPDataStream implements DataStream<CantoDAPAsset> {
-
-        private Queue<CantoDAPAsset> fetchedAssets;
-
-        private int total = 0;
-        private int availableAssets = 0;
-        private boolean hasNext = true;
-
-        CantoSearchParams searchParams;
-
-        public CantoDAPDataStream(){
-            searchParams = new CantoSearchParams(0,0, parameterMap.get(paramKeyword));
-            fetchedAssets = null;
-        }
-
-        /**
-         * Fetch the next page of assets if available.
-         * Sets hasNext to false, if offset is larger than total counts
-         */
-        private void fetchNextPage() {
-            final int pageSize = 50;
-
-            if(fetchedAssets == null) fetchedAssets = new LinkedList<>();
-
-            searchParams = new CantoSearchParams(searchParams.getStart() + searchParams.getLimit(), pageSize, searchParams.getKeyword());
-
-            if(searchParams.getStart() <= total) {
-                Logging.logInfo("Fetching next page, " + searchParams + ", total=" + total, this.getClass());
-
-                CantoSearchResultDTO cantoSearchResultDTO = cantoSaasServiceClient.fetchSearch(searchParams);
-                for (CantoAssetDTO assetDTO : cantoSearchResultDTO.getResults()) {
-                    fetchedAssets.add(CantoDAPAsset.fromCantoAssetDTO(assetDTO));
-                }
-                total = cantoSearchResultDTO.getTotal();
-                availableAssets = fetchedAssets.size();
-            } else {
-                hasNext = false;
-                Logging.logInfo("no next Page available. total fetched " + total, this.getClass());
-            }
-        }
-
-        @NotNull
-        @Override
-        public List<CantoDAPAsset> getNext(int count) {
-
-
-            Logging.logInfo("getNext, count=" + count + ", availableAssets=" + availableAssets + ", hasNext=" + hasNext + ", total=" + total, this.getClass());
-            if(availableAssets < count && hasNext) {
-                fetchNextPage();
-            }
-
-            // To prevent buggy behaviour when FS keeps asking for 0 elements. Makes the DAP Flicker.
-            // Happens, when total count and actual count do not exactly match for any reason
-            if(count == 0) hasNext = false;
-
-            List<CantoDAPAsset> result = new ArrayList<>();
-            for(int i = 0; i < count && !fetchedAssets.isEmpty(); i++) {
-                result.add(fetchedAssets.poll());
-                availableAssets--;
-            }
-
-            return result;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return hasNext;
-        }
-
-        @Override
-        public int getTotal() {
-            // -1 better than a count, that is not 100% sure to be correct, as it may produce buggy behaviour otherwise
-            return -1;
-        }
-
-        @Override
-        public void close() {
-            // nothing
-        }
+    @Override public void close() {
+      // nothing
     }
+  }
 }

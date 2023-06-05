@@ -17,70 +17,70 @@ public class CantoVersionHistory {
     }
     ]*/
 
-    private Long no;
-    private String ownerName;
-    private String created;
-    private String time;
-    private String versionId;
-    private CantoUrls uri;
+  private Long no;
+  private String ownerName;
+  private String created;
+  private String time;
+  private String versionId;
+  private CantoUrls uri;
 
-    public CantoVersionHistory() {
-    }
+  public CantoVersionHistory() {
+  }
 
-    public CantoVersionHistory(Long no, String ownerName, String created, String time, String versionId, CantoUrls uri) {
-        this.no = no;
-        this.ownerName = ownerName;
-        this.created = created;
-        this.time = time;
-        this.versionId = versionId;
-        this.uri = uri;
-    }
+  public CantoVersionHistory(Long no, String ownerName, String created, String time, String versionId, CantoUrls uri) {
+    this.no = no;
+    this.ownerName = ownerName;
+    this.created = created;
+    this.time = time;
+    this.versionId = versionId;
+    this.uri = uri;
+  }
 
-    public Long getNo() {
-        return no;
-    }
+  public Long getNo() {
+    return no;
+  }
 
-    public void setNo(Long no) {
-        this.no = no;
-    }
+  public void setNo(Long no) {
+    this.no = no;
+  }
 
-    public String getOwnerName() {
-        return ownerName;
-    }
+  public String getOwnerName() {
+    return ownerName;
+  }
 
-    public void setOwnerName(String ownerName) {
-        this.ownerName = ownerName;
-    }
+  public void setOwnerName(String ownerName) {
+    this.ownerName = ownerName;
+  }
 
-    public String getCreated() {
-        return created;
-    }
+  public String getCreated() {
+    return created;
+  }
 
-    public void setCreated(String created) {
-        this.created = created;
-    }
+  public void setCreated(String created) {
+    this.created = created;
+  }
 
-    public String getTime() {
-        return time;
-    }
+  public String getTime() {
+    return time;
+  }
 
-    public void setTime(String time) {
-        this.time = time;
-    }
+  public void setTime(String time) {
+    this.time = time;
+  }
 
-    public String getVersionId() {
-        return versionId;
-    }
+  public String getVersionId() {
+    return versionId;
+  }
 
-    public void setVersionId(String versionId) {
-        this.versionId = versionId;
-    }
+  public void setVersionId(String versionId) {
+    this.versionId = versionId;
+  }
 
-    public CantoUrls getUri() {
-        return uri;
-    }
+  public CantoUrls getUri() {
+    return uri;
+  }
 
-    public void setUri(CantoUrls uri) {
-        this.uri = uri;
-    }
+  public void setUri(CantoUrls uri) {
+    this.uri = uri;
+  }
 }

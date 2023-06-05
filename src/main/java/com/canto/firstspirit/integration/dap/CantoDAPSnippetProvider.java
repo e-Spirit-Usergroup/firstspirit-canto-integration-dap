@@ -9,30 +9,27 @@ import de.espirit.firstspirit.client.plugin.dataaccess.DataSnippetProvider;
 import org.jetbrains.annotations.NotNull;
 
 public class CantoDAPSnippetProvider implements DataSnippetProvider<CantoDAPAsset> {
-    private final BaseContext context;
 
-    public CantoDAPSnippetProvider(BaseContext context) {
-        this.context = context;
-    }
+  private final BaseContext context;
 
-    @Override
-    public Image<?> getIcon(@NotNull CantoDAPAsset cantoDAPAsset) {
-        return null;
-    }
+  public CantoDAPSnippetProvider(BaseContext context) {
+    this.context = context;
+  }
 
-    @Override
-    public Image<?> getThumbnail(CantoDAPAsset cantoDAPAsset, Language language) {
-        return context.requireSpecialist(ImageAgent.TYPE).getImageFromUrl(cantoDAPAsset.getThumbnailUrl());
-    }
+  @Override public Image<?> getIcon(@NotNull CantoDAPAsset cantoDAPAsset) {
+    return null;
+  }
 
-    @NotNull
-    @Override
-    public String getHeader(CantoDAPAsset cantoDAPAsset, Language language) {
-        return cantoDAPAsset.getTitle();
-    }
+  @Override public Image<?> getThumbnail(CantoDAPAsset cantoDAPAsset, Language language) {
+    return context.requireSpecialist(ImageAgent.TYPE)
+        .getImageFromUrl(cantoDAPAsset.getThumbnailUrl());
+  }
 
-    @Override
-    public String getExtract(@NotNull CantoDAPAsset cantoDAPAsset, Language language) {
-        return null;
-    }
+  @NotNull @Override public String getHeader(CantoDAPAsset cantoDAPAsset, Language language) {
+    return cantoDAPAsset.getTitle();
+  }
+
+  @Override public String getExtract(@NotNull CantoDAPAsset cantoDAPAsset, Language language) {
+    return null;
+  }
 }
