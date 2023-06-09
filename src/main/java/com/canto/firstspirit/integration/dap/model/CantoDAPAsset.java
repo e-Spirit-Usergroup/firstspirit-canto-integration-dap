@@ -11,13 +11,21 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("unused")
 public class CantoDAPAsset {
 
-  private static final String MDC_URL_KEY = "MDC Image URL";
+  private static final String MDC_IMAGE_URL = "MDC Image URL";
+  private static final String MDC_ASSET_URL = "MDC Asset URL";
 
+
+  private final CantoAssetIdentifier assetIdentifier;
   private final String title;
   private final String thumbnailUrl;
   private final String previewUrl;
   private final String description;
-  private final CantoAssetIdentifier assetIdentifier;
+  private final Long width;
+  private final Long height;
+  private final Long byteSize;
+  private final String copyright;
+
+  private final String fileExtension;
   @Nullable
   private final Map<String, String> additionalInfo;
 
@@ -28,18 +36,28 @@ public class CantoDAPAsset {
                              cantoAssetDTO.getThumbnailUrl(),
                              cantoAssetDTO.getPreviewUrl(),
                              cantoAssetDTO.getDescription(),
+                             cantoAssetDTO.getWidth(),
+                             cantoAssetDTO.getHeight(),
+                             cantoAssetDTO.getByteSize(),
+                             cantoAssetDTO.getCopyright(),
+                             cantoAssetDTO.getFileExtension(),
                              cantoAssetDTO.getAdditionalInfo());
   }
 
 
-  public CantoDAPAsset(final String schema, String identifier, String title, String thumbnailUrl, String previewUrl, String description,
-      @Nullable Map<String, String> additionalInfo) {
-    assetIdentifier = new CantoAssetIdentifier(schema, identifier);
+  private CantoDAPAsset(final String schema, String identifier, String title, String thumbnailUrl, String previewUrl, String description, Long width,
+      Long height, Long byteSize, String copyright, String fileExtension, @Nullable Map<String, String> additionalInfo) {
+    this.assetIdentifier = new CantoAssetIdentifier(schema, identifier);
     this.title = title;
     this.thumbnailUrl = thumbnailUrl;
     this.previewUrl = previewUrl;
     this.description = description;
     this.additionalInfo = additionalInfo;
+    this.width = width;
+    this.height = height;
+    this.byteSize = byteSize;
+    this.copyright = copyright;
+    this.fileExtension = fileExtension;
   }
 
   public String getDescription() {
@@ -76,23 +94,79 @@ public class CantoDAPAsset {
    *
    * @return MDC Url or empty String if not available.
    */
-  public String getMDCUrl() {
-    if (!isMDCAvailable()) {
-      Logging.logWarning(this + "Requested MDCUrl not available.", this.getClass());
-    }
-    return this.additionalInfo != null ? this.additionalInfo.getOrDefault(MDC_URL_KEY, "") : "";
+  public String getMDCImageUrl() {
+    return getMDCImageUrl(null);
   }
 
   /**
-   * returns MDC URL if available, PreviewUrl otherwise
+   * Returns MDC Url with given Parameters.
+   * MDC Parameters are not validated!
+   * See <a href="https://doc.canto.solutions/mdc/index.html#_url_format">MDC Documentation</a> as reference
+   * <br/><b>Important Note</b>: You must specify/append at least one Parameter for the URL to be valid!
+   * e.g. specify the format (e.g. -FPNG) or a scale/crop (e.g. -S200x200).
+   * <p>
+   * Returns the URL *with* trailing slash
+   *
+   * @param mdcParameters MDC rendition url Params to append to mdc URL. May be null or Empty String
+   * @return MDC Url with appended Parameters if passed.
+   */
+  public String getMDCImageUrl(@Nullable String mdcParameters) {
+
+    // Retrieve MDC Url. Remove -FJPG default Parameter
+    String mdcBaseUrl = this.additionalInfo != null ? this.additionalInfo.getOrDefault(MDC_IMAGE_URL, "") : "";
+    int index = mdcBaseUrl.lastIndexOf("/");
+    String cleanMdcUrl = index >= 0 ? mdcBaseUrl.substring(0, index + 1) : "";
+
+    if (cleanMdcUrl.isBlank()) {
+      Logging.logWarning(this + "Requested MDCUrl not available.", this.getClass());
+      return "";
+    }
+    return mdcParameters != null ? cleanMdcUrl + mdcParameters : cleanMdcUrl;
+  }
+
+  /**
+   * Returns MDC Asset URL for File Downloads.
+   *
+   * @param fileName specify Filename for download. File Extension is automatically added and may be omitted.
+   * @return URL for Asset Download e.g. PDFs
+   */
+  public String getMDCAssetUrl(String fileName) {
+    String mdcBaseUrl = this.additionalInfo != null ? this.additionalInfo.getOrDefault(MDC_ASSET_URL, "") : "";
+    return fileName != null && fileName.isBlank() ? mdcBaseUrl : mdcBaseUrl + "/" + fileName;
+  }
+
+
+  /**
+   * returns MDC Image URL with parameter -FJPG if available, PreviewUrl otherwise
    *
    * @return url as String
    */
   public String getUrl() {
     if (isMDCAvailable()) {
-      return getMDCUrl();
+      return getMDCImageUrl("-FJPG");
     }
     return this.getPreviewUrl();
+  }
+
+
+  public Long getWidth() {
+    return width;
+  }
+
+  public Long getHeight() {
+    return height;
+  }
+
+  public Long getByteSize() {
+    return byteSize;
+  }
+
+  public String getCopyright() {
+    return copyright;
+  }
+
+  public String getFileExtension() {
+    return fileExtension;
   }
 
   public String getId() {
@@ -143,7 +217,7 @@ public class CantoDAPAsset {
    * @return indicator if MDC is Available
    */
   public boolean isMDCAvailable() {
-    final @Nullable String mdcUrl = additionalInfo != null ? additionalInfo.get(MDC_URL_KEY) : null;
+    final @Nullable String mdcUrl = additionalInfo != null ? additionalInfo.get(MDC_IMAGE_URL) : null;
     return mdcUrl != null && !mdcUrl.isBlank();
   }
 

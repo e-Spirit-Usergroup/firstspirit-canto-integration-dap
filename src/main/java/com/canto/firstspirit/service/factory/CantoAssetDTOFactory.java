@@ -18,6 +18,11 @@ public class CantoAssetDTOFactory {
                              CantoAssetUtils.getPreviewUrl(asset),
                              asset.getScheme(),
                              asset.getDescription(),
+                             asset.getWidth(),
+                             asset.getHeight(),
+                             asset.getSize(),
+                             asset.getCopyright(),
+                             asset.getFileExtension(),
                              asset.getAdditional());
   }
 }

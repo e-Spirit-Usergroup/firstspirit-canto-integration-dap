@@ -17,18 +17,34 @@ public class CantoAssetDTO implements Serializable {
   private final String previewUrl;
   private final String schema;
   private final String description;
+
+  private final Long width;
+
+  private final Long height;
+
+  private final Long byteSize;
+
+  private final String copyright;
+
+  private final String fileExtension;
+
   @Nullable
   private final Map<String, String> additionalInfo;
 
 
-  public CantoAssetDTO(String id, String name, String thumbnailUrl, String previewUrl, String schema, String description,
-      @Nullable Map<String, String> additionalInfo) {
+  public CantoAssetDTO(String id, String name, String thumbnailUrl, String previewUrl, String schema, String description, Long width, Long height,
+      long byteSize, String copyright, String fileExtension, @Nullable Map<String, String> additionalInfo) {
     this.id = id;
     this.name = name;
     this.thumbnailUrl = thumbnailUrl;
     this.previewUrl = previewUrl;
     this.schema = schema;
     this.description = description;
+    this.width = width;
+    this.height = height;
+    this.byteSize = byteSize;
+    this.copyright = copyright;
+    this.fileExtension = fileExtension;
     this.additionalInfo = additionalInfo;
   }
 
@@ -58,5 +74,25 @@ public class CantoAssetDTO implements Serializable {
 
   public @Nullable Map<String, String> getAdditionalInfo() {
     return additionalInfo;
+  }
+
+  public Long getWidth() {
+    return width;
+  }
+
+  public Long getHeight() {
+    return height;
+  }
+
+  public long getByteSize() {
+    return byteSize;
+  }
+
+  public String getCopyright() {
+    return copyright;
+  }
+
+  public String getFileExtension() {
+    return fileExtension;
   }
 }
