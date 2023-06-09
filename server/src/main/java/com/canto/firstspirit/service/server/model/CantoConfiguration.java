@@ -4,40 +4,53 @@ import java.io.Serializable;
 import java.util.Objects;
 
 public class CantoConfiguration implements Serializable {
-    private final String tenant;
-    private final String token;
-    private final String mdc_domain;
-    private final String mdc_account_id;
-    private static final long serialVersionUID = 1L;
 
-    public String getTenant() {
-        return tenant;
+  private final String tenant;
+
+  private final String appId;
+  private final String appSecret;
+  private final String userId;
+  private static final long serialVersionUID = 2L;
+
+
+  public CantoConfiguration(String tenant, String appId, String appSecret, String userId) {
+    this.tenant = tenant;
+    this.appId = appId;
+    this.appSecret = appSecret;
+    this.userId = userId;
+  }
+
+
+  public String getTenant() {
+    return tenant;
+  }
+
+  public String getAppId() {
+    return appId;
+  }
+
+  public String getAppSecret() {
+    return appSecret;
+  }
+
+  public String getUserId() {
+    return userId;
+  }
+
+  @Override public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
-    public String getToken() {
-        return token;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
-    public String getMDCDomain() { return mdc_domain; }
-    public String getMDCAccountId() { return mdc_account_id; }
+    CantoConfiguration that = (CantoConfiguration) o;
+    return tenant.equals(that.tenant) && appId.equals(that.appId) && appSecret.equals(that.appSecret) && userId.equals(that.userId);
+  }
 
-    public CantoConfiguration(String tenant, String token, String mdc_domain, String mdc_account_id) {
-        this.tenant = tenant;
-        this.token = token;
-        this.mdc_domain = mdc_domain;
-        this.mdc_account_id = mdc_account_id;
-
-    }
+  @Override public int hashCode() {
+    return Objects.hash(tenant, appId, appSecret, userId);
+  }
 
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        CantoConfiguration that = (CantoConfiguration) o;
-        return tenant.equals(that.tenant) && token.equals(that.token) && mdc_domain.equals(that.mdc_domain) && mdc_account_id.equals(that.mdc_account_id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(tenant, token, mdc_domain, mdc_account_id);
-    }
 }
