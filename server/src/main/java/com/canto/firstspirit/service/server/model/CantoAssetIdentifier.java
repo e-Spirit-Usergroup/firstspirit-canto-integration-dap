@@ -18,6 +18,13 @@ public class CantoAssetIdentifier implements Serializable {
 
   private final Map<String, String> additionalData;
 
+  /**
+   * Only needed for Moshi Defaults
+   */
+  @SuppressWarnings("unused") private CantoAssetIdentifier() {
+    this("DUMMY_SCHEMA", "DUMMY_ID");
+  }
+
   public CantoAssetIdentifier(String schema, String id) {
     this(schema, id, new HashMap<>());
   }
