@@ -25,6 +25,7 @@ import de.espirit.firstspirit.json.JsonElement;
 import de.espirit.firstspirit.json.JsonObject;
 import de.espirit.firstspirit.json.JsonPair;
 import de.espirit.firstspirit.json.values.JsonNullValue;
+import de.espirit.firstspirit.json.values.JsonNumberValue;
 import de.espirit.firstspirit.json.values.JsonStringValue;
 import de.espirit.firstspirit.ui.gadgets.aspects.transfer.TransferType;
 import java.util.Collection;
@@ -35,6 +36,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, TransferHandling<CantoDAPAsset>, TransferSupplying<CantoDAPAsset>,
     DataTemplating<CantoDAPAsset>, JsonSupporting<CantoDAPAsset> {
@@ -94,13 +96,20 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
 
     JsonElement<?> additionalDataJSON = getMapAsJsonObject(cantoDAPAsset.getAdditionalData());
 
-    jsonResult.put(JsonPair.of("title", JsonStringValue.of(cantoDAPAsset.getTitle())));
-    jsonResult.put(JsonPair.of("thumbnailUrl", JsonStringValue.of(cantoDAPAsset.getThumbnailUrl())));
-    jsonResult.put(JsonPair.of("previewUrl", JsonStringValue.of(cantoDAPAsset.getPreviewUrl())));
-    jsonResult.put(JsonPair.of("path", JsonStringValue.of(cantoDAPAsset.getPath())));
-    jsonResult.put(JsonPair.of("id", JsonStringValue.of(cantoDAPAsset.getId())));
-    jsonResult.put(JsonPair.of("scheme", JsonStringValue.of(cantoDAPAsset.getSchema())));
-    jsonResult.put(JsonPair.of("description", JsonStringValue.of(cantoDAPAsset.getDescription())));
+    jsonResult.put(JsonPair.of("title", JsonStringValue.ofNullable(cantoDAPAsset.getTitle())));
+    jsonResult.put(JsonPair.of("previewBaseUrl", JsonStringValue.ofNullable(cantoDAPAsset.getPreviewBaseUrl())));
+    jsonResult.put(JsonPair.of("originalAssetUrl", JsonStringValue.ofNullable(cantoDAPAsset.getOriginalAssetUrl())));
+    jsonResult.put(JsonPair.of("mdcImageUrl", JsonStringValue.ofNullable(cantoDAPAsset.getMDCImageUrl())));
+    jsonResult.put(JsonPair.of("mdcAssetUrl", JsonStringValue.ofNullable(cantoDAPAsset.getMDCAssetUrl())));
+    jsonResult.put(JsonPair.of("path", JsonStringValue.ofNullable(cantoDAPAsset.getPath())));
+    jsonResult.put(JsonPair.of("id", JsonStringValue.ofNullable(cantoDAPAsset.getId())));
+    jsonResult.put(JsonPair.of("scheme", JsonStringValue.ofNullable(cantoDAPAsset.getSchema())));
+    jsonResult.put(JsonPair.of("description", JsonStringValue.ofNullable(cantoDAPAsset.getDescription())));
+    jsonResult.put(JsonPair.of("byteSize", getNullOrNumberJsonValue(cantoDAPAsset.getByteSize())));
+    jsonResult.put(JsonPair.of("width", getNullOrNumberJsonValue(cantoDAPAsset.getWidth())));
+    jsonResult.put(JsonPair.of("height", getNullOrNumberJsonValue(cantoDAPAsset.getHeight())));
+    jsonResult.put(JsonPair.of("copyright", JsonStringValue.ofNullable(cantoDAPAsset.getCopyright())));
+    jsonResult.put(JsonPair.of("fileExtension", JsonStringValue.ofNullable(cantoDAPAsset.getFileExtension())));
     jsonResult.put(JsonPair.of("additionalInfo", additionalInfoJSON));
     jsonResult.put(JsonPair.of("additionalData", additionalDataJSON));
 
@@ -115,6 +124,13 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
       return result;
     }
     return JsonNullValue.NULL;
+  }
+
+  private JsonElement<?> getNullOrNumberJsonValue(@Nullable Long value) {
+    if (value == null) {
+      return JsonNullValue.NULL;
+    }
+    return JsonNumberValue.of(value);
   }
 
   @NotNull @Override public Class<CantoDAPAsset> getSupportedClass() {

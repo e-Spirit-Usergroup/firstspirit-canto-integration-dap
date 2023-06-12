@@ -28,10 +28,10 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Offers Access to the CantoApi. Meant to be used and managed through {@link com.canto.firstspirit.service.CantoSaasServiceImpl}.
- * <br/> Manages its own accessToken based validity period. If used directly outside of service, access Token management will likely not work as
+ * <br> Manages its own accessToken based validity period. If used directly outside of service, access Token management will likely not work as
  * desired and create lots of access tokens!
- * <br/>
- * <br/>
+ * <br>
+ * <br>
  * <strong>Direct Use outside of Service not recommended. </strong>
  */
 public class CantoApi {
@@ -40,7 +40,7 @@ public class CantoApi {
 
   /**
    * <strong>!! Do not access directly. use {@link #getClient()} instead !! </strong>
-   * <br/> Using {@link #getClient()} ensures valid Access Token
+   * <br> Using {@link #getClient()} ensures valid Access Token
    */
   private OkHttpClient _client;
   private final Class<CantoApi> LOGGER = CantoApi.class;
@@ -62,7 +62,7 @@ public class CantoApi {
   /**
    * Creates new CantoApi. Access Token will be generated via appId, appSecret and UserId. Each Api instantiation generates new Access Token.
    * Instances meant to be managed by {@link com.canto.firstspirit.service.CantoSaasServiceImpl}
-   * <br/><strong>Direct Use outside of Service not recommended. </strong>
+   * <br><strong>Direct Use outside of Service not recommended. </strong>
    *
    * @param tenant    tenant
    * @param appId     appId
@@ -158,7 +158,7 @@ public class CantoApi {
   /**
    * Fetch multiple Assets based on a Collection of identifiers.
    *
-   * @param assetIdentifiers of form {scheme}/{cantoId}
+   * @param assetIdentifiers CantoAssetIdentifier containing scheme and id
    * @return List of CantoAssets in the same order as identifiers. Missing Assets are replaced by null
    */
   public List<CantoAsset> fetchAssets(@NotNull List<? extends CantoAssetIdentifier> assetIdentifiers) {
@@ -228,6 +228,8 @@ public class CantoApi {
    * Search Assets based on keyword.
    *
    * @param keyword passed as search filter
+   * @param start   offset for search results
+   * @param limit   max elements to return
    * @return Wrapper with a list of fetched CantoAssets including some MetaData about the search
    */
   public CantoSearchResult fetchSearch(String keyword, int start, int limit) {

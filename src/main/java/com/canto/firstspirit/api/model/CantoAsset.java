@@ -22,7 +22,8 @@ public class CantoAsset {
 
   private Long dpi;
 
-  private CantoUrls url;
+  @Json(name = "url")
+  private CantoUrls cantoUrls;
 
   private String id;
 
@@ -70,8 +71,8 @@ public class CantoAsset {
     return dpi;
   }
 
-  public CantoUrls getUrl() {
-    return url;
+  public CantoUrls getCantoUrls() {
+    return cantoUrls;
   }
 
 
@@ -126,4 +127,7 @@ public class CantoAsset {
     return map != null ? map.getOrDefault(key, defaultValue) : defaultValue;
   }
 
+  @Override public String toString() {
+    return "[CantoAsset: " + this.scheme + "/" + this.id + "]";
+  }
 }

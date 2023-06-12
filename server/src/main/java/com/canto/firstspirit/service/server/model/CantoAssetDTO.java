@@ -13,8 +13,6 @@ public class CantoAssetDTO implements Serializable {
 
   private final String id;
   private final String name;
-  private final String thumbnailUrl;
-  private final String previewUrl;
   private final String schema;
   private final String description;
 
@@ -30,14 +28,16 @@ public class CantoAssetDTO implements Serializable {
 
   @Nullable
   private final Map<String, String> additionalInfo;
+  private final String directImagePreviewBaseUrl;
+  private final String directOriginalUrl;
 
 
-  public CantoAssetDTO(String id, String name, String thumbnailUrl, String previewUrl, String schema, String description, Long width, Long height,
-      long byteSize, String copyright, String fileExtension, @Nullable Map<String, String> additionalInfo) {
+  public CantoAssetDTO(String id, String name, String previewBaseUrl, String directOriginalUrl, String schema, String description, Long width,
+      Long height, long byteSize, String copyright, String fileExtension, @Nullable Map<String, String> additionalInfo) {
     this.id = id;
     this.name = name;
-    this.thumbnailUrl = thumbnailUrl;
-    this.previewUrl = previewUrl;
+    this.directImagePreviewBaseUrl = previewBaseUrl;
+    this.directOriginalUrl = directOriginalUrl;
     this.schema = schema;
     this.description = description;
     this.width = width;
@@ -64,14 +64,6 @@ public class CantoAssetDTO implements Serializable {
     return this.name;
   }
 
-  public String getThumbnailUrl() {
-    return thumbnailUrl;
-  }
-
-  public String getPreviewUrl() {
-    return previewUrl;
-  }
-
   public @Nullable Map<String, String> getAdditionalInfo() {
     return additionalInfo;
   }
@@ -94,5 +86,13 @@ public class CantoAssetDTO implements Serializable {
 
   public String getFileExtension() {
     return fileExtension;
+  }
+
+  public String getDirectImagePreviewBaseUrl() {
+    return directImagePreviewBaseUrl;
+  }
+
+  public String getDirectOriginalUrl() {
+    return directOriginalUrl;
   }
 }
