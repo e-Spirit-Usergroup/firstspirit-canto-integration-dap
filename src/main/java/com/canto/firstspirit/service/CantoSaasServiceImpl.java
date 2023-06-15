@@ -34,7 +34,12 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
     final CantoServiceConnection connection = CantoServiceConnection.fromConfig(config);
     if (!apiConnectionPool.containsKey(connection.getConnectionId())) {
 
-      final CantoApi cantoApi = new CantoApi(config.getTenant(), config.getAppId(), config.getAppSecret(), config.getUserId());
+      final CantoApi cantoApi = new CantoApi(config.getTenant(),
+                                             config.getOAuthBaseUrl(),
+                                             config.getAppId(),
+                                             config.getAppSecret(),
+                                             config.getUserId());
+
       apiConnectionPool.put(connection.getConnectionId(), cantoApi);
 
       Logging.logInfo(

@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import okhttp3.HttpUrl;
+import okhttp3.HttpUrl.Builder;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 public class CantoApi {
 
   private final String tenant;
+  private final String oAuthBaseUrl;
 
   /**
    * <strong>!! Do not access directly. use {@link #getClient()} instead !! </strong>
@@ -69,11 +71,12 @@ public class CantoApi {
    * @param appSecret appSecret
    * @param userId    userId
    */
-  public CantoApi(String tenant, String appId, String appSecret, String userId) {
+  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId) {
     this.tenant = tenant;
     this.appId = appId;
     this.appSecret = appSecret;
     this.userId = userId;
+    this.oAuthBaseUrl = oAuthBaseUrl;
   }
 
   /**
@@ -352,9 +355,15 @@ public class CantoApi {
       return null;
     }
 
-    String url = new HttpUrl.Builder().scheme("https")
-        .host("oauth.canto.de")
-        .addPathSegments("oauth/api/oauth2/compatible/token")
+    HttpUrl baseUrl = HttpUrl.parse(oAuthBaseUrl);
+
+    if (baseUrl == null) {
+      throw new IllegalStateException("OAuthBaseUrl invalid, not parsable. Please check your configuration. " + oAuthBaseUrl);
+    }
+
+    final Builder urlBuilder = baseUrl.newBuilder();
+
+    final String url = urlBuilder.addPathSegments("oauth/api/oauth2/compatible/token")
         .addQueryParameter("app_id", appId)
         .addQueryParameter("app_secret", appSecret)
         .addQueryParameter("grant_type", "client_credentials")

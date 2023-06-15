@@ -19,6 +19,7 @@ public class CantoConfigurationFactory {
   @NotNull public static CantoConfiguration fromProjectBroker(SpecialistsBroker broker) {
     Values config = CantoProjectApp.getConfig(broker);
     String tenant = config.getString(CantoProjectAppConfiguration.PARAM_TENANT);
+    String oAuthBaseUrl = config.getString(CantoProjectAppConfiguration.PARAM_OAUTH_BASE_URL);
     String appId = config.getString(CantoProjectAppConfiguration.PARAM_APP_ID);
     String appSecret = config.getString(CantoProjectAppConfiguration.PARAM_APP_SECRET);
     String userId = config.getString(CantoProjectAppConfiguration.PARAM_USER_ID);
@@ -30,7 +31,7 @@ public class CantoConfigurationFactory {
               + projectAgent.getId() + "]");
     }
 
-    return new CantoConfiguration(tenant, appId, appSecret, userId);
+    return new CantoConfiguration(tenant, oAuthBaseUrl, appId, appSecret, userId);
   }
 
 
