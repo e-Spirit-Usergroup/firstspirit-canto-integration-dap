@@ -120,7 +120,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     if (map != null) {
       JsonObject result = JsonObject.create();
 
-      map.forEach((key, val) -> result.put(JsonPair.of(key, JsonStringValue.of(val))));
+      map.forEach((key, val) -> result.put(JsonPair.of(key, JsonStringValue.ofNullable(val))));
       return result;
     }
     return JsonNullValue.NULL;
@@ -159,13 +159,14 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
   }
 
   @Override public String getTemplate(@NotNull CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
-    return "<h2>${title}</h2>" + "<div><img src=\"${image}\" /></div><a target=\"_blank\" href=\"{link}\">goto Canto</a>";
+    return "<div style=\"padding: 20px;\"><h2>${title}</h2>"
+        + "<div><img src=\"${image}\" /></div><a target=\"_blank\" href=\"${cantoUrl}\">goto Canto</a></div>";
   }
 
   @Override public void registerParameters(ParameterSet parameterSet, CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
     parameterSet.addText("title", cantoDAPAsset.getTitle());
     parameterSet.addText("image", cantoDAPAsset.getMDCImageUrl("-FPNG-S200"));
-    parameterSet.addText("link", "https://reply.canto.de/allfiles?column=" + cantoDAPAsset.getSchema() + "&id=" + cantoDAPAsset.getId());
+    parameterSet.addText("cantoUrl", "https://reply.canto.de/allfiles?column=" + cantoDAPAsset.getSchema() + "&id=" + cantoDAPAsset.getId());
 
   }
 }
