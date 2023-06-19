@@ -1,5 +1,7 @@
 package com.canto.firstspirit.service;
 
+import static com.canto.firstspirit.service.CantoSaasServiceImpl.SERVICE_NAME;
+
 import com.canto.firstspirit.api.CantoApi;
 import com.canto.firstspirit.api.model.CantoSearchResult;
 import com.canto.firstspirit.service.factory.CantoAssetDTOFactory;
@@ -25,9 +27,10 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@ServiceComponent(name = "CantoSaasService", displayName = "CantoSaaS Connector Service")
+@ServiceComponent(name = SERVICE_NAME, displayName = "CantoSaaS Connector Service")
 public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaasService> {
 
+  public static final String SERVICE_NAME = "CantoSaasService";
   private Map<Integer, CantoApi> apiConnectionPool;
 
   public CantoServiceConnection getServiceConnection(@NotNull final CantoConfiguration config) {
@@ -56,7 +59,8 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
     }
     CantoApi cantoApi = apiConnectionPool.get(connection.getConnectionId());
     if (cantoApi == null) {
-      throw new IllegalStateException("Requested Api Instance not found for ConnectionId: " + connection.getConnectionId());
+      throw new IllegalStateException("Requested Api Instance not found for ConnectionId: " + connection.getConnectionId() + "\n"
+                                          + "This issue may be resolved by restarting your clients and Service");
     }
     return cantoApi;
   }

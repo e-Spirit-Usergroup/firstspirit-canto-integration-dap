@@ -66,10 +66,11 @@ public class CantoApi {
    * Instances meant to be managed by {@link com.canto.firstspirit.service.CantoSaasServiceImpl}
    * <br><strong>Direct Use outside of Service not recommended. </strong>
    *
-   * @param tenant    tenant
-   * @param appId     appId
-   * @param appSecret appSecret
-   * @param userId    userId
+   * @param tenant       tenant
+   * @param oAuthBaseUrl url with correct region, matching the tenant
+   * @param appId        appId
+   * @param appSecret    appSecret
+   * @param userId       userId
    */
   public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId) {
     this.tenant = tenant;
