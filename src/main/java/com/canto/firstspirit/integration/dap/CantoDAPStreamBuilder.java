@@ -15,7 +15,7 @@ import de.espirit.firstspirit.client.plugin.report.Parameter;
 import de.espirit.firstspirit.client.plugin.report.ParameterMap;
 import de.espirit.firstspirit.client.plugin.report.ParameterText;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -28,14 +28,11 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
   private final CantoSaasServiceProjectBoundClient cantoSaasServiceClient;
   private ParameterMap parameterMap;
   private final ParameterText paramKeyword;
-  private final ParameterText paramTag;
-
 
   public CantoDAPStreamBuilder(CantoSaasServiceProjectBoundClient cantoSaasServiceClient) {
     this.cantoSaasServiceClient = cantoSaasServiceClient;
     aspects.put(Filterable.TYPE, this);
     paramKeyword = Parameter.Factory.createText("keyword", "Keyword", "");
-    paramTag = Parameter.Factory.createText("tag", "Tag", "");
   }
 
   @Override public <A> A getAspect(@NotNull StreamBuilderAspectType<A> streamBuilderAspectType) {
@@ -47,9 +44,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
   }
 
   @NotNull @Override public List<Parameter<?>> getDefinedParameters() {
-
-    // return Collections.singletonList(paramKeyword);
-    return Arrays.asList(paramKeyword, paramTag);
+    return Collections.singletonList(paramKeyword);
   }
 
   @Override public void setFilter(@NotNull ParameterMap parameterMap) {

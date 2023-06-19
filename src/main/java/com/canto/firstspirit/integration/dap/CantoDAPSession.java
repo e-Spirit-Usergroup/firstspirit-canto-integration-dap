@@ -159,20 +159,13 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
   }
 
   @Override public String getTemplate(@NotNull CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
-
-    return "<h2>${title}</h2>" + "<div><img src=\"${image}\" /></div>";
+    return "<h2>${title}</h2>" + "<div><img src=\"${image}\" /></div><a target=\"_blank\" href=\"{link}\">goto Canto</a>";
   }
 
   @Override public void registerParameters(ParameterSet parameterSet, CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
     parameterSet.addText("title", cantoDAPAsset.getTitle());
-    parameterSet.addText("image", cantoDAPAsset.getThumbnailUrl());
-        /*
-        parameterSet.addText("tags", Strings.implode(asset.getTags(),", "));
-        parameterSet.addText("kbytes", FILE_SIZE_FORMAT.format(asset.getFileSize().doubleValue() / 1000));
-        parameterSet.addText("width", String.valueOf(asset.getWidth()));
-        parameterSet.addText("height", String.valueOf(asset.getHeight()));
-        parameterSet.addText("date", dateFormat.format(asset.getCreationDate()));
+    parameterSet.addText("image", cantoDAPAsset.getMDCImageUrl("-FPNG-S200"));
+    parameterSet.addText("link", "https://reply.canto.de/allfiles?column=" + cantoDAPAsset.getSchema() + "&id=" + cantoDAPAsset.getId());
 
-         */
   }
 }

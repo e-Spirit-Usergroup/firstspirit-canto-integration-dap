@@ -80,8 +80,6 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
     final CantoApi cantoApi = getApiInstance(connection);
 
     final CantoSearchResult cantoSearchResult = cantoApi.fetchSearch(params.getKeyword());
-    //todo: implement paging
-
     return CantoSearchResultDTOFactory.fromCantoSearchResult(params, cantoSearchResult);
   }
 
