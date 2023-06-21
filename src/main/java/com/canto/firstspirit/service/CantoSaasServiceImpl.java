@@ -79,7 +79,7 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
     Logging.logInfo("[fetchSearch] " + params, getClass());
     final CantoApi cantoApi = getApiInstance(connection);
 
-    final CantoSearchResult cantoSearchResult = cantoApi.fetchSearch(params.getKeyword());
+    final CantoSearchResult cantoSearchResult = cantoApi.fetchSearch(params);
     return CantoSearchResultDTOFactory.fromCantoSearchResult(params, cantoSearchResult);
   }
 

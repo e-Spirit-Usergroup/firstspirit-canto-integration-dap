@@ -5,6 +5,8 @@ import com.canto.firstspirit.api.model.CantoAsset;
 import com.canto.firstspirit.api.model.CantoBatchResponse;
 import com.canto.firstspirit.api.model.CantoSearchResult;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
+import com.canto.firstspirit.service.server.model.CantoSearchParams;
+import com.canto.firstspirit.util.CantoScheme;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import de.espirit.common.base.Logging;
@@ -221,30 +223,37 @@ public class CantoApi {
   /**
    * Search Assets based on keyword. Limits search to 100 elements
    *
-   * @param keyword passed as search filter
+   * @param searchParams SearchParams to configure Search request
    * @return Wrapper with a list of fetched CantoAssets including some MetaData about the search
    */
-  public CantoSearchResult fetchSearch(String keyword) {
-    return fetchSearch(keyword, 0, 100);
+  public CantoSearchResult fetchSearch(CantoSearchParams searchParams) {
+    return fetchSearch(searchParams.getKeyword(), null, searchParams.getStart(), searchParams.getLimit());
   }
 
   /**
    * Search Assets based on keyword.
    *
    * @param keyword passed as search filter
+   * @param scheme  Optional Scheme (image / document / ...)
    * @param start   offset for search results
    * @param limit   max elements to return
    * @return Wrapper with a list of fetched CantoAssets including some MetaData about the search
    */
-  public CantoSearchResult fetchSearch(String keyword, int start, int limit) {
+  public CantoSearchResult fetchSearch(String keyword, @Nullable String scheme, int start, int limit) {
 
     // Logging.logWarning("test", CantoApi.class);
-    HttpUrl url = getApiUrl().addPathSegments("search")
-        .addQueryParameter("scheme", "image")
+    Builder urlBuilder = getApiUrl().addPathSegments("search")
         .addQueryParameter("keyword", keyword)
         .addQueryParameter("start", String.valueOf(start))
-        .addQueryParameter("limit", String.valueOf(limit))
-        .build();
+        .addQueryParameter("limit", String.valueOf(limit));
+
+    // Validate CantoScheme
+    CantoScheme cantoScheme = CantoScheme.fromString(scheme);
+    if (cantoScheme != null) {
+      urlBuilder.addQueryParameter("scheme", cantoScheme.toString());
+    }
+
+    final HttpUrl url = urlBuilder.build();
 
     Logging.logInfo("[fetchSearch] " + url, getClass());
 
@@ -403,5 +412,6 @@ public class CantoApi {
 
     return null;
   }
+
 
 }

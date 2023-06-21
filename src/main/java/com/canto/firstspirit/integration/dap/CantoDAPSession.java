@@ -1,5 +1,8 @@
 package com.canto.firstspirit.integration.dap;
 
+import static com.canto.firstspirit.util.JsonUtils.getMapAsJsonObject;
+import static com.canto.firstspirit.util.JsonUtils.getNullOrNumberJsonValue;
+
 import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
 import com.canto.firstspirit.service.CantoSaasServiceProjectBoundClient;
 import com.canto.firstspirit.service.factory.CantoAssetIdentifierSerializer;
@@ -24,19 +27,15 @@ import de.espirit.firstspirit.generate.functions.json.JsonGenerationContext;
 import de.espirit.firstspirit.json.JsonElement;
 import de.espirit.firstspirit.json.JsonObject;
 import de.espirit.firstspirit.json.JsonPair;
-import de.espirit.firstspirit.json.values.JsonNullValue;
-import de.espirit.firstspirit.json.values.JsonNumberValue;
 import de.espirit.firstspirit.json.values.JsonStringValue;
 import de.espirit.firstspirit.ui.gadgets.aspects.transfer.TransferType;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, TransferHandling<CantoDAPAsset>, TransferSupplying<CantoDAPAsset>,
     DataTemplating<CantoDAPAsset>, JsonSupporting<CantoDAPAsset> {
@@ -94,7 +93,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
 
     JsonElement<?> additionalInfoJSON = getMapAsJsonObject(cantoDAPAsset.getAdditionalInfo());
 
-    JsonElement<?> additionalDataJSON = getMapAsJsonObject(cantoDAPAsset.getAdditionalData());
+    JsonElement<?> additionalDataJSON = getMapAsJsonObject(cantoDAPAsset.getAdditionalIdentifierData());
 
     jsonResult.put(JsonPair.of("title", JsonStringValue.ofNullable(cantoDAPAsset.getTitle())));
     jsonResult.put(JsonPair.of("previewBaseUrl", JsonStringValue.ofNullable(cantoDAPAsset.getPreviewBaseUrl())));
@@ -116,22 +115,6 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     return jsonResult;
   }
 
-  private JsonElement<?> getMapAsJsonObject(Map<String, String> map) {
-    if (map != null) {
-      JsonObject result = JsonObject.create();
-
-      map.forEach((key, val) -> result.put(JsonPair.of(key, JsonStringValue.ofNullable(val))));
-      return result;
-    }
-    return JsonNullValue.NULL;
-  }
-
-  private JsonElement<?> getNullOrNumberJsonValue(@Nullable Long value) {
-    if (value == null) {
-      return JsonNullValue.NULL;
-    }
-    return JsonNumberValue.of(value);
-  }
 
   @NotNull @Override public Class<CantoDAPAsset> getSupportedClass() {
     return CantoDAPAsset.class;

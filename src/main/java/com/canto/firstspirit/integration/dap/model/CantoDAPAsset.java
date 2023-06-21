@@ -1,5 +1,7 @@
 package com.canto.firstspirit.integration.dap.model;
 
+import static com.canto.firstspirit.util.MapUtils.mapGetOrDefault;
+
 import com.canto.firstspirit.service.factory.CantoAssetIdentifierSerializer;
 import com.canto.firstspirit.service.server.model.CantoAssetDTO;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
@@ -27,7 +29,7 @@ public class CantoDAPAsset {
 
   private final String fileExtension;
   @Nullable
-  private final Map<String, String> additionalInfo;
+  private final Map<String, Object> additionalInfo;
   private final String directOriginalUrl;
 
   @NotNull public static CantoDAPAsset fromCantoAssetDTO(@NotNull final CantoAssetDTO cantoAssetDTO) {
@@ -47,7 +49,7 @@ public class CantoDAPAsset {
 
 
   private CantoDAPAsset(final String schema, String identifier, String title, String previewBaseUrl, String directOriginalUrl, String description,
-      Long width, Long height, Long byteSize, String copyright, String fileExtension, @Nullable Map<String, String> additionalInfo) {
+      Long width, Long height, Long byteSize, String copyright, String fileExtension, @Nullable Map<String, Object> additionalInfo) {
     this.assetIdentifier = new CantoAssetIdentifier(schema, identifier);
     this.title = title;
     this.imagePreviewBaseUrl = previewBaseUrl;
@@ -155,8 +157,7 @@ public class CantoDAPAsset {
   public String getMDCImageUrl(@Nullable String mdcParameters) {
 
     // Retrieve MDC Url. Remove -FJPG default Parameter
-    String mdcBaseUrl = this.additionalInfo != null ? this.additionalInfo.getOrDefault(MDC_IMAGE_URL, "") : "";
-
+    String mdcBaseUrl = mapGetOrDefault(this.additionalInfo, MDC_IMAGE_URL, "");
     String cleanMdcUrl = UrlHelper.removeLastUrlPathPart(mdcBaseUrl);
 
     if (cleanMdcUrl.isBlank()) {
@@ -173,7 +174,7 @@ public class CantoDAPAsset {
    * @return URL for Asset Download e.g. PDFs
    */
   public String getMDCAssetUrl(@Nullable String fileName) {
-    String mdcBaseUrl = this.additionalInfo != null ? this.additionalInfo.getOrDefault(MDC_ASSET_URL, "") : "";
+    String mdcBaseUrl = mapGetOrDefault(this.additionalInfo, MDC_ASSET_URL, "");
     return fileName != null && !fileName.isBlank() ? mdcBaseUrl + "/" + fileName : mdcBaseUrl;
   }
 
@@ -258,7 +259,7 @@ public class CantoDAPAsset {
    * @param key   key for Map
    * @param value String to save
    */
-  public void setAdditionalDataEntry(@NotNull String key, @Nullable String value) {
+  public void setAdditionalIdentifierDataEntry(@NotNull String key, @Nullable String value) {
     this.assetIdentifier.setAdditionalDataEntry(key, value);
   }
 
@@ -268,7 +269,7 @@ public class CantoDAPAsset {
    * @param key Lookup Key
    * @return value from AdditionalData or null
    */
-  public @Nullable String getAdditionalDataEntry(@NotNull String key) {
+  public @Nullable String getAdditionalIdentifierDataEntry(@NotNull String key) {
     return this.assetIdentifier.getAdditionalDataEntry(key);
   }
 
@@ -276,7 +277,7 @@ public class CantoDAPAsset {
   /**
    * @return mutable Map of additionalData saved in Identifier
    */
-  public Map<String, String> getAdditionalData() {
+  public Map<String, String> getAdditionalIdentifierData() {
     return this.assetIdentifier.getAdditionalData();
   }
 
@@ -285,7 +286,7 @@ public class CantoDAPAsset {
    *
    * @return Map containing additional Info from Canto Api, like MDC Urls
    */
-  public @Nullable Map<String, String> getAdditionalInfo() {
+  public @Nullable Map<String, Object> getAdditionalInfo() {
     return additionalInfo;
   }
 
@@ -295,7 +296,7 @@ public class CantoDAPAsset {
    * @return indicator if MDC is Available
    */
   public boolean isMDCAvailable() {
-    final @Nullable String mdcUrl = additionalInfo != null ? additionalInfo.get(MDC_IMAGE_URL) : null;
+    final @Nullable String mdcUrl = additionalInfo != null ? mapGetOrDefault(additionalInfo, MDC_IMAGE_URL, "") : null;
     return mdcUrl != null && !mdcUrl.isBlank();
   }
 
