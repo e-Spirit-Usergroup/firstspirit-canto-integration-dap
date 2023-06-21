@@ -12,6 +12,7 @@ import com.squareup.moshi.Moshi;
 import de.espirit.common.base.Logging;
 import de.espirit.common.tools.Strings;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -234,7 +235,7 @@ public class CantoApi {
    * Search Assets based on keyword.
    *
    * @param keyword passed as search filter
-   * @param scheme  Optional Scheme (image / document / ...)
+   * @param scheme  Filter for Scheme. If none passed, all Schemes are searched ("image", "video", "audio", "document", "presentation", "other")
    * @param start   offset for search results
    * @param limit   max elements to return
    * @return Wrapper with a list of fetched CantoAssets including some MetaData about the search
@@ -251,6 +252,11 @@ public class CantoApi {
     CantoScheme cantoScheme = CantoScheme.fromString(scheme);
     if (cantoScheme != null) {
       urlBuilder.addQueryParameter("scheme", cantoScheme.toString());
+    } else {
+      final String allSchemes = Arrays.stream(CantoScheme.values())
+          .map(CantoScheme::toString)
+          .collect(Collectors.joining("|"));
+      urlBuilder.addQueryParameter("scheme", allSchemes);
     }
 
     final HttpUrl url = urlBuilder.build();
