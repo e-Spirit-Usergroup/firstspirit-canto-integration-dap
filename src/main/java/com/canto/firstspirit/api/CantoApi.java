@@ -228,7 +228,7 @@ public class CantoApi {
    * @return Wrapper with a list of fetched CantoAssets including some MetaData about the search
    */
   public CantoSearchResult fetchSearch(CantoSearchParams searchParams) {
-    return fetchSearch(searchParams.getKeyword(), null, searchParams.getStart(), searchParams.getLimit());
+    return fetchSearch(searchParams.getKeyword(), searchParams.getScheme(), searchParams.getStart(), searchParams.getLimit());
   }
 
   /**

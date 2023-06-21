@@ -30,9 +30,9 @@ public enum CantoScheme {
   // Create Map to easily get Enum Value from String
   static {
     Map<String, CantoScheme> map = new ConcurrentHashMap<>();
-    for (CantoScheme instance : CantoScheme.values()) {
-      map.put(instance.toString()
-                  .toLowerCase(), instance);
+    for (CantoScheme scheme : CantoScheme.values()) {
+      map.put(scheme.toString()
+                  .toLowerCase(), scheme);
     }
     SCHEME_MAP = Collections.unmodifiableMap(map);
   }
