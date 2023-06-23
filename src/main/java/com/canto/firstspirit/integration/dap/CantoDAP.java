@@ -81,13 +81,6 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
   }
 
   @NotNull @Override public Collection<? extends ReportItem<CantoDAPAsset>> getItems() {
-
-        /*
-        if (context.is(BaseContext.Env.WEBEDIT)) {
-            return Collections.singletonList(new OpenImageInDialogItem());
-        }
-        */
-
     return Collections.emptyList();
   }
 

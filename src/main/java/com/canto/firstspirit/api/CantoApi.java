@@ -4,6 +4,7 @@ import com.canto.firstspirit.api.model.CantoAccessTokenData;
 import com.canto.firstspirit.api.model.CantoAsset;
 import com.canto.firstspirit.api.model.CantoBatchResponse;
 import com.canto.firstspirit.api.model.CantoSearchResult;
+import com.canto.firstspirit.cache.SimpleCache;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import com.canto.firstspirit.service.server.model.CantoSearchParams;
 import com.canto.firstspirit.util.CantoScheme;
@@ -42,6 +43,7 @@ public class CantoApi {
 
   private final String tenant;
   private final String oAuthBaseUrl;
+  private final SimpleCache cache;
 
   /**
    * <strong>!! Do not access directly. use {@link #getClient()} instead !! </strong>
@@ -81,6 +83,7 @@ public class CantoApi {
     this.appSecret = appSecret;
     this.userId = userId;
     this.oAuthBaseUrl = oAuthBaseUrl;
+    this.cache = new SimpleCache();
   }
 
   /**
@@ -142,6 +145,11 @@ public class CantoApi {
    */
   private Optional<CantoAsset> fetchAssetById(CantoAssetIdentifier assetId) {
 
+    if (this.cache.has(assetId)) {
+      Logging.logInfo("[getAssetById] Cache hit: " + assetId, LOGGER);
+      return Optional.ofNullable(this.cache.get(assetId));
+    }
+
     HttpUrl url = getApiUrl().addPathSegments(assetId.getPath())
         .build();
 
@@ -159,6 +167,7 @@ public class CantoApi {
       Logging.logError("[getAssetById] Error occurred", e, LOGGER);
     }
     Logging.logDebug("[getAssetById] returning Asset " + (asset == null ? null : asset.getId()), LOGGER);
+    this.cache.add(asset);
     return Optional.ofNullable(asset);
   }
 
@@ -272,9 +281,17 @@ public class CantoApi {
 
       Logging.logDebug("searchResult " + cantoSearchResult, getClass());
 
-      if (cantoSearchResult != null && cantoSearchResult.getResults() == null) {
+      if (cantoSearchResult == null) {
+        throw new IllegalStateException("CantoSearchResult was null. Returning empty Result as default");
+      }
+
+      if (cantoSearchResult.getResults() == null) {
         cantoSearchResult.setResults(Collections.emptyList());
         cantoSearchResult.setFound(0L);
+      }
+
+      for (CantoAsset result : cantoSearchResult.getResults()) {
+        this.cache.add(result);
       }
 
       return cantoSearchResult;
