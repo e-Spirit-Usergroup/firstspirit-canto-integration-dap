@@ -1,35 +1,35 @@
 package com.canto.firstspirit.integration.dap;
 
+import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
 import de.espirit.firstspirit.access.BaseContext;
 import de.espirit.firstspirit.access.Language;
 import de.espirit.firstspirit.agency.Image;
 import de.espirit.firstspirit.agency.ImageAgent;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataSnippetProvider;
+import org.jetbrains.annotations.NotNull;
 
 public class CantoDAPSnippetProvider implements DataSnippetProvider<CantoDAPAsset> {
-    private BaseContext context;
 
-    public CantoDAPSnippetProvider(BaseContext context) {
-        this.context = context;
-    }
+  private final BaseContext context;
 
-    @Override
-    public Image<?> getIcon(CantoDAPAsset cantoDAPAsset) {
-        return null;
-    }
+  public CantoDAPSnippetProvider(BaseContext context) {
+    this.context = context;
+  }
 
-    @Override
-    public Image<?> getThumbnail(CantoDAPAsset cantoDAPAsset, Language language) {
-        return context.requireSpecialist(ImageAgent.TYPE).getImageFromUrl(cantoDAPAsset.getThumbnailUrl());
-    }
+  @Override public Image<?> getIcon(@NotNull CantoDAPAsset cantoDAPAsset) {
+    return null;
+  }
 
-    @Override
-    public String getHeader(CantoDAPAsset cantoDAPAsset, Language language) {
-        return cantoDAPAsset.getTitle();
-    }
+  @Override public Image<?> getThumbnail(CantoDAPAsset cantoDAPAsset, Language language) {
+    return context.requireSpecialist(ImageAgent.TYPE)
+        .getImageFromUrl(cantoDAPAsset.getThumbnailUrl());
+  }
 
-    @Override
-    public String getExtract(CantoDAPAsset cantoDAPAsset, Language language) {
-        return null;
-    }
+  @NotNull @Override public String getHeader(CantoDAPAsset cantoDAPAsset, Language language) {
+    return cantoDAPAsset.getTitle();
+  }
+
+  @Override public String getExtract(@NotNull CantoDAPAsset cantoDAPAsset, Language language) {
+    return null;
+  }
 }

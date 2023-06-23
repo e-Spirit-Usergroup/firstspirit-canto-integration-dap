@@ -1,167 +1,132 @@
 package com.canto.firstspirit.api.model;
 
+import static com.canto.firstspirit.util.MapUtils.mapGetOrDefault;
+
+import com.squareup.moshi.Json;
 import java.util.List;
+import java.util.Map;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class CantoAsset {
 
-    private String name;
+  final static String META_FILE_EXTENSION = "File Type Extension";
+  final static String DEFAULT_COPYRIGHT = "Copyright";
+  private String name;
 
-    private String ownerName;
+  private String ownerName;
 
-    private String time;
+  private String time;
 
-    private Long width;
+  private Long width;
 
-    private Long height;
+  private Long height;
 
-    private Long dpi;
+  private Long dpi;
 
-    private CantoUrls url;
+  @Json(name = "url")
+  private CantoUrls cantoUrls;
 
-    private String id;
+  private String id;
 
-    private String scheme;
+  private String scheme;
 
-    private String owner;
+  private String owner;
 
-    private String description;
+  private String description;
 
-    private Long size;
+  private Long size;
 
-    private List<CantoVersionHistory> versionHistory;
+  private List<CantoVersionHistory> versionHistory;
 
-    private boolean isDummy = false;
+  @Nullable
+  private Map<String, Object> additional;
 
-    public CantoAsset(String name, String ownerName, String time, Long width, Long height, Long dpi, CantoUrls url, String id, String scheme, String owner, String description, Long size, List<CantoVersionHistory> versionHistory) {
-        this.name = name;
-        this.ownerName = ownerName;
-        this.time = time;
-        this.width = width;
-        this.height = height;
-        this.dpi = dpi;
-        this.url = url;
-        this.id = id;
-        this.scheme = scheme;
-        this.owner = owner;
-        this.description = description;
-        this.size = size;
-        this.versionHistory = versionHistory;
-    }
+  @Nullable
+  private Map<String, Object> metadata;
 
-    public CantoAsset() {
-    }
 
-    public static CantoAsset createDummyAsset(String id){
-        CantoAsset cantoAsset = new CantoAsset();
-        cantoAsset.id = id;
-        cantoAsset.isDummy = true;
-        cantoAsset.name = "Deleted";
-        cantoAsset.description = "Deleted";
-        return cantoAsset;
-    }
+  @Nullable
+  @Json(name = "default")
+  private Map<String, Object> defaultData;
 
-    public String getOwnerName() {
-        return ownerName;
-    }
+  public CantoAsset() {
+  }
 
-    public String getTime() {
-        return time;
-    }
+  public String getOwnerName() {
+    return ownerName;
+  }
 
-    public Number getWidth() {
-        return width;
-    }
+  public String getTime() {
+    return time;
+  }
 
-    public Number getHeight() {
-        return height;
-    }
+  public Long getWidth() {
+    return width;
+  }
 
-    public Number getDpi() {
-        return dpi;
-    }
+  public Long getHeight() {
+    return height;
+  }
 
-    public CantoUrls getUrl() {
-        return url;
-    }
+  public Number getDpi() {
+    return dpi;
+  }
 
-    public void setOwnerName(String ownerName) {
-        this.ownerName = ownerName;
-    }
+  public CantoUrls getCantoUrls() {
+    return cantoUrls;
+  }
 
-    public void setTime(String time) {
-        this.time = time;
-    }
 
-    public void setWidth(Long width) {
-        this.width = width;
-    }
+  public String getId() {
+    return id;
+  }
 
-    public void setHeight(Long height) {
-        this.height = height;
-    }
+  public String getScheme() {
+    return scheme;
+  }
 
-    public void setDpi(Long dpi) {
-        this.dpi = dpi;
-    }
 
-    public void setUrl(CantoUrls url) {
-        this.url = url;
-    }
+  public String getOwner() {
+    return owner;
+  }
 
-    public String getId() {
-        return id;
-    }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    public String getScheme() {
-        return scheme;
-    }
 
-    public void setScheme(String scheme) {
-        this.scheme = scheme;
-    }
+  public Long getSize() {
+    return size;
+  }
 
-    public String getOwner() {
-        return owner;
-    }
+  public List<CantoVersionHistory> getVersionHistory() {
+    return versionHistory;
+  }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public String getDescription() {
-        return description;
-    }
+  public @Nullable Map<String, Object> getAdditional() {
+    return additional;
+  }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+  public @Nullable Map<String, Object> getMetadata() {
+    return metadata;
+  }
 
-    public Long getSize() {
-        return size;
-    }
+  public String getFileExtension() {
+    return mapGetOrDefault(metadata, META_FILE_EXTENSION, "");
+  }
 
-    public void setSize(Long size) {
-        this.size = size;
-    }
+  public String getCopyright() {
+    return mapGetOrDefault(defaultData, DEFAULT_COPYRIGHT, "");
+  }
 
-    public List<CantoVersionHistory> getVersionHistory() {
-        return versionHistory;
-    }
 
-    public void setVersionHistory(List<CantoVersionHistory> versionHistory) {
-        this.versionHistory = versionHistory;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+  @Override public String toString() {
+    return "[CantoAsset: " + this.scheme + "/" + this.id + "]";
+  }
 }
