@@ -24,14 +24,17 @@ public class CantoConfigurationFactory {
     String appSecret = config.getString(CantoProjectAppConfiguration.PARAM_APP_SECRET);
     String userId = config.getString(CantoProjectAppConfiguration.PARAM_USER_ID);
 
-    if (tenant.isBlank() || appId.isBlank() || appSecret.isBlank() || userId.isBlank()) {
-      ProjectAgent projectAgent = broker.requireSpecialist(ProjectAgent.TYPE);
+    ProjectAgent projectAgent = broker.requireSpecialist(ProjectAgent.TYPE);
+    String projectName = projectAgent.getName();
+
+    if (tenant.isBlank() || appId.isBlank() || appSecret.isBlank() || userId.isBlank() || oAuthBaseUrl.isBlank()) {
+
       throw new IllegalStateException(
-          "ProjectApp Configuration not correct. Please provide tenant, appId, appSecret and UserId Project: ['" + projectAgent.getName() + "', "
+          "ProjectApp Configuration not correct. Please provide tenant, appId, appSecret and UserId Project: ['" + projectName + "', "
               + projectAgent.getId() + "]");
     }
 
-    return new CantoConfiguration(tenant, oAuthBaseUrl, appId, appSecret, userId);
+    return new CantoConfiguration(tenant, oAuthBaseUrl, appId, appSecret, userId, projectName);
   }
 
 

@@ -50,7 +50,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     Logging.logDebug("CantoDapSession Created", this.getClass());
     this.context = baseContext;
 
-    cantoSaasServiceClient = CantoSaasServiceProjectBoundClient.fromProjectBroker(context);
+    cantoSaasServiceClient = new CantoSaasServiceProjectBoundClient(context);
 
     sessionAspectMap.put(TransferHandling.TYPE, this);
     sessionAspectMap.put(TransferSupplying.TYPE, this);
@@ -142,14 +142,13 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
   }
 
   @Override public String getTemplate(@NotNull CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
-    return "<div style=\"padding: 20px;\"><h2>${title}</h2>"
-        + "<div><img src=\"${image}\" /></div><a target=\"_blank\" href=\"${cantoUrl}\">goto Canto</a></div>";
+    return "<div style=\"padding: 20px;\"><h2>${title}</h2>" + "<div><img src=\"${image}\" /></div>"
+        + "<a style=\"display: block; padding: 6px 15px; border-radius: 50px; margin-top: 10px; background: #fa9100; color: white; font-weight: 600;\" target=\"_blank\" href=\"${cantoUrl}\">goto Canto</a></div>";
   }
 
   @Override public void registerParameters(ParameterSet parameterSet, CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
     parameterSet.addText("title", cantoDAPAsset.getTitle());
     parameterSet.addText("image", cantoDAPAsset.getMDCImageUrl("-FPNG-S200"));
     parameterSet.addText("cantoUrl", "https://reply.canto.de/allfiles?column=" + cantoDAPAsset.getSchema() + "&id=" + cantoDAPAsset.getId());
-
   }
 }

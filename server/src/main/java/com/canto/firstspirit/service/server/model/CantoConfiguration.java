@@ -13,13 +13,16 @@ public class CantoConfiguration implements Serializable {
   private final String userId;
   private static final long serialVersionUID = 2L;
 
+  private final String projectName;
 
-  public CantoConfiguration(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId) {
+
+  public CantoConfiguration(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId, String projectName) {
     this.tenant = tenant;
     this.oAuthBaseUrl = oAuthBaseUrl;
     this.appId = appId;
     this.appSecret = appSecret;
     this.userId = userId;
+    this.projectName = projectName;
   }
 
 
@@ -58,4 +61,11 @@ public class CantoConfiguration implements Serializable {
   public String getOAuthBaseUrl() {
     return oAuthBaseUrl;
   }
+
+  @Override public String toString() {
+    return "CantoConfiguration[" + projectName + "]" + "{tenant='" + tenant + "', oAuthBaseUrl='" + oAuthBaseUrl + "', appId='" + appId.substring(0,
+                                                                                                                                                  5)
+        + "...', appSecret='" + appSecret.substring(0, 5) + "...', userId='" + userId + "'}";
+  }
+
 }

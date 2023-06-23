@@ -19,9 +19,9 @@ public interface CantoSaasService {
    *
    * @param connection  Project Specific Connection to fetch Data with
    * @param identifiers List of Identifiers to fetch of form {scheme}/{cantoId}
-   * @return List of AssetDTOs. May contain null Values
+   * @return List of AssetDTOs, may contain null Values. Null Response indicates invalid connection
    */
-  List<@Nullable CantoAssetDTO> fetchAssetsByIdentifiers(@NotNull final CantoServiceConnection connection,
+  @Nullable List<@Nullable CantoAssetDTO> fetchAssetsByIdentifiers(@NotNull final CantoServiceConnection connection,
       @NotNull final List<CantoAssetIdentifier> identifiers);
 
   /**
@@ -29,10 +29,13 @@ public interface CantoSaasService {
    *
    * @param connection Project Specific Connection to fetch Data with
    * @param params     SearchParams that define a keyword
-   * @return SearchResult based on params
+   * @return SearchResult based on params. Null Response indicates invalid connection
    */
-  CantoSearchResultDTO fetchSearch(@NotNull final CantoServiceConnection connection, @NotNull final CantoSearchParams params);
+  @Nullable CantoSearchResultDTO fetchSearch(@NotNull final CantoServiceConnection connection, @NotNull final CantoSearchParams params);
 
   CantoServiceConnection getServiceConnection(@NotNull final CantoConfiguration config);
+
+  void removeServiceConnection(@NotNull final CantoServiceConnection connection);
+
 
 }
