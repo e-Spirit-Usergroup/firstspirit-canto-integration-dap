@@ -143,12 +143,12 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
 
   @Override public String getTemplate(@NotNull CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
     return "<div style=\"padding: 20px;\"><h2>${title}</h2>" + "<div><img src=\"${image}\" /></div>"
-        + "<a style=\"display: block; padding: 6px 15px; border-radius: 50px; margin-top: 10px; background: #fa9100; color: white; font-weight: 600;\" target=\"_blank\" href=\"${cantoUrl}\">goto Canto</a></div>";
+        + "<a style=\"display: inline-block; padding: 6px 15px; border-radius: 50px; margin-top: 10px; background: #fa9100; color: white; font-weight: 600;\" target=\"_blank\" href=\"${cantoUrl}\">goto Canto</a></div>";
   }
 
   @Override public void registerParameters(ParameterSet parameterSet, CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
     parameterSet.addText("title", cantoDAPAsset.getTitle());
-    parameterSet.addText("image", cantoDAPAsset.getMDCImageUrl("-FPNG-S200"));
+    parameterSet.addText("image", cantoDAPAsset.getMDCImageUrl("-FPNG-S300"));
     parameterSet.addText("cantoUrl", "https://reply.canto.de/allfiles?column=" + cantoDAPAsset.getSchema() + "&id=" + cantoDAPAsset.getId());
   }
 }
