@@ -1,5 +1,8 @@
 package com.canto.firstspirit.integration.dap;
 
+import static com.canto.firstspirit.util.JsonUtils.getMapAsJsonObject;
+import static com.canto.firstspirit.util.JsonUtils.getNullOrNumberJsonValue;
+
 import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
 import com.canto.firstspirit.service.CantoSaasServiceProjectBoundClient;
 import com.canto.firstspirit.service.factory.CantoAssetIdentifierSerializer;
@@ -24,19 +27,15 @@ import de.espirit.firstspirit.generate.functions.json.JsonGenerationContext;
 import de.espirit.firstspirit.json.JsonElement;
 import de.espirit.firstspirit.json.JsonObject;
 import de.espirit.firstspirit.json.JsonPair;
-import de.espirit.firstspirit.json.values.JsonNullValue;
-import de.espirit.firstspirit.json.values.JsonNumberValue;
 import de.espirit.firstspirit.json.values.JsonStringValue;
 import de.espirit.firstspirit.ui.gadgets.aspects.transfer.TransferType;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, TransferHandling<CantoDAPAsset>, TransferSupplying<CantoDAPAsset>,
     DataTemplating<CantoDAPAsset>, JsonSupporting<CantoDAPAsset> {
@@ -51,7 +50,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     Logging.logDebug("CantoDapSession Created", this.getClass());
     this.context = baseContext;
 
-    cantoSaasServiceClient = CantoSaasServiceProjectBoundClient.fromProjectBroker(context);
+    cantoSaasServiceClient = new CantoSaasServiceProjectBoundClient(context);
 
     sessionAspectMap.put(TransferHandling.TYPE, this);
     sessionAspectMap.put(TransferSupplying.TYPE, this);
@@ -94,7 +93,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
 
     JsonElement<?> additionalInfoJSON = getMapAsJsonObject(cantoDAPAsset.getAdditionalInfo());
 
-    JsonElement<?> additionalDataJSON = getMapAsJsonObject(cantoDAPAsset.getAdditionalData());
+    JsonElement<?> additionalDataJSON = getMapAsJsonObject(cantoDAPAsset.getAdditionalIdentifierData());
 
     jsonResult.put(JsonPair.of("title", JsonStringValue.ofNullable(cantoDAPAsset.getTitle())));
     jsonResult.put(JsonPair.of("previewBaseUrl", JsonStringValue.ofNullable(cantoDAPAsset.getPreviewBaseUrl())));
@@ -116,22 +115,6 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     return jsonResult;
   }
 
-  private JsonElement<?> getMapAsJsonObject(Map<String, String> map) {
-    if (map != null) {
-      JsonObject result = JsonObject.create();
-
-      map.forEach((key, val) -> result.put(JsonPair.of(key, JsonStringValue.of(val))));
-      return result;
-    }
-    return JsonNullValue.NULL;
-  }
-
-  private JsonElement<?> getNullOrNumberJsonValue(@Nullable Long value) {
-    if (value == null) {
-      return JsonNullValue.NULL;
-    }
-    return JsonNumberValue.of(value);
-  }
 
   @NotNull @Override public Class<CantoDAPAsset> getSupportedClass() {
     return CantoDAPAsset.class;
@@ -159,20 +142,13 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
   }
 
   @Override public String getTemplate(@NotNull CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
-
-    return "<h2>${title}</h2>" + "<div><img src=\"${image}\" /></div>";
+    return "<div style=\"padding: 20px;\"><h2>${title}</h2>" + "<div><img src=\"${image}\" /></div>"
+        + "<a style=\"display: block; padding: 6px 15px; border-radius: 50px; margin-top: 10px; background: #fa9100; color: white; font-weight: 600;\" target=\"_blank\" href=\"${cantoUrl}\">goto Canto</a></div>";
   }
 
   @Override public void registerParameters(ParameterSet parameterSet, CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
     parameterSet.addText("title", cantoDAPAsset.getTitle());
-    parameterSet.addText("image", cantoDAPAsset.getThumbnailUrl());
-        /*
-        parameterSet.addText("tags", Strings.implode(asset.getTags(),", "));
-        parameterSet.addText("kbytes", FILE_SIZE_FORMAT.format(asset.getFileSize().doubleValue() / 1000));
-        parameterSet.addText("width", String.valueOf(asset.getWidth()));
-        parameterSet.addText("height", String.valueOf(asset.getHeight()));
-        parameterSet.addText("date", dateFormat.format(asset.getCreationDate()));
-
-         */
+    parameterSet.addText("image", cantoDAPAsset.getMDCImageUrl("-FPNG-S200"));
+    parameterSet.addText("cantoUrl", "https://reply.canto.de/allfiles?column=" + cantoDAPAsset.getSchema() + "&id=" + cantoDAPAsset.getId());
   }
 }

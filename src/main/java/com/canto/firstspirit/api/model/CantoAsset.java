@@ -1,5 +1,7 @@
 package com.canto.firstspirit.api.model;
 
+import static com.canto.firstspirit.util.MapUtils.mapGetOrDefault;
+
 import com.squareup.moshi.Json;
 import java.util.List;
 import java.util.Map;
@@ -38,15 +40,15 @@ public class CantoAsset {
   private List<CantoVersionHistory> versionHistory;
 
   @Nullable
-  private Map<String, String> additional;
+  private Map<String, Object> additional;
 
   @Nullable
-  private Map<String, String> metadata;
+  private Map<String, Object> metadata;
 
 
   @Nullable
   @Json(name = "default")
-  private Map<String, String> defaultData;
+  private Map<String, Object> defaultData;
 
   public CantoAsset() {
   }
@@ -107,11 +109,11 @@ public class CantoAsset {
     return name;
   }
 
-  public @Nullable Map<String, String> getAdditional() {
+  public @Nullable Map<String, Object> getAdditional() {
     return additional;
   }
 
-  public @Nullable Map<String, String> getMetadata() {
+  public @Nullable Map<String, Object> getMetadata() {
     return metadata;
   }
 
@@ -123,9 +125,6 @@ public class CantoAsset {
     return mapGetOrDefault(defaultData, DEFAULT_COPYRIGHT, "");
   }
 
-  @SuppressWarnings("SameParameterValue") private <T> T mapGetOrDefault(Map<String, T> map, String key, T defaultValue) {
-    return map != null ? map.getOrDefault(key, defaultValue) : defaultValue;
-  }
 
   @Override public String toString() {
     return "[CantoAsset: " + this.scheme + "/" + this.id + "]";

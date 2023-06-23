@@ -1,5 +1,7 @@
 package com.canto.firstspirit.service;
 
+import static com.canto.firstspirit.service.CantoSaasServiceImpl.SERVICE_NAME;
+
 import com.canto.firstspirit.api.CantoApi;
 import com.canto.firstspirit.api.model.CantoSearchResult;
 import com.canto.firstspirit.service.factory.CantoAssetDTOFactory;
@@ -25,54 +27,76 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@ServiceComponent(name = "CantoSaasService", displayName = "CantoSaaS Connector Service")
+@ServiceComponent(name = SERVICE_NAME, displayName = "CantoSaaS Connector Service")
 public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaasService> {
 
+  public static final String SERVICE_NAME = "CantoSaasService";
   private Map<Integer, CantoApi> apiConnectionPool;
 
   public CantoServiceConnection getServiceConnection(@NotNull final CantoConfiguration config) {
     final CantoServiceConnection connection = CantoServiceConnection.fromConfig(config);
     if (!apiConnectionPool.containsKey(connection.getConnectionId())) {
 
-      final CantoApi cantoApi = new CantoApi(config.getTenant(), config.getAppId(), config.getAppSecret(), config.getUserId());
+      final CantoApi cantoApi = new CantoApi(config.getTenant(),
+                                             config.getOAuthBaseUrl(),
+                                             config.getAppId(),
+                                             config.getAppSecret(),
+                                             config.getUserId());
+
       apiConnectionPool.put(connection.getConnectionId(), cantoApi);
 
-      Logging.logInfo(
-          "[getServiceConnection] New Connection for Tenant: " + config.getTenant() + ". Created ConnectionId: " + connection.getConnectionId()
-              + ". ApiPoolSize=" + apiConnectionPool.size(), this.getClass());
+      Logging.logInfo("[getServiceConnection] New Connection for Configuration: " + config + ". Created ConnectionId: " + connection.getConnectionId()
+                          + ". ApiPoolSize=" + apiConnectionPool.size(), this.getClass());
     }
 
     return connection;
   }
 
-  @NotNull private CantoApi getApiInstance(final CantoServiceConnection connection) {
+  @Override public void removeServiceConnection(@Nullable CantoServiceConnection connection) {
+    if (connection != null) {
+      apiConnectionPool.remove(connection.getConnectionId());
+    }
+  }
+
+  @Nullable private CantoApi getApiInstance(final CantoServiceConnection connection) {
     if (connection == null) {
       throw new IllegalArgumentException("Requested Api Instance with null Connection");
     }
     CantoApi cantoApi = apiConnectionPool.get(connection.getConnectionId());
     if (cantoApi == null) {
-      throw new IllegalStateException("Requested Api Instance not found for ConnectionId: " + connection.getConnectionId());
+      Logging.logWarning("Requested Api Instance not found for ConnectionId: " + connection.getConnectionId() + "\n"
+                             + "This issue may be resolved by restarting your clients and Service", this.getClass());
     }
     return cantoApi;
   }
 
-  @NotNull @Override public List<@Nullable CantoAssetDTO> fetchAssetsByIdentifiers(@NotNull final CantoServiceConnection connection,
+  @Nullable @Override public List<@Nullable CantoAssetDTO> fetchAssetsByIdentifiers(@NotNull final CantoServiceConnection connection,
       @NotNull final List<CantoAssetIdentifier> identifiers) {
     Logging.logInfo("[fetchAssetsByIdentifiers] " + Strings.implode(identifiers, ", "), getClass());
     final CantoApi cantoApi = getApiInstance(connection);
+
+    if (cantoApi == null) {
+      // Connection is invalid. Return null, caller can try to revalidate Connection
+      return null;
+    }
+
     return cantoApi.fetchAssets(identifiers)
         .stream()
         .map(CantoAssetDTOFactory::fromAsset)
         .collect(Collectors.toList());
   }
 
-  @Override public CantoSearchResultDTO fetchSearch(@NotNull final CantoServiceConnection connection, @NotNull final CantoSearchParams params) {
+  @Nullable @Override
+  public CantoSearchResultDTO fetchSearch(@NotNull final CantoServiceConnection connection, @NotNull final CantoSearchParams params) {
     Logging.logInfo("[fetchSearch] " + params, getClass());
     final CantoApi cantoApi = getApiInstance(connection);
 
-    final CantoSearchResult cantoSearchResult = cantoApi.fetchSearch(params.getKeyword());
-    //todo: implement paging
+    if (cantoApi == null) {
+      // Connection is invalid. Return null, caller can try to revalidate Connection
+      return null;
+    }
 
+    final CantoSearchResult cantoSearchResult = cantoApi.fetchSearch(params);
     return CantoSearchResultDTOFactory.fromCantoSearchResult(params, cantoSearchResult);
   }
 

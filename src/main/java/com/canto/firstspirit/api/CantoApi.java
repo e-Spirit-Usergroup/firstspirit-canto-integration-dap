@@ -5,11 +5,14 @@ import com.canto.firstspirit.api.model.CantoAsset;
 import com.canto.firstspirit.api.model.CantoBatchResponse;
 import com.canto.firstspirit.api.model.CantoSearchResult;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
+import com.canto.firstspirit.service.server.model.CantoSearchParams;
+import com.canto.firstspirit.util.CantoScheme;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import de.espirit.common.base.Logging;
 import de.espirit.common.tools.Strings;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +20,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import okhttp3.HttpUrl;
+import okhttp3.HttpUrl.Builder;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -37,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 public class CantoApi {
 
   private final String tenant;
+  private final String oAuthBaseUrl;
 
   /**
    * <strong>!! Do not access directly. use {@link #getClient()} instead !! </strong>
@@ -64,16 +69,18 @@ public class CantoApi {
    * Instances meant to be managed by {@link com.canto.firstspirit.service.CantoSaasServiceImpl}
    * <br><strong>Direct Use outside of Service not recommended. </strong>
    *
-   * @param tenant    tenant
-   * @param appId     appId
-   * @param appSecret appSecret
-   * @param userId    userId
+   * @param tenant       tenant
+   * @param oAuthBaseUrl url with correct region, matching the tenant
+   * @param appId        appId
+   * @param appSecret    appSecret
+   * @param userId       userId
    */
-  public CantoApi(String tenant, String appId, String appSecret, String userId) {
+  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId) {
     this.tenant = tenant;
     this.appId = appId;
     this.appSecret = appSecret;
     this.userId = userId;
+    this.oAuthBaseUrl = oAuthBaseUrl;
   }
 
   /**
@@ -217,30 +224,42 @@ public class CantoApi {
   /**
    * Search Assets based on keyword. Limits search to 100 elements
    *
-   * @param keyword passed as search filter
+   * @param searchParams SearchParams to configure Search request
    * @return Wrapper with a list of fetched CantoAssets including some MetaData about the search
    */
-  public CantoSearchResult fetchSearch(String keyword) {
-    return fetchSearch(keyword, 0, 100);
+  public CantoSearchResult fetchSearch(CantoSearchParams searchParams) {
+    return fetchSearch(searchParams.getKeyword(), searchParams.getScheme(), searchParams.getStart(), searchParams.getLimit());
   }
 
   /**
    * Search Assets based on keyword.
    *
    * @param keyword passed as search filter
+   * @param scheme  Filter for Scheme. If none passed, all Schemes are searched ("image", "video", "audio", "document", "presentation", "other")
    * @param start   offset for search results
    * @param limit   max elements to return
    * @return Wrapper with a list of fetched CantoAssets including some MetaData about the search
    */
-  public CantoSearchResult fetchSearch(String keyword, int start, int limit) {
+  public CantoSearchResult fetchSearch(String keyword, @Nullable String scheme, int start, int limit) {
 
     // Logging.logWarning("test", CantoApi.class);
-    HttpUrl url = getApiUrl().addPathSegments("search")
-        .addQueryParameter("scheme", "image")
+    Builder urlBuilder = getApiUrl().addPathSegments("search")
         .addQueryParameter("keyword", keyword)
         .addQueryParameter("start", String.valueOf(start))
-        .addQueryParameter("limit", String.valueOf(limit))
-        .build();
+        .addQueryParameter("limit", String.valueOf(limit));
+
+    // Validate CantoScheme
+    CantoScheme cantoScheme = CantoScheme.fromString(scheme);
+    if (cantoScheme != null) {
+      urlBuilder.addQueryParameter("scheme", cantoScheme.toString());
+    } else {
+      final String allSchemes = Arrays.stream(CantoScheme.values())
+          .map(CantoScheme::toString)
+          .collect(Collectors.joining("|"));
+      urlBuilder.addQueryParameter("scheme", allSchemes);
+    }
+
+    final HttpUrl url = urlBuilder.build();
 
     Logging.logInfo("[fetchSearch] " + url, getClass());
 
@@ -352,9 +371,15 @@ public class CantoApi {
       return null;
     }
 
-    String url = new HttpUrl.Builder().scheme("https")
-        .host("oauth.canto.de")
-        .addPathSegments("oauth/api/oauth2/compatible/token")
+    HttpUrl baseUrl = HttpUrl.parse(oAuthBaseUrl);
+
+    if (baseUrl == null) {
+      throw new IllegalStateException("OAuthBaseUrl invalid, not parsable. Please check your configuration. " + oAuthBaseUrl);
+    }
+
+    final Builder urlBuilder = baseUrl.newBuilder();
+
+    final String url = urlBuilder.addPathSegments("oauth/api/oauth2/compatible/token")
         .addQueryParameter("app_id", appId)
         .addQueryParameter("app_secret", appSecret)
         .addQueryParameter("grant_type", "client_credentials")
@@ -393,5 +418,6 @@ public class CantoApi {
 
     return null;
   }
+
 
 }

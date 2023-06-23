@@ -56,6 +56,11 @@ public class TestModelDataTransformation {
     // METADATA
     Assertions.assertEquals("jpg", cantoDAPAsset.getFileExtension());
 
+    Assertions.assertEquals(2976538L, cantoDAPAsset.getByteSize());
+    Assertions.assertEquals(
+        "Campaign,  Lifestyle,  Great Outdoors Go,  lifestyle,  Human,  Mountain,  Mountain Range,  Nature,  Outdoors,  Person,  Water,  Wilderness",
+        cantoDAPAsset.getDescription());
+
     // IDENTIFIER
     Assertions.assertEquals("SCHEME", cantoDAPAsset.getSchema());
     Assertions.assertEquals("IMAGE_ID", cantoDAPAsset.getId());
