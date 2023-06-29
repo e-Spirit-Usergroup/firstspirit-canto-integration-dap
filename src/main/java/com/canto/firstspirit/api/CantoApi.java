@@ -170,6 +170,10 @@ public class CantoApi {
    */
   public List<CantoAsset> fetchAssets(@NotNull List<? extends CantoAssetIdentifier> assetIdentifiers) {
     Logging.logInfo("[fetchAssets] fetching ids: " + Strings.implode(assetIdentifiers, ","), LOGGER);
+    if (assetIdentifiers.size() == 0) {
+      Logging.logInfo("[fetchAssets] Identifier List empty, returning empty list", LOGGER);
+      return Collections.emptyList();
+    }
     if (assetIdentifiers.size() == 1) {
       return Collections.singletonList(fetchAssetById(assetIdentifiers.get(0)).orElse(null));
     }
@@ -210,7 +214,7 @@ public class CantoApi {
           .collect(Collectors.toList());
 
 
-    } catch (IOException e) {
+    } catch (Exception e) {
       Logging.logError("Error during bulk fetch of Ids" + Strings.implode(assetIdentifiers, ","), e, this.getClass());
       // Return list of nulls
       return assetIdentifiers.stream()

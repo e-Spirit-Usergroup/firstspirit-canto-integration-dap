@@ -71,11 +71,16 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
   }
 
   @NotNull @Override public List<CantoDAPAsset> getData(@NotNull final Collection<String> identifiers) {
-    Logging.logInfo("[getData] Multi: " + Strings.implode(identifiers, ", "), getClass());
+    Logging.logInfo("[getData] Multi: [" + Strings.implode(identifiers, ", ") + "]", getClass());
     final List<CantoAssetIdentifier> assetIdentifiers = identifiers.stream()
         .map(CantoAssetIdentifierSerializer::fromJsonIdentifier)
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
+
+    if (assetIdentifiers.isEmpty()) {
+      Logging.logInfo("[getData] Empty Identifierlist. Returning empty List", getClass());
+      return Collections.emptyList();
+    }
 
     return cantoSaasServiceClient.fetchAssetDTOs(assetIdentifiers)
         .stream()

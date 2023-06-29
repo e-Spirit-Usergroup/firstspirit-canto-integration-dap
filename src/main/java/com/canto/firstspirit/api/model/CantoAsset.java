@@ -22,7 +22,7 @@ public class CantoAsset {
 
   private Long height;
 
-  private Long dpi;
+  private Double dpi;
 
   @Json(name = "url")
   private CantoUrls cantoUrls;
