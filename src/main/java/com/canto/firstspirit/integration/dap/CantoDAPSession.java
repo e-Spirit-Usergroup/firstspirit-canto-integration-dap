@@ -41,14 +41,16 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     DataTemplating<CantoDAPAsset>, JsonSupporting<CantoDAPAsset> {
 
   private final BaseContext context;
+  private final CantoDAPFilter filter;
 
   final private SessionAspectMap sessionAspectMap = new SessionAspectMap();
   private final CantoSaasServiceProjectBoundClient cantoSaasServiceClient;
 
-  public CantoDAPSession(BaseContext baseContext) {
+  CantoDAPSession(BaseContext baseContext, CantoDAPFilter filter) {
 
     Logging.logDebug("CantoDapSession Created", this.getClass());
     this.context = baseContext;
+    this.filter = filter;
 
     cantoSaasServiceClient = new CantoSaasServiceProjectBoundClient(context);
 
@@ -131,13 +133,19 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
   }
 
   @NotNull @Override public DataStreamBuilder<CantoDAPAsset> createDataStreamBuilder() {
-    return new CantoDAPStreamBuilder(cantoSaasServiceClient);
+    return new CantoDAPStreamBuilder(cantoSaasServiceClient, filter);
   }
 
   @Override public void registerHandlers(HandlerHost<CantoDAPAsset> handlerHost) {
     TransferAgent transferAgent = context.requireSpecialist(TransferAgent.TYPE);
     TransferType<CantoDAPAsset> rawValueType = transferAgent.getRawValueType(CantoDAPAsset.class);
-    handlerHost.registerHandler(rawValueType, list -> list);
+
+    Logging.logInfo("Registering Transferhandler", this.getClass());
+    // Apply Filter to given assetList
+    handlerHost.registerHandler(rawValueType,
+                                list -> list.stream()
+                                    .filter(filter::isValid)
+                                    .collect(Collectors.toList()));
   }
 
   @Override public void registerSuppliers(SupplierHost<CantoDAPAsset> supplierHost) {
