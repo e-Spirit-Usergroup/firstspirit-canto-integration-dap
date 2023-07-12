@@ -22,8 +22,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -31,21 +33,34 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
 
   private final StreamBuilderAspectMap aspects = new StreamBuilderAspectMap();
   private final CantoSaasServiceProjectBoundClient cantoSaasServiceClient;
+  private final CantoDAPFilter filter;
   private ParameterMap parameterMap;
   private final ParameterText paramKeyword;
   private final ParameterSelect paramScheme;
 
-  public CantoDAPStreamBuilder(CantoSaasServiceProjectBoundClient cantoSaasServiceClient) {
+  public CantoDAPStreamBuilder(CantoSaasServiceProjectBoundClient cantoSaasServiceClient, CantoDAPFilter filter) {
+    this.filter = filter;
     this.cantoSaasServiceClient = cantoSaasServiceClient;
+
     aspects.put(Filterable.TYPE, this);
     paramKeyword = Parameter.Factory.createText("keyword", "Keyword", "");
 
+    // Only show Scheme Selection in UI if no fixed Scheme is set
     List<SelectItem> schemeSelectList = Arrays.stream(CantoScheme.values())
+        .filter(cantoScheme -> filter.getValidScheme() == null || filter.getValidScheme()
+            .equals(cantoScheme))
         .map(cantoScheme -> Factory.createSelectItem(cantoScheme.getDisplayName(), cantoScheme.toString()))
         .collect(Collectors.toList());
+    if (filter.getValidScheme() == null) {
+      schemeSelectList.add(0, Parameter.Factory.createSelectItem("-", ""));
+      paramScheme = Parameter.Factory.createSelect("scheme", schemeSelectList, "");
+    } else {
+      paramScheme = Parameter.Factory.createSelect("scheme",
+                                                   schemeSelectList,
+                                                   filter.getValidScheme()
+                                                       .toString());
+    }
 
-    schemeSelectList.add(0, Parameter.Factory.createSelectItem("-", ""));
-    paramScheme = Parameter.Factory.createSelect("scheme", schemeSelectList, "");
   }
 
   @Override public <A> A getAspect(@NotNull StreamBuilderAspectType<A> streamBuilderAspectType) {
@@ -57,7 +72,10 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
   }
 
   @NotNull @Override public List<Parameter<?>> getDefinedParameters() {
-    return List.of(paramKeyword, paramScheme);
+    // Parameters may be set to null to hide them in UI
+    return Stream.of(paramKeyword, paramScheme)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 
   @Override public void setFilter(@NotNull ParameterMap parameterMap) {
@@ -71,11 +89,14 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
     private int total = 0;
     private int availableAssets = 0;
     private boolean hasNext = true;
-
     CantoSearchParams searchParams;
-
+    
     public CantoDAPDataStream() {
-      searchParams = new CantoSearchParams(0, 0, parameterMap.get(paramKeyword), parameterMap.get(paramScheme));
+      searchParams = new CantoSearchParams(0,
+                                           0,
+                                           parameterMap.get(paramKeyword),
+                                           filter.getValidScheme() != null ? filter.getValidScheme()
+                                               .toString() : parameterMap.get(paramScheme));
       fetchedAssets = null;
     }
 
@@ -92,7 +113,8 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
       searchParams = new CantoSearchParams(searchParams.getStart() + searchParams.getLimit(),
                                            pageSize,
                                            parameterMap.get(paramKeyword),
-                                           parameterMap.get(paramScheme));
+                                           filter.getValidScheme() != null ? filter.getValidScheme()
+                                               .toString() : parameterMap.get(paramScheme));
 
       if (searchParams.getStart() <= total) {
         Logging.logInfo("[fetchNextPage] Fetching next page, " + searchParams + ", total=" + total, this.getClass());
