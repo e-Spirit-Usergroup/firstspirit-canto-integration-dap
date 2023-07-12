@@ -67,9 +67,11 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
 
   @NotNull @Override public CantoDAPAsset getData(@NotNull final String identifier) throws NoSuchElementException {
     Logging.logInfo("[getData] Single: " + identifier, getClass());
-    return getData(Collections.singleton(identifier)).stream()
-        .findFirst()
-        .orElseThrow(() -> new NoSuchElementException("Element with identifier " + identifier + " not found"));
+    List<CantoDAPAsset> list = getData(Collections.singleton(identifier));
+    if (list.isEmpty() || list.get(0) == null) {
+      throw new NoSuchElementException("Element with identifier " + identifier + " not found");
+    }
+    return list.get(0);
   }
 
   @NotNull @Override public List<CantoDAPAsset> getData(@NotNull final Collection<String> identifiers) {
