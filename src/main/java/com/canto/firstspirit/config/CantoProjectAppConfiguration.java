@@ -54,7 +54,7 @@ public class CantoProjectAppConfiguration extends GenericConfigPanel<ProjectEnvi
         .text("OAuth Base URL (com,de,global)", PARAM_OAUTH_BASE_URL, "https://oauth.canto.<region>", "region is one of com/de/global")
         .text("App Id", PARAM_APP_ID, "", "App Id")
         .text("App Secret", PARAM_APP_SECRET, "", "App Secret")
-        .text("User Id", PARAM_USER_ID, "", "User Id bound to generated Access Token")
+        .text("User", PARAM_USER_ID, "", "User Id bound to generated Access Token")
         .checkbox("Restart Service on Config Save",
                   PARAM_RESTART_SERVICE_ON_SAVE,
                   false,

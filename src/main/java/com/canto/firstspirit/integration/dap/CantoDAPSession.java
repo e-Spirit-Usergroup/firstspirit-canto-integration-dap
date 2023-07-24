@@ -41,14 +41,16 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     DataTemplating<CantoDAPAsset>, JsonSupporting<CantoDAPAsset> {
 
   private final BaseContext context;
+  private final CantoDAPFilter filter;
 
   final private SessionAspectMap sessionAspectMap = new SessionAspectMap();
   private final CantoSaasServiceProjectBoundClient cantoSaasServiceClient;
 
-  public CantoDAPSession(BaseContext baseContext) {
+  CantoDAPSession(BaseContext baseContext, CantoDAPFilter filter) {
 
     Logging.logDebug("CantoDapSession Created", this.getClass());
     this.context = baseContext;
+    this.filter = filter;
 
     cantoSaasServiceClient = new CantoSaasServiceProjectBoundClient(context);
 
@@ -65,17 +67,24 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
 
   @NotNull @Override public CantoDAPAsset getData(@NotNull final String identifier) throws NoSuchElementException {
     Logging.logInfo("[getData] Single: " + identifier, getClass());
-    return getData(Collections.singleton(identifier)).stream()
-        .findFirst()
-        .orElseThrow(() -> new NoSuchElementException("Element with identifier " + identifier + " not found"));
+    List<CantoDAPAsset> list = getData(Collections.singleton(identifier));
+    if (list.isEmpty() || list.get(0) == null) {
+      throw new NoSuchElementException("Element with identifier " + identifier + " not found");
+    }
+    return list.get(0);
   }
 
   @NotNull @Override public List<CantoDAPAsset> getData(@NotNull final Collection<String> identifiers) {
-    Logging.logInfo("[getData] Multi: " + Strings.implode(identifiers, ", "), getClass());
+    Logging.logInfo("[getData] Multi: [" + Strings.implode(identifiers, ", ") + "]", getClass());
     final List<CantoAssetIdentifier> assetIdentifiers = identifiers.stream()
         .map(CantoAssetIdentifierSerializer::fromJsonIdentifier)
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
+
+    if (assetIdentifiers.isEmpty()) {
+      Logging.logInfo("[getData] Empty Identifierlist. Returning empty List", getClass());
+      return Collections.emptyList();
+    }
 
     return cantoSaasServiceClient.fetchAssetDTOs(assetIdentifiers)
         .stream()
@@ -126,13 +135,19 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
   }
 
   @NotNull @Override public DataStreamBuilder<CantoDAPAsset> createDataStreamBuilder() {
-    return new CantoDAPStreamBuilder(cantoSaasServiceClient);
+    return new CantoDAPStreamBuilder(cantoSaasServiceClient, filter);
   }
 
   @Override public void registerHandlers(HandlerHost<CantoDAPAsset> handlerHost) {
     TransferAgent transferAgent = context.requireSpecialist(TransferAgent.TYPE);
     TransferType<CantoDAPAsset> rawValueType = transferAgent.getRawValueType(CantoDAPAsset.class);
-    handlerHost.registerHandler(rawValueType, list -> list);
+
+    Logging.logInfo("Registering Transferhandler", this.getClass());
+    // Apply Filter to given assetList
+    handlerHost.registerHandler(rawValueType,
+                                list -> list.stream()
+                                    .filter(filter::isValid)
+                                    .collect(Collectors.toList()));
   }
 
   @Override public void registerSuppliers(SupplierHost<CantoDAPAsset> supplierHost) {
@@ -143,12 +158,12 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
 
   @Override public String getTemplate(@NotNull CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
     return "<div style=\"padding: 20px;\"><h2>${title}</h2>" + "<div><img src=\"${image}\" /></div>"
-        + "<a style=\"display: block; padding: 6px 15px; border-radius: 50px; margin-top: 10px; background: #fa9100; color: white; font-weight: 600;\" target=\"_blank\" href=\"${cantoUrl}\">goto Canto</a></div>";
+        + "<a style=\"display: inline-block; padding: 6px 15px; border-radius: 50px; margin-top: 10px; background: #fa9100; color: white; font-weight: 600;\" target=\"_blank\" href=\"${cantoUrl}\">goto Canto</a></div>";
   }
 
   @Override public void registerParameters(ParameterSet parameterSet, CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
     parameterSet.addText("title", cantoDAPAsset.getTitle());
-    parameterSet.addText("image", cantoDAPAsset.getMDCImageUrl("-FPNG-S200"));
+    parameterSet.addText("image", cantoDAPAsset.getMDCImageUrl("-FPNG-S300"));
     parameterSet.addText("cantoUrl", "https://reply.canto.de/allfiles?column=" + cantoDAPAsset.getSchema() + "&id=" + cantoDAPAsset.getId());
   }
 }

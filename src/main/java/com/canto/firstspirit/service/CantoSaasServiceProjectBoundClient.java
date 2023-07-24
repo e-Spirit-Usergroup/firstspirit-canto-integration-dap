@@ -41,17 +41,22 @@ public class CantoSaasServiceProjectBoundClient {
       this.broker = broker;
       this.service = broker.requireSpecialist(ServicesBroker.TYPE)
           .getService(CantoSaasService.class);
-      this.connection = createNewConnection();
+      this.connection = getOrCreateConnection(false);
     } catch (Exception e) {
       throw new IllegalStateException("Unable to create ProjectBoundClient from given broker " + broker, e);
     }
   }
 
-  private CantoServiceConnection createNewConnection() {
-    service.removeServiceConnection(connection);
+  private CantoServiceConnection getOrCreateConnection(boolean forceNewConnection) {
     CantoConfiguration cantoConfiguration = CantoConfigurationFactory.fromProjectBroker(broker);
-    Logging.logInfo("Creating new Connection for Configuration " + cantoConfiguration, this.getClass());
+
+    if (forceNewConnection) {
+      service.removeServiceConnection(connection);
+      Logging.logInfo("Force creation of new Connection for Configuration " + cantoConfiguration, this.getClass());
+    }
+
     return service.getServiceConnection(cantoConfiguration);
+
   }
 
   public List<@Nullable CantoAssetDTO> fetchAssetDTOs(List<CantoAssetIdentifier> identifiers) {
@@ -59,7 +64,7 @@ public class CantoSaasServiceProjectBoundClient {
 
     if (cantoAssetDTOS == null) {
       // null Result indicates invalid connection. Revalidate and try again once
-      this.connection = createNewConnection();
+      this.connection = getOrCreateConnection(true);
       cantoAssetDTOS = service.fetchAssetsByIdentifiers(connection, identifiers);
     }
     return cantoAssetDTOS;
@@ -69,7 +74,7 @@ public class CantoSaasServiceProjectBoundClient {
     CantoSearchResultDTO cantoSearchResultDTO = service.fetchSearch(connection, cantoSearchParams);
     if (cantoSearchResultDTO == null) {
       // null Result indicates invalid connection. Revalidate and try again once
-      this.connection = createNewConnection();
+      this.connection = getOrCreateConnection(true);
       cantoSearchResultDTO = service.fetchSearch(connection, cantoSearchParams);
     }
     return cantoSearchResultDTO;
