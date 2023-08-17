@@ -147,7 +147,9 @@ public class CantoApi {
 
     if (this.cache.has(assetId)) {
       Logging.logInfo("[getAssetById] Cache hit: " + assetId, LOGGER);
-      return Optional.ofNullable(this.cache.get(assetId));
+      if (this.cache.get(assetId) != null) {
+        return Optional.ofNullable(this.cache.get(assetId));
+      }
     }
 
     HttpUrl url = getApiUrl().addPathSegments(assetId.getPath())
@@ -156,7 +158,11 @@ public class CantoApi {
     Logging.logInfo("[getAssetById] fetching " + url, LOGGER);
 
     CantoAsset asset = null;
-
+    try {
+      Thread.sleep(350);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
     try (Response response = executeGetRequest(url)) {
       ResponseBody body = response.body();
       if (body == null) {

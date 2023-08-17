@@ -8,12 +8,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class SimpleCache {
 
-  static final int MAX_SIZE = 200;
+  static final int MAX_SIZE = 10000;
   static final int CLEAR_SIZE = 100;
 
-  static final int VALID_MS = 600 * 1000;
+  static final int VALID_MS = 3600 * 1000 * 12;
 
-  Map<String, CacheItem> cacheMap = new ConcurrentHashMap<>();
+ static Map<String, CacheItem> cacheMap = new ConcurrentHashMap<>();
 
   public void add(CantoAsset asset) {
     if (cacheMap.size() >= MAX_SIZE) {
@@ -21,7 +21,7 @@ public class SimpleCache {
       for (String identifier : cacheMap.keySet()) {
         cacheMap.remove(identifier);
         i++;
-        if (i > CLEAR_SIZE) {
+        if (i >= CLEAR_SIZE) {
           break;
         }
       }
