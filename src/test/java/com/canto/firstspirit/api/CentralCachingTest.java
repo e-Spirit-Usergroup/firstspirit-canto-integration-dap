@@ -7,7 +7,7 @@ public class CentralCachingTest {
 
   @Test void testCacheHitsAndMisses() {
 
-    CantoApi cantoApi = new CantoApi("TENANT", "OAUTHURL", "APP_ID", "APP_SECRET", "USER_ID", new CentralCache());
+    CantoApi cantoApi = new CantoApi("TENANT", "OAUTHURL", "APP_ID", "APP_SECRET", "USER_ID", new CentralCache(), null);
 
 
   }

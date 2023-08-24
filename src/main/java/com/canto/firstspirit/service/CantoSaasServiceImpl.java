@@ -32,9 +32,13 @@ import org.jetbrains.annotations.Nullable;
 public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaasService> {
 
   public static final String SERVICE_NAME = "CantoSaasService";
+
   private Map<Integer, CantoApi> apiConnectionPool;
 
   private final CentralCache centralCache = new CentralCache();
+
+  private final RequestLimiter requestLimiter = new RequestLimiter();
+
 
   public CantoServiceConnection getServiceConnection(@NotNull final CantoConfiguration config) {
     final CantoServiceConnection connection = CantoServiceConnection.fromConfig(config);
@@ -45,7 +49,8 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
                                              config.getAppId(),
                                              config.getAppSecret(),
                                              config.getUserId(),
-                                             centralCache);
+                                             centralCache,
+                                             requestLimiter);
 
       apiConnectionPool.put(connection.getConnectionId(), cantoApi);
 
@@ -76,6 +81,7 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
 
   @Nullable @Override public List<@Nullable CantoAssetDTO> fetchAssetsByIdentifiers(@NotNull final CantoServiceConnection connection,
       @NotNull final List<CantoAssetIdentifier> identifiers) {
+
     Logging.logInfo("[fetchAssetsByIdentifiers] " + Strings.implode(identifiers, ", "), getClass());
     final CantoApi cantoApi = getApiInstance(connection);
 
@@ -89,6 +95,7 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
         .map(CantoAssetDTOFactory::fromAsset)
         .collect(Collectors.toList());
   }
+
 
   @Nullable @Override
   public CantoSearchResultDTO fetchSearch(@NotNull final CantoServiceConnection connection, @NotNull final CantoSearchParams params) {

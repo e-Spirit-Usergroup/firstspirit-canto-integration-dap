@@ -4,6 +4,7 @@ import com.canto.firstspirit.api.model.CantoAccessTokenData;
 import com.canto.firstspirit.api.model.CantoAsset;
 import com.canto.firstspirit.api.model.CantoBatchResponse;
 import com.canto.firstspirit.api.model.CantoSearchResult;
+import com.canto.firstspirit.service.RequestLimiter;
 import com.canto.firstspirit.service.cache.CentralCache;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import com.canto.firstspirit.service.server.model.CantoSearchParams;
@@ -44,6 +45,7 @@ public class CantoApi {
   private final String tenant;
   private final String oAuthBaseUrl;
   private final CentralCache centralCache;
+  private final RequestLimiter requestLimiter;
   private final ConcurrentHashMap<String, String> allowedCacheIds = new ConcurrentHashMap<>();
 
   /**
@@ -72,19 +74,22 @@ public class CantoApi {
    * Instances meant to be managed by {@link com.canto.firstspirit.service.CantoSaasServiceImpl}
    * <br><strong>Direct Use outside of Service not recommended. </strong>
    *
-   * @param tenant       tenant
-   * @param oAuthBaseUrl url with correct region, matching the tenant
-   * @param appId        appId
-   * @param appSecret    appSecret
-   * @param userId       userId
+   * @param tenant         tenant
+   * @param oAuthBaseUrl   url with correct region, matching the tenant
+   * @param appId          appId
+   * @param appSecret      appSecret
+   * @param userId         userId
+   * @param requestLimiter requestLimiter to force Delay between request
    */
-  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId, @Nullable CentralCache centralCache) {
+  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId, @Nullable CentralCache centralCache,
+      @Nullable RequestLimiter requestLimiter) {
     this.tenant = tenant;
     this.appId = appId;
     this.appSecret = appSecret;
     this.userId = userId;
     this.oAuthBaseUrl = oAuthBaseUrl;
     this.centralCache = centralCache;
+    this.requestLimiter = requestLimiter;
   }
 
   /**
@@ -164,11 +169,19 @@ public class CantoApi {
     Logging.logInfo("[getAssetById] fetching " + url, LOGGER);
 
     CantoAsset asset = null;
-    try {
-      Thread.sleep(350);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+    if (requestLimiter != null) {
+
+      long requestDelay = requestLimiter.getRequestDelay();
+
+      if (requestDelay > 0) {
+        try {
+          Thread.sleep(requestDelay);
+        } catch (InterruptedException e) {
+          throw new RuntimeException("[getAssetById] was interrupted during wait", e);
+        }
+      }
     }
+
     try (Response response = executeGetRequest(url)) {
       ResponseBody body = response.body();
       if (body == null) {
