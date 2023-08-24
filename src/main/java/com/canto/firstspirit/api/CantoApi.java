@@ -335,7 +335,7 @@ public class CantoApi {
    * @return body source code
    * @throws IOException on failed request
    */
-  private Response executeGetRequest(HttpUrl url) throws IOException {
+  Response executeGetRequest(HttpUrl url) throws IOException {
 
     Request request = new Request.Builder().url(url)
         .build();
