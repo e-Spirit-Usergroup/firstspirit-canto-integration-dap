@@ -4,6 +4,7 @@ import static com.canto.firstspirit.service.CantoSaasServiceImpl.SERVICE_NAME;
 
 import com.canto.firstspirit.api.CantoApi;
 import com.canto.firstspirit.api.model.CantoSearchResult;
+import com.canto.firstspirit.service.cache.CentralCache;
 import com.canto.firstspirit.service.factory.CantoAssetDTOFactory;
 import com.canto.firstspirit.service.factory.CantoSearchResultDTOFactory;
 import com.canto.firstspirit.service.server.CantoSaasService;
@@ -33,6 +34,8 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
   public static final String SERVICE_NAME = "CantoSaasService";
   private Map<Integer, CantoApi> apiConnectionPool;
 
+  private final CentralCache centralCache = new CentralCache();
+
   public CantoServiceConnection getServiceConnection(@NotNull final CantoConfiguration config) {
     final CantoServiceConnection connection = CantoServiceConnection.fromConfig(config);
     if (!apiConnectionPool.containsKey(connection.getConnectionId())) {
@@ -41,7 +44,8 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
                                              config.getOAuthBaseUrl(),
                                              config.getAppId(),
                                              config.getAppSecret(),
-                                             config.getUserId());
+                                             config.getUserId(),
+                                             centralCache);
 
       apiConnectionPool.put(connection.getConnectionId(), cantoApi);
 

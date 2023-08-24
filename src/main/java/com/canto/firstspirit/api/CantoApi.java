@@ -4,7 +4,7 @@ import com.canto.firstspirit.api.model.CantoAccessTokenData;
 import com.canto.firstspirit.api.model.CantoAsset;
 import com.canto.firstspirit.api.model.CantoBatchResponse;
 import com.canto.firstspirit.api.model.CantoSearchResult;
-import com.canto.firstspirit.cache.SimpleCache;
+import com.canto.firstspirit.service.cache.CentralCache;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import com.canto.firstspirit.service.server.model.CantoSearchParams;
 import com.canto.firstspirit.util.CantoScheme;
@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import okhttp3.HttpUrl;
@@ -43,7 +43,8 @@ public class CantoApi {
 
   private final String tenant;
   private final String oAuthBaseUrl;
-  private final SimpleCache cache;
+  private final CentralCache centralCache;
+  private final ConcurrentHashMap<String, String> allowedCacheIds = new ConcurrentHashMap<>();
 
   /**
    * <strong>!! Do not access directly. use {@link #getClient()} instead !! </strong>
@@ -77,13 +78,13 @@ public class CantoApi {
    * @param appSecret    appSecret
    * @param userId       userId
    */
-  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId) {
+  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId, @Nullable CentralCache centralCache) {
     this.tenant = tenant;
     this.appId = appId;
     this.appSecret = appSecret;
     this.userId = userId;
     this.oAuthBaseUrl = oAuthBaseUrl;
-    this.cache = new SimpleCache();
+    this.centralCache = centralCache;
   }
 
   /**
@@ -143,12 +144,17 @@ public class CantoApi {
    * @param assetId CantoAssetIdentifier
    * @return Optional of Asset
    */
-  private Optional<CantoAsset> fetchAssetById(CantoAssetIdentifier assetId) {
+  private @Nullable CantoAsset fetchAssetById(CantoAssetIdentifier assetId) {
 
-    if (this.cache.has(assetId)) {
-      Logging.logInfo("[getAssetById] Cache hit: " + assetId, LOGGER);
-      if (this.cache.get(assetId) != null) {
-        return Optional.ofNullable(this.cache.get(assetId));
+    // Check cache
+    if (centralCache != null) {
+      CantoAsset cachedAsset = centralCache.getElement(assetId);
+      // If asset is in cache, make sure we have access to it by verifying modified date.
+      // If it was changed since last access, deny cache and force refetch
+      if (cachedAsset != null && cachedAsset.getLastModified()
+          .equals(allowedCacheIds.get(assetId.getPath()))) {
+        Logging.logInfo("[getAssetById] Cache hit: " + assetId, LOGGER);
+        return cachedAsset;
       }
     }
 
@@ -173,8 +179,12 @@ public class CantoApi {
       Logging.logError("[getAssetById] Error occurred", e, LOGGER);
     }
     Logging.logDebug("[getAssetById] returning Asset " + (asset == null ? null : asset.getId()), LOGGER);
-    this.cache.add(asset);
-    return Optional.ofNullable(asset);
+
+    if (this.centralCache != null && asset != null) {
+      this.allowedCacheIds.put(assetId.getPath(), asset.getLastModified());
+      this.centralCache.addElement(asset);
+    }
+    return asset;
   }
 
   /**
@@ -190,7 +200,7 @@ public class CantoApi {
       return Collections.emptyList();
     }
     if (assetIdentifiers.size() == 1) {
-      return Collections.singletonList(fetchAssetById(assetIdentifiers.get(0)).orElse(null));
+      return Collections.singletonList(fetchAssetById(assetIdentifiers.get(0)));
     }
 
     List<Map<String, String>> requestList = assetIdentifiers.stream()
@@ -219,7 +229,8 @@ public class CantoApi {
 
       Map<String, CantoAsset> fetchedAssets = cantoBatchResponse.getDocResult()
           .stream()
-          .collect(Collectors.toMap(asset -> new CantoAssetIdentifier(asset.getScheme(), asset.getId()).getPath(), Function.identity()));
+          .collect(Collectors.toMap(asset -> CantoAssetIdentifierFactory.fromCantoAsset(asset)
+              .getPath(), Function.identity()));
 
       Logging.logDebug("[fetchAssets] " + cantoBatchResponse, LOGGER);
 
@@ -300,8 +311,12 @@ public class CantoApi {
         cantoSearchResult.setFound(0L);
       }
 
-      for (CantoAsset result : cantoSearchResult.getResults()) {
-        this.cache.add(result);
+      for (CantoAsset cantoAsset : cantoSearchResult.getResults()) {
+        if (this.centralCache != null) {
+          this.allowedCacheIds.put(CantoAssetIdentifierFactory.fromCantoAsset(cantoAsset)
+                                       .getPath(), cantoAsset.getLastModified());
+          this.centralCache.addElement(cantoAsset);
+        }
       }
 
       return cantoSearchResult;
