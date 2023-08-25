@@ -9,16 +9,21 @@ import java.util.ListIterator;
 public class RequestLimiter {
 
   private static final int MINUTE_IN_MILLISECONDS = 60 * 1000;
-  private final int maxRequestsPerMinute = 200;
-  private final int requestsWithoutDelay = 30;
-  private final int timeBufferInMilliSeconds = 1000;
+  private final int requestsWithoutDelay;
 
-  private final long waitTimeInMillisBetweenCalls =
-      (MINUTE_IN_MILLISECONDS + timeBufferInMilliSeconds) / (maxRequestsPerMinute - requestsWithoutDelay);
+  private final long waitTimeInMillisBetweenCalls;
 
-  private final List<Long> requestTimestampsList = Collections.synchronizedList(new ArrayList<>(Collections.nCopies(maxRequestsPerMinute, 0L)));
+  private final List<Long> requestTimestampsList;
+  ListIterator<Long> listIterator;
 
-  ListIterator<Long> listIterator = requestTimestampsList.listIterator();
+  RequestLimiter(int maxRequestsPerMinute, int requestsWithoutDelay, long timeBufferInMilliSeconds) {
+    this.requestsWithoutDelay = requestsWithoutDelay;
+
+    this.waitTimeInMillisBetweenCalls = (MINUTE_IN_MILLISECONDS + timeBufferInMilliSeconds) / (maxRequestsPerMinute - requestsWithoutDelay);
+
+    this.requestTimestampsList = Collections.synchronizedList(new ArrayList<>(Collections.nCopies(maxRequestsPerMinute, 0L)));
+    this.listIterator = requestTimestampsList.listIterator();
+  }
 
   public long getRequestDelay() {
     long currentTime = System.currentTimeMillis();
@@ -37,10 +42,8 @@ public class RequestLimiter {
     listIterator.set(currentTime);
 
     if (requestWithinLastMinute > requestsWithoutDelay) {
-      Logging.logInfo(
-          "[fetchAssetsByIdentifiers] Many Requests within last Minute. Wait between api calls to stay within defined API Limits. Num Calls: "
-              + requestWithinLastMinute,
-          this.getClass());
+      Logging.logInfo("[fetchAssetsByIdentifiers] Many Requests within last Minute. Wait for " + waitTimeInMillisBetweenCalls
+                          + "ms between api calls to stay within defined API Limits. Num Calls: " + requestWithinLastMinute, this.getClass());
       return waitTimeInMillisBetweenCalls;
 
     }
