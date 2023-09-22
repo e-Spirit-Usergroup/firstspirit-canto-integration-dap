@@ -115,15 +115,10 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
     return CantoSearchResultDTOFactory.fromCantoSearchResult(params, cantoSearchResult);
   }
 
-  private void getConfig() {
-  }
-
   @Override public void start() {
     apiConnectionPool = new HashMap<>();
 
     ServiceConfiguration serviceConfiguration = ServiceConfiguration.fromServerEnvironment(serverEnvironment);
-
-    centralCache = serviceConfiguration.useCache ? new CentralCache() : null;
 
     if (serviceConfiguration.useRequestLimiter) {
       singleFetchRequestLimiter = new RequestLimiter(serviceConfiguration.maxRequestsPerMinute,
@@ -137,13 +132,33 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
       singleFetchRequestLimiter = null;
       batchFetchRequestLimiter = null;
     }
+
+    if (serviceConfiguration.useCache) {
+      CantoApi cantoApi = null;
+      if (!serviceConfiguration.apiTenant.isBlank() && !serviceConfiguration.apiOAuthBaseUrl.isBlank() && !serviceConfiguration.apiAppId.isBlank()
+          && !serviceConfiguration.apiAppSecret.isBlank() && !serviceConfiguration.apiUserId.isBlank()) {
+
+        cantoApi = new CantoApi(serviceConfiguration.apiTenant,
+                                serviceConfiguration.apiOAuthBaseUrl,
+                                serviceConfiguration.apiAppId,
+                                serviceConfiguration.apiAppSecret,
+                                serviceConfiguration.apiUserId,
+                                singleFetchRequestLimiter,
+                                batchFetchRequestLimiter,
+                                new ProjectBoundCacheAccess(null));
+      }
+      centralCache = new CentralCache(cantoApi);
+    } else {
+      centralCache = null;
+    }
+
     Logging.logInfo("[start] CantoSaasServerService started. Using Configuration: " + serviceConfiguration, this.getClass());
   }
 
   @Override public void stop() {
     //apiConnectionPool.forEach((key, value) -> value.close());
     apiConnectionPool = null;
-    centralCache.clear();
+    centralCache.shutdown();
     centralCache = null;
 
     batchFetchRequestLimiter = null;

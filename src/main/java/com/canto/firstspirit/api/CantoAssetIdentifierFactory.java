@@ -15,5 +15,9 @@ public class CantoAssetIdentifierFactory {
     return new CantoAssetIdentifier(dto.getSchema(), dto.getId());
   }
 
+  public static CantoAssetIdentifier fromPath(String path) {
+    String[] parts = path.split("/");
+    return new CantoAssetIdentifier(parts[0], parts[1]);
+  }
 
 }

@@ -80,7 +80,7 @@ public class CantoApi {
    * @param userId                    userId
    * @param singleFetchRequestLimiter singleFetchRequestLimiter to force Delay between single fetch request
    * @param batchFetchRequestLimiter  batchFetchRequestLimiter to force Delay between single fetch request
-   * @param projectBoundCacheAccess
+   * @param projectBoundCacheAccess   access to central cache
    */
   public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId,
       @Nullable RequestLimiter singleFetchRequestLimiter, @Nullable RequestLimiter batchFetchRequestLimiter,

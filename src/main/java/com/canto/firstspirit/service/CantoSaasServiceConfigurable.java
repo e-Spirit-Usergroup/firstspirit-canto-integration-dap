@@ -21,6 +21,11 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
   public static final String PARAM_USE_CACHE = "useCache";
   public static final String PARAM_USE_REQUEST_LIMITER = "useRequestLimiter";
   public static final String PARAM_RESTART_SERVICE_ON_SAVE = "restartServiceOnSave";
+  public static final String PARAM_TENANT = "tenant";
+  public static final String PARAM_APP_ID = "appId";
+  public static final String PARAM_APP_SECRET = "appSecret";
+  public static final String PARAM_USER_ID = "userId";
+  public static final String PARAM_OAUTH_BASE_URL = "OAuthBaseUrl";
 
   @Override protected void configure() {
 
@@ -52,11 +57,10 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
 
     addListener(restartServiceAfterStoreListener);
 
-    builder().checkbox("Use Cache (recommended)", PARAM_USE_CACHE, defaultConfiguration.useCache, "Caching is crucial for performance")
-        .checkbox("Use Request Limiter (recommended)",
-                  PARAM_USE_REQUEST_LIMITER,
-                  defaultConfiguration.useRequestLimiter,
-                  "Limits requests per Minute to set bounds, ensuring availability of api")
+    builder().checkbox("Use Request Limiter (recommended)",
+                       PARAM_USE_REQUEST_LIMITER,
+                       defaultConfiguration.useRequestLimiter,
+                       "Limits requests per Minute to set bounds, ensuring availability of api")
         .text("[RequestLimiter] Max Requests per Minute",
               PARAM_MAX_REQUESTS_PER_MINUTE,
               String.valueOf(defaultConfiguration.maxRequestsPerMinute),
@@ -66,6 +70,12 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
               String.valueOf(defaultConfiguration.requestsWithoutDelay),
               "The first x requests are not delayed. All remaining requests are delayed as long as needed, to ensure staying within Max Requests per Minute")
         .hiddenString(PARAM_TIME_BUFFER_IN_MS, String.valueOf(defaultConfiguration.timeBufferInMs))
+        .checkbox("Use Cache (recommended)", PARAM_USE_CACHE, defaultConfiguration.useCache, "Caching is crucial for performance")
+        .text("Tenant (without https://)", PARAM_TENANT, "", "Enter the name of the canto tenant, e.g. my-company.canto.global")
+        .text("OAuth Base URL (com,de,global)", PARAM_OAUTH_BASE_URL, "https://oauth.canto.<region>", "region is one of com/de/global")
+        .text("App Id", PARAM_APP_ID, "", "App Id")
+        .text("App Secret", PARAM_APP_SECRET, "", "App Secret")
+        .text("User", PARAM_USER_ID, "", "User Id bound to generated Access Token")
         .checkbox("Restart Service on Config Save",
                   PARAM_RESTART_SERVICE_ON_SAVE,
                   defaultConfiguration.restartServiceOnSave,
@@ -75,7 +85,7 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
 
   static class ServiceConfiguration {
 
-    static final ServiceConfiguration defaultConfiguration = new ServiceConfiguration(true, true, 200, 30, 1000, true);
+    static final ServiceConfiguration defaultConfiguration = new ServiceConfiguration(true, true, 200, 30, 1000, true, "", "", "", "", "");
 
     final boolean useCache;
     final boolean useRequestLimiter;
@@ -85,9 +95,14 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
     final long timeBufferInMs;
 
     final boolean restartServiceOnSave;
+    final String apiTenant;
+    final String apiOAuthBaseUrl;
+    final String apiAppId;
+    final String apiAppSecret;
+    final String apiUserId;
 
     private ServiceConfiguration(boolean useCache, boolean useRequestLimiter, int maxRequestsPerMinute, int requestsWithoutDelay, long timeBufferInMs,
-        boolean restartServiceOnSave) {
+        boolean restartServiceOnSave, String apiTenant, String apiOAuthBaseUrl, String apiAppId, String apiAppSecret, String apiUserId) {
 
       this.useCache = useCache;
       this.useRequestLimiter = useRequestLimiter;
@@ -95,6 +110,11 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
       this.maxRequestsPerMinute = maxRequestsPerMinute;
       this.timeBufferInMs = timeBufferInMs;
       this.restartServiceOnSave = restartServiceOnSave;
+      this.apiTenant = apiTenant;
+      this.apiOAuthBaseUrl = apiOAuthBaseUrl;
+      this.apiAppId = apiAppId;
+      this.apiAppSecret = apiAppSecret;
+      this.apiUserId = apiUserId;
     }
 
     static ServiceConfiguration fromServerEnvironment(ServerEnvironment serverEnvironment) {
@@ -105,7 +125,12 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
                                         Integer.parseInt(configValues.getString(PARAM_REQUESTS_WITHOUT_DELAY, "30")),
                                         Integer.parseInt(configValues.getString(PARAM_MAX_REQUESTS_PER_MINUTE, "200")),
                                         Long.parseLong(configValues.getString(PARAM_TIME_BUFFER_IN_MS, "1000")),
-                                        configValues.getBoolean(PARAM_RESTART_SERVICE_ON_SAVE, true));
+                                        configValues.getBoolean(PARAM_RESTART_SERVICE_ON_SAVE, true),
+                                        configValues.getString(PARAM_TENANT, ""),
+                                        configValues.getString(PARAM_OAUTH_BASE_URL, ""),
+                                        configValues.getString(PARAM_APP_ID, ""),
+                                        configValues.getString(PARAM_APP_SECRET, ""),
+                                        configValues.getString(PARAM_USER_ID, ""));
 
       } catch (Exception e) {
         Logging.logError("Unable to parse Server Configuration! Check set values. Using default Config as fallback", e, ServiceConfiguration.class);
@@ -115,7 +140,7 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
     }
 
     @Override public String toString() {
-      final StringBuffer sb = new StringBuffer("ServiceConfiguration{");
+      final StringBuilder sb = new StringBuilder("ServiceConfiguration{");
       sb.append("useCache=")
           .append(useCache);
       sb.append(", useRequestLimiter=")
@@ -131,6 +156,7 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
       sb.append('}');
       return sb.toString();
     }
+
   }
 
 }

@@ -27,7 +27,7 @@ public class ProjectBoundCacheAccess {
   public @Nullable CantoAsset retrieveFromCache(CantoAssetIdentifier assetIdentifier) {
     // Check cache
     if (centralCache != null) {
-      CantoAsset cachedAsset = centralCache.getElement(assetIdentifier);
+      CantoAsset cachedAsset = centralCache.getCantoAsset(assetIdentifier);
       // If asset is in cache, make sure we have access to it by verifying modified date.
       // If it was changed since last access, deny cache and force refetch
       if (cachedAsset != null && cachedAsset.getLastModified()

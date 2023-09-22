@@ -4,7 +4,7 @@ import java.util.HashSet;
 
 public class CacheUpdateBatch {
 
-  public final static int BATCH_SIZE = 100;
+  public final static int BATCH_SIZE = 50;
 
   public final HashSet<String> batch = new HashSet<>();
   public final long createdTimestamp;
