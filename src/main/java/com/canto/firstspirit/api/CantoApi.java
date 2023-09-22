@@ -5,7 +5,7 @@ import com.canto.firstspirit.api.model.CantoAsset;
 import com.canto.firstspirit.api.model.CantoBatchResponse;
 import com.canto.firstspirit.api.model.CantoSearchResult;
 import com.canto.firstspirit.service.RequestLimiter;
-import com.canto.firstspirit.service.cache.CentralCache;
+import com.canto.firstspirit.service.cache.ProjectBoundCacheAccess;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import com.canto.firstspirit.service.server.model.CantoSearchParams;
 import com.canto.firstspirit.util.CantoScheme;
@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import okhttp3.HttpUrl;
@@ -44,10 +43,10 @@ public class CantoApi {
 
   private final String tenant;
   private final String oAuthBaseUrl;
-  private final CentralCache centralCache;
-  private final RequestLimiter requestLimiter;
-  private final ConcurrentHashMap<String, String> allowedCacheIds = new ConcurrentHashMap<>();
+  private final @Nullable RequestLimiter singleFetchRequestLimiter;
+  private final @Nullable RequestLimiter batchFetchRequestLimiter;
 
+  private final ProjectBoundCacheAccess projectBoundCacheAccess;
   /**
    * <strong>!! Do not access directly. use {@link #getClient()} instead !! </strong>
    * <br> Using {@link #getClient()} ensures valid Access Token
@@ -74,22 +73,26 @@ public class CantoApi {
    * Instances meant to be managed by {@link com.canto.firstspirit.service.CantoSaasServiceImpl}
    * <br><strong>Direct Use outside of Service not recommended. </strong>
    *
-   * @param tenant         tenant
-   * @param oAuthBaseUrl   url with correct region, matching the tenant
-   * @param appId          appId
-   * @param appSecret      appSecret
-   * @param userId         userId
-   * @param requestLimiter requestLimiter to force Delay between request
+   * @param tenant                    tenant
+   * @param oAuthBaseUrl              url with correct region, matching the tenant
+   * @param appId                     appId
+   * @param appSecret                 appSecret
+   * @param userId                    userId
+   * @param singleFetchRequestLimiter singleFetchRequestLimiter to force Delay between single fetch request
+   * @param batchFetchRequestLimiter  batchFetchRequestLimiter to force Delay between single fetch request
+   * @param projectBoundCacheAccess
    */
-  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId, @Nullable CentralCache centralCache,
-      @Nullable RequestLimiter requestLimiter) {
+  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId,
+      @Nullable RequestLimiter singleFetchRequestLimiter, @Nullable RequestLimiter batchFetchRequestLimiter,
+      ProjectBoundCacheAccess projectBoundCacheAccess) {
     this.tenant = tenant;
     this.appId = appId;
     this.appSecret = appSecret;
     this.userId = userId;
     this.oAuthBaseUrl = oAuthBaseUrl;
-    this.centralCache = centralCache;
-    this.requestLimiter = requestLimiter;
+    this.singleFetchRequestLimiter = singleFetchRequestLimiter;
+    this.batchFetchRequestLimiter = batchFetchRequestLimiter;
+    this.projectBoundCacheAccess = projectBoundCacheAccess;
   }
 
   /**
@@ -143,6 +146,7 @@ public class CantoApi {
         .addPathSegments("api/v1");
   }
 
+
   /**
    * fetch single Asset by Identifier
    *
@@ -152,15 +156,9 @@ public class CantoApi {
   private @Nullable CantoAsset fetchAssetById(CantoAssetIdentifier assetId) {
 
     // Check cache
-    if (centralCache != null) {
-      CantoAsset cachedAsset = centralCache.getElement(assetId);
-      // If asset is in cache, make sure we have access to it by verifying modified date.
-      // If it was changed since last access, deny cache and force refetch
-      if (cachedAsset != null && cachedAsset.getLastModified()
-          .equals(allowedCacheIds.get(assetId.getPath()))) {
-        Logging.logInfo("[getAssetById] Cache hit: " + assetId, LOGGER);
-        return cachedAsset;
-      }
+    CantoAsset cachedCantoAsset = projectBoundCacheAccess.retrieveFromCache(assetId);
+    if (cachedCantoAsset != null) {
+      return cachedCantoAsset;
     }
 
     HttpUrl url = getApiUrl().addPathSegments(assetId.getPath())
@@ -169,17 +167,8 @@ public class CantoApi {
     Logging.logInfo("[getAssetById] fetching " + url, LOGGER);
 
     CantoAsset asset = null;
-    if (requestLimiter != null) {
-
-      long requestDelay = requestLimiter.getRequestDelay();
-
-      if (requestDelay > 0) {
-        try {
-          Thread.sleep(requestDelay);
-        } catch (InterruptedException e) {
-          throw new RuntimeException("[getAssetById] was interrupted during wait", e);
-        }
-      }
+    if (singleFetchRequestLimiter != null) {
+      singleFetchRequestLimiter.delayRequestIfNecessary();
     }
 
     try (Response response = executeGetRequest(url)) {
@@ -193,10 +182,7 @@ public class CantoApi {
     }
     Logging.logDebug("[getAssetById] returning Asset " + (asset == null ? null : asset.getId()), LOGGER);
 
-    if (this.centralCache != null && asset != null) {
-      this.allowedCacheIds.put(assetId.getPath(), asset.getLastModified());
-      this.centralCache.addElement(asset);
-    }
+    projectBoundCacheAccess.addToCache(assetId, asset);
     return asset;
   }
 
@@ -226,8 +212,11 @@ public class CantoApi {
     HttpUrl url = getApiUrl().addPathSegments("batch/content")
         .build();
 
-    Logging.logDebug("[fetchAssets] url:  " + url, LOGGER);
+    if (batchFetchRequestLimiter != null) {
+      batchFetchRequestLimiter.delayRequestIfNecessary();
+    }
 
+    Logging.logDebug("[fetchAssets] url:  " + url, LOGGER);
     try (Response response = executePostRequest(url, stringifiedJsonBody)) {
       ResponseBody body = response.body();
 
@@ -319,17 +308,13 @@ public class CantoApi {
         throw new IllegalStateException("CantoSearchResult was null. Returning empty Result as default");
       }
 
-      if (cantoSearchResult.getResults() == null) {
+      List<CantoAsset> foundAssets = cantoSearchResult.getResults();
+
+      if (foundAssets == null) {
         cantoSearchResult.setResults(Collections.emptyList());
         cantoSearchResult.setFound(0L);
-      }
-
-      for (CantoAsset cantoAsset : cantoSearchResult.getResults()) {
-        if (this.centralCache != null) {
-          this.allowedCacheIds.put(CantoAssetIdentifierFactory.fromCantoAsset(cantoAsset)
-                                       .getPath(), cantoAsset.getLastModified());
-          this.centralCache.addElement(cantoAsset);
-        }
+      } else {
+        projectBoundCacheAccess.addAllToCache(foundAssets);
       }
 
       return cantoSearchResult;

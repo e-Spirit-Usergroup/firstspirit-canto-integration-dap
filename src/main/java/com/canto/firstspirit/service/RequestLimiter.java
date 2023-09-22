@@ -6,6 +6,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 
+/**
+ * Thread Safe implementation.
+ * Makes sure, that Api Limits are retained via {@link #delayRequestIfNecessary()}
+ */
 public class RequestLimiter {
 
   private static final int MINUTE_IN_MILLISECONDS = 60 * 1000;
@@ -25,7 +29,8 @@ public class RequestLimiter {
     this.listIterator = requestTimestampsList.listIterator();
   }
 
-  public long getRequestDelay() {
+
+  private int calculateApiCallsWithinLastMinute() {
     long currentTime = System.currentTimeMillis();
     if (!listIterator.hasNext()) {
       listIterator = requestTimestampsList.listIterator();
@@ -40,13 +45,26 @@ public class RequestLimiter {
       }
     }
     listIterator.set(currentTime);
+    return requestWithinLastMinute;
+  }
 
+  /**
+   * This function performs Thread.sleep if necessary to ensure
+   * to stay within Api Call limits.
+   * Synchronized to make sure all calls wait subsequent and not parallel
+   */
+  synchronized public void delayRequestIfNecessary() {
+    int requestWithinLastMinute = calculateApiCallsWithinLastMinute();
     if (requestWithinLastMinute > requestsWithoutDelay) {
-      Logging.logInfo("[fetchAssetsByIdentifiers] Many Requests within last Minute. Wait for " + waitTimeInMillisBetweenCalls
+      Logging.logInfo("[delayRequestIfNecessary] Many Requests within last Minute. Wait for " + waitTimeInMillisBetweenCalls
                           + "ms between api calls to stay within defined API Limits. Num Calls: " + requestWithinLastMinute, this.getClass());
-      return waitTimeInMillisBetweenCalls;
+
+      try {
+        Thread.sleep(waitTimeInMillisBetweenCalls);
+      } catch (InterruptedException e) {
+        throw new RuntimeException("delayRequestIfNecessary was interrupted", e);
+      }
 
     }
-    return 0;
   }
 }
