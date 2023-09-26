@@ -145,9 +145,14 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
                                 serviceConfiguration.apiUserId,
                                 singleFetchRequestLimiter,
                                 batchFetchRequestLimiter,
+                                // cantoApi of Cache must not use the cache itself
                                 new ProjectBoundCacheAccess(null));
       }
-      centralCache = new CentralCache(cantoApi);
+      centralCache = new CentralCache(cantoApi,
+                                      serviceConfiguration.cacheSize,
+                                      serviceConfiguration.cacheUpdateTimespanMs,
+                                      serviceConfiguration.cacheUpdateTimespanMs,
+                                      serviceConfiguration.cacheItemInUseTimespanMs);
     } else {
       centralCache = null;
     }

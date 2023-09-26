@@ -33,8 +33,20 @@ public interface CantoSaasService {
    */
   @Nullable CantoSearchResultDTO fetchSearch(@NotNull final CantoServiceConnection connection, @NotNull final CantoSearchParams params);
 
+  /**
+   * get a Connection for fetching Assets and performing searches. the passed CantoConfig defines the cantoApi bound to this connection.
+   *
+   * @param config CantoConfig
+   * @return cantoServiceConnetion to be used with {@link #fetchAssetsByIdentifiers(CantoServiceConnection, List)} and
+   * {@link #fetchSearch(CantoServiceConnection, CantoSearchParams)}
+   */
   CantoServiceConnection getServiceConnection(@NotNull final CantoConfiguration config);
 
+  /**
+   * remove a Connection and corresponding cantoApi
+   *
+   * @param connection Connection to be removed
+   */
   void removeServiceConnection(@NotNull final CantoServiceConnection connection);
 
 

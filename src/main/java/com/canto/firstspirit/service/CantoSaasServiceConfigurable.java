@@ -14,6 +14,10 @@ import de.espirit.firstspirit.module.ServerEnvironment;
 
 public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvironment> {
 
+  final static long IN_USE_TIMESPAN_MS = 48 * 60 * 60 * 1000;
+  final static long VALIDITY_TIMESPAN_MS = 5 * 60 * 60 * 1000;
+  final static long UPDATE_INTERVAL_MS = 4 * 60 * 60 * 1000;
+
 
   public static final String PARAM_REQUESTS_WITHOUT_DELAY = "requestsWithoutDelay";
   public static final String PARAM_MAX_REQUESTS_PER_MINUTE = "maxRequestsPerMinute";
@@ -26,6 +30,12 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
   public static final String PARAM_APP_SECRET = "appSecret";
   public static final String PARAM_USER_ID = "userId";
   public static final String PARAM_OAUTH_BASE_URL = "OAuthBaseUrl";
+
+  public static final String PARAM_CACHE_SIZE = "cacheSize";
+
+  public static final String PARAM_CACHE_ITEM_LIFESPAN_MS = "cacheItemLifeSpan";
+  public static final String PARAM_CACHE_UPDATE_TIMESPAN_MS = "cacheAutoUpdateTimespan";
+  public static final String PARAM_CACHE_IN_USE_TIMESPAN_MS = "cacheInUseTimespan";
 
   @Override protected void configure() {
 
@@ -71,6 +81,22 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
               "The first x requests are not delayed. All remaining requests are delayed as long as needed, to ensure staying within Max Requests per Minute")
         .hiddenString(PARAM_TIME_BUFFER_IN_MS, String.valueOf(defaultConfiguration.timeBufferInMs))
         .checkbox("Use Cache (recommended)", PARAM_USE_CACHE, defaultConfiguration.useCache, "Caching is crucial for performance")
+        .text("Cache Element Size",
+              PARAM_CACHE_SIZE,
+              String.valueOf(defaultConfiguration.cacheSize),
+              "Soft size limit for Cache, not strictly enforced.")
+        .text("Cache Item Lifespan in ms",
+              PARAM_CACHE_ITEM_LIFESPAN_MS,
+              String.valueOf(defaultConfiguration.cacheItemLifespanMs),
+              "Time until Cache Item is revalidated on use")
+        .text("Cache auto-update timespan in ms",
+              PARAM_CACHE_UPDATE_TIMESPAN_MS,
+              String.valueOf(defaultConfiguration.cacheUpdateTimespanMs),
+              "Timespan after which cache automatically revalidates Item")
+        .text("Cache Item In use Timespan in ms",
+              PARAM_CACHE_IN_USE_TIMESPAN_MS,
+              String.valueOf(defaultConfiguration.cacheItemInUseTimespanMs),
+              "Timespan after which cache elements are removed if not requested")
         .text("Tenant (without https://)", PARAM_TENANT, "", "Enter the name of the canto tenant, e.g. my-company.canto.global")
         .text("OAuth Base URL (com,de,global)", PARAM_OAUTH_BASE_URL, "https://oauth.canto.<region>", "region is one of com/de/global")
         .text("App Id", PARAM_APP_ID, "", "App Id")
@@ -85,7 +111,21 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
 
   static class ServiceConfiguration {
 
-    static final ServiceConfiguration defaultConfiguration = new ServiceConfiguration(true, true, 200, 30, 1000, true, "", "", "", "", "");
+    static final ServiceConfiguration defaultConfiguration = new ServiceConfiguration(true,
+                                                                                      true,
+                                                                                      200,
+                                                                                      30,
+                                                                                      1000,
+                                                                                      true,
+                                                                                      "",
+                                                                                      "",
+                                                                                      "",
+                                                                                      "",
+                                                                                      "",
+                                                                                      1000,
+                                                                                      VALIDITY_TIMESPAN_MS,
+                                                                                      UPDATE_INTERVAL_MS,
+                                                                                      IN_USE_TIMESPAN_MS);
 
     final boolean useCache;
     final boolean useRequestLimiter;
@@ -100,9 +140,14 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
     final String apiAppId;
     final String apiAppSecret;
     final String apiUserId;
+    final long cacheItemLifespanMs;
+    final long cacheUpdateTimespanMs;
+    final long cacheItemInUseTimespanMs;
+    final int cacheSize;
 
     private ServiceConfiguration(boolean useCache, boolean useRequestLimiter, int maxRequestsPerMinute, int requestsWithoutDelay, long timeBufferInMs,
-        boolean restartServiceOnSave, String apiTenant, String apiOAuthBaseUrl, String apiAppId, String apiAppSecret, String apiUserId) {
+        boolean restartServiceOnSave, String apiTenant, String apiOAuthBaseUrl, String apiAppId, String apiAppSecret, String apiUserId, int cacheSize,
+        long cacheItemLifespanMs, long cacheUpdateTimespanMs, long cacheItemInUseTimespanMs) {
 
       this.useCache = useCache;
       this.useRequestLimiter = useRequestLimiter;
@@ -115,6 +160,10 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
       this.apiAppId = apiAppId;
       this.apiAppSecret = apiAppSecret;
       this.apiUserId = apiUserId;
+      this.cacheSize = cacheSize;
+      this.cacheItemLifespanMs = cacheItemLifespanMs;
+      this.cacheUpdateTimespanMs = cacheUpdateTimespanMs;
+      this.cacheItemInUseTimespanMs = cacheItemInUseTimespanMs;
     }
 
     static ServiceConfiguration fromServerEnvironment(ServerEnvironment serverEnvironment) {
@@ -130,7 +179,12 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
                                         configValues.getString(PARAM_OAUTH_BASE_URL, ""),
                                         configValues.getString(PARAM_APP_ID, ""),
                                         configValues.getString(PARAM_APP_SECRET, ""),
-                                        configValues.getString(PARAM_USER_ID, ""));
+                                        configValues.getString(PARAM_USER_ID, ""),
+                                        Integer.parseInt(configValues.getString(PARAM_CACHE_SIZE, "1000")),
+                                        Long.parseLong(configValues.getString(PARAM_CACHE_ITEM_LIFESPAN_MS, VALIDITY_TIMESPAN_MS + "")),
+                                        Long.parseLong(configValues.getString(PARAM_CACHE_UPDATE_TIMESPAN_MS, UPDATE_INTERVAL_MS + "")),
+                                        Long.parseLong(configValues.getString(PARAM_CACHE_IN_USE_TIMESPAN_MS, IN_USE_TIMESPAN_MS + "")));
+
 
       } catch (Exception e) {
         Logging.logError("Unable to parse Server Configuration! Check set values. Using default Config as fallback", e, ServiceConfiguration.class);
@@ -140,21 +194,9 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
     }
 
     @Override public String toString() {
-      final StringBuilder sb = new StringBuilder("ServiceConfiguration{");
-      sb.append("useCache=")
-          .append(useCache);
-      sb.append(", useRequestLimiter=")
-          .append(useRequestLimiter);
-      sb.append(", requestsWithoutDelay=")
-          .append(requestsWithoutDelay);
-      sb.append(", maxRequestsPerMinute=")
-          .append(maxRequestsPerMinute);
-      sb.append(", timeBufferInMs=")
-          .append(timeBufferInMs);
-      sb.append(", restartServiceOnSave=")
-          .append(restartServiceOnSave);
-      sb.append('}');
-      return sb.toString();
+      return "ServiceConfiguration{" + "useCache=" + useCache + ", useRequestLimiter=" + useRequestLimiter + ", requestsWithoutDelay="
+          + requestsWithoutDelay + ", maxRequestsPerMinute=" + maxRequestsPerMinute + ", timeBufferInMs=" + timeBufferInMs + ", restartServiceOnSave="
+          + restartServiceOnSave + '}';
     }
 
   }

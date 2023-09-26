@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import okhttp3.HttpUrl;
@@ -129,7 +130,8 @@ public class CantoApi {
       Logging.logInfo("[fetchClientWithNewToken] CantoApi Access Token refreshed", this.getClass());
       // Only use 90% of validity Period to ensure we don't get quirks at the end of the validity Period
       this.validUntilTimestamp = System.currentTimeMillis() + Math.round(cantoAccessTokenData.getExpiresInMs() * 0.9);
-      this._client = new OkHttpClient.Builder().addNetworkInterceptor(new TokenRequestInterceptor(cantoAccessTokenData.getAccessToken()))
+      this._client = new OkHttpClient.Builder().callTimeout(20, TimeUnit.SECONDS)
+          .addNetworkInterceptor(new TokenRequestInterceptor(cantoAccessTokenData.getAccessToken()))
           .build();
 
     }
