@@ -9,6 +9,7 @@ import com.canto.firstspirit.service.cache.model.CacheElement;
 import com.canto.firstspirit.service.cache.model.CacheUpdateBatch;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import de.espirit.common.base.Logging;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -19,7 +20,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -54,6 +54,41 @@ public class CacheUpdater {
     this.maxCacheSize = maxCacheSize;
     startUpdaterTask();
 
+  }
+
+
+  /**
+   * starts the periodic update thread. Restarts it if necessary
+   * Main entry method to start the CacheUpdater
+   */
+  void startUpdaterTask() {
+    startExecutorServiceIfNeeded();
+    if (scheduledUpdateTask != null) {
+      scheduledUpdateTask.cancel(false);
+    }
+    scheduledUpdateTask = executorService.scheduleAtFixedRate(() -> {
+      try {
+        // Check if Thread was interrupted while waiting
+        if (Thread.currentThread()
+            .isInterrupted()) {
+          Logging.logInfo("[CacheUpdater] interrupted!", this.getClass());
+          Thread.currentThread()
+              .interrupt();
+        }
+
+        Logging.logInfo("[CacheUpdater] running...", this.getClass());
+
+        // Process Update Batch if needed
+        processUpdateBatch();
+        // perform cache Cleanup if needed
+        performCacheCleanUp();
+
+        Logging.logInfo("[CacheUpdater] finished. ", this.getClass());
+
+      } catch (Exception e) {
+        Logging.logError("[CacheUpdater] Error during CacheUpdater Run", e, this.getClass());
+      }
+    }, 30, 30, TimeUnit.SECONDS);
   }
 
   /**
@@ -98,127 +133,120 @@ public class CacheUpdater {
     }
   }
 
-  /**
-   * starts the periodic update thread. Restarts it if necessary
-   */
-  void startUpdaterTask() {
-    startExecutorServiceIfNeeded();
-    if (scheduledUpdateTask != null) {
-      scheduledUpdateTask.cancel(false);
-    }
-    scheduledUpdateTask = executorService.scheduleAtFixedRate(() -> {
-      try {
-        if (Thread.currentThread()
-            .isInterrupted()) {
-          Thread.currentThread()
-              .interrupt();
-        }
-        // check Update Batches
-        if (!updateBatches.isEmpty()) {
-
-          CacheUpdateBatch cacheUpdateBatch = updateBatches.get(0);
-
-          if (cacheUpdateBatch.createdTimestamp + cacheUpdateTimespanMs > System.currentTimeMillis()) {
-            Logging.logInfo("[CacheUpdater] UpdateBatch stale. Updating...", this.getClass());
-
-            updateBatches.remove(0);
-
-            // Filter unused assets from Batch
-            List<CantoAssetIdentifier> assetsToFetch = cacheUpdateBatch.batch.stream()
-                .filter(path -> {
-                  CacheElement cacheElement = this.centralCache.getCacheElement(path);
-                  boolean isElementValid = (cacheElement != null) && cacheElement.isStillInUse();
-                  if (!isElementValid) {
-                    Logging.logDebug("[CacheUpdater] Removing unused item [" + path + "]", this.getClass());
-                    this.centralCache.removeElement(path);
-                  }
-                  return isElementValid;
-                })
-                .map(CantoAssetIdentifierFactory::fromPath)
-                .collect(Collectors.toList());
-
-            if (cantoApi == null) {
-              Logging.logWarning("[CacheUpdater] No CantoApi available => Cannot re-fetch Items.", this.getClass());
-              // Unable to re-fetch items. Remove invalid items, add all others to next updateBatches.
-              int invalidatedItems = 0;
-              for (String path : cacheUpdateBatch.batch) {
-                CacheElement cacheElement = this.centralCache.getCacheElement(path);
-                if (cacheElement != null && !cacheElement.isValid()) {
-                  Logging.logDebug("Invalidate item [" + path + "]", this.getClass());
-                  invalidatedItems++;
-                  this.centralCache.removeElement(path);
-                } else {
-                  this.addToUpdateBatch(path);
-                }
-              }
-              Logging.logInfo("[CacheUpdater] invalidated items: " + invalidatedItems, this.getClass());
-            } else {
-              // fetch Assets
-              List<CantoAsset> fetchedAssets = cantoApi.fetchAssets(assetsToFetch);
-
-              // Requested Assets that have been found --> Refresh in Cache
-              for (CantoAsset cantoAsset : fetchedAssets) {
-                CantoAssetIdentifier cantoAssetIdentifier = this.centralCache.updateElement(cantoAsset);
-                cacheUpdateBatch.batch.remove(cantoAssetIdentifier.getPath());
-              }
-
-              // Requested Assets, that have not been found --> Remove from Cache
-              for (String cantoAssetPath : cacheUpdateBatch.batch) {
-                this.centralCache.removeElement(cantoAssetPath);
-              }
-              Logging.logInfo(
-                  "[CacheUpdater] update done. updated Items: " + fetchedAssets.size() + " - removed Items: " + cacheUpdateBatch.batch.size(),
-                  this.getClass());
-            }
-          } else {
-            Logging.logInfo("[CacheUpdater] updateBatches still fresh", this.getClass());
-          }
-        } else {
-          Logging.logInfo("[CacheUpdater] no updateBatches queued", this.getClass());
-        }
-
-        double cacheLoad = (centralCache.cacheMap.size() / (double) maxCacheSize);
-        Logging.logInfo("[CacheUpdater] Cache load " + cacheLoad * 100 + "%", this.getClass());
-
-        if (cacheLoad > 0.95) {
-          // Cache is close to full, start soft cleanup, then hard cleanup
-
-          ConcurrentHashMap<String, CacheElement> cacheMap = centralCache.cacheMap;
-          Logging.logInfo("[CacheUpdater] Cache load high. Start Cleanup", this.getClass());
-          // we want to bring the cache load down to 85%
-          int cleanupTarget = centralCache.cacheMap.size() - (int) (0.85 * maxCacheSize);
-          int cleanedUpElements = 0;
-
-          Enumeration<String> keys = cacheMap.keys();
-          while (keys.hasMoreElements()) {
-            String identifier = keys.nextElement();
-            CacheElement cacheElement = cacheMap.get(identifier);
-            if (!cacheElement.isStillInUse() || !cacheElement.isValid()) {
-              cleanedUpElements++;
-              cacheMap.remove(identifier);
-            }
-          }
-          Logging.logInfo("[CacheUpdater] Soft Cleanup done. removed Elements: " + cleanedUpElements, this.getClass());
-
-          // Soft cleanup did not suffice ->  hard cleanup based on updateBatches
-          // Oldest batch has heuristically the oldest elements
-          while (cleanedUpElements < cleanupTarget && !updateBatches.isEmpty()) {
-            CacheUpdateBatch cacheUpdateBatch = updateBatches.get(0);
-            for (String identifier : cacheUpdateBatch.batch) {
-              cleanedUpElements++;
-              cacheMap.remove(identifier);
-            }
-          }
-          Logging.logInfo(
-              "[CacheUpdater] Hard Cleanup done. Total removed Elements (soft + hard): " + cleanedUpElements + " - New Cache load after Cleanup: "
-                  + cacheMap.size() + " (" + (cacheMap.size() / (double) maxCacheSize) * 100 + "%)", this.getClass());
-        }
-
-      } catch (Exception e) {
-        Logging.logError("[CacheUpdater] Error during CacheUpdater Run", e, this.getClass());
+  private @Nullable CacheUpdateBatch getStaleUpdateBatch() {
+    if (!updateBatches.isEmpty()) {
+      CacheUpdateBatch cacheUpdateBatch = updateBatches.get(0);
+      if (cacheUpdateBatch.createdTimestamp + cacheUpdateTimespanMs > System.currentTimeMillis()) {
+        updateBatches.remove(0);
+        return cacheUpdateBatch;
       }
-    }, 30, 30, TimeUnit.SECONDS);
+    } else {
+      Logging.logInfo("[CacheUpdater] no updateBatches queued", this.getClass());
+    }
+    return null;
   }
+
+  private List<CantoAssetIdentifier> prefilterUpdateBatch(CacheUpdateBatch cacheUpdateBatch, boolean filterForElementLifeSpan) {
+    Logging.logInfo("[CacheUpdater] prefilter UpdateBatch. filterForElementLifeSpan=" + filterForElementLifeSpan, this.getClass());
+
+    // Filter unused assets from Batch, create List of assets to fetch
+    List<CantoAssetIdentifier> remainingElements = new ArrayList<>(cacheUpdateBatch.batch.size());
+    for (String path : cacheUpdateBatch.batch) {
+      CacheElement cacheElement = this.centralCache.getCacheElement(path);
+      // Element still in cache?
+      if (cacheElement != null) {
+        // remove Element if it is not used anymore or optionally if its stale
+        boolean removeElement = !cacheElement.isStillInUse() || (filterForElementLifeSpan && !cacheElement.isValid());
+        if (removeElement) {
+          Logging.logDebug("[CacheUpdater] Removing item [" + path + "]", this.getClass());
+          this.centralCache.removeElement(path);
+        } else {
+          // Otherwise add it to list to be re-fetched
+          remainingElements.add(CantoAssetIdentifierFactory.fromCantoAsset(cacheElement.asset));
+        }
+      }
+    }
+
+    return remainingElements;
+  }
+
+  /**
+   * Check for stale UpdateBatch and Process it
+   */
+  private void processUpdateBatch() {
+    CacheUpdateBatch staleUpdateBatch = getStaleUpdateBatch();
+    if (staleUpdateBatch != null) {
+      Logging.logInfo("[CacheUpdater] UpdateBatch stale. Updating...", this.getClass());
+
+      if (cantoApi == null) {
+        Logging.logWarning("[CacheUpdater] No CantoApi available => Cannot re-fetch Items.", this.getClass());
+        prefilterUpdateBatch(staleUpdateBatch, true);
+      } else {
+        List<CantoAssetIdentifier> identifiersToFetch = prefilterUpdateBatch(staleUpdateBatch, false);
+        // fetch Assets
+        List<CantoAsset> fetchedAssets = cantoApi.fetchAssets(identifiersToFetch);
+
+        // Requested Assets that have been found --> Refresh in Cache
+        for (CantoAsset cantoAsset : fetchedAssets) {
+          CantoAssetIdentifier cantoAssetIdentifier = this.centralCache.updateElement(cantoAsset);
+          staleUpdateBatch.batch.remove(cantoAssetIdentifier.getPath());
+        }
+
+        // Requested Assets, that have not been found --> Remove from Cache
+        for (String cantoAssetPath : staleUpdateBatch.batch) {
+          this.centralCache.removeElement(cantoAssetPath);
+        }
+        Logging.logInfo("[CacheUpdater] update done. updated Items: " + fetchedAssets.size() + " - removed Items: " + staleUpdateBatch.batch.size(),
+                        this.getClass());
+      }
+    } else {
+      Logging.logInfo("[CacheUpdater] updateBatches fresh", this.getClass());
+    }
+
+  }
+
+  /**
+   * check cache load and perform cleanup if necessary
+   */
+  private void performCacheCleanUp() {
+
+    double cacheLoad = (centralCache.cacheMap.size() / (double) maxCacheSize);
+    Logging.logInfo("[CacheUpdater] Cache load " + cacheLoad * 100 + "%", this.getClass());
+
+    if (cacheLoad > 0.95) {
+      // Cache is close to full, start soft cleanup, then hard cleanup
+      ConcurrentHashMap<String, CacheElement> cacheMap = centralCache.cacheMap;
+      Logging.logInfo("[CacheUpdater] Cache load high. Start Cleanup", this.getClass());
+      // we want to bring the cache load down to 85%
+      int cleanupTarget = centralCache.cacheMap.size() - (int) (0.85 * maxCacheSize);
+      int cleanedUpElements = 0;
+
+      Enumeration<String> keys = cacheMap.keys();
+      while (keys.hasMoreElements()) {
+        String identifier = keys.nextElement();
+        CacheElement cacheElement = cacheMap.get(identifier);
+        if (!cacheElement.isStillInUse() || !cacheElement.isValid()) {
+          cleanedUpElements++;
+          cacheMap.remove(identifier);
+        }
+      }
+      Logging.logInfo("[CacheUpdater] Soft Cleanup done. removed Elements: " + cleanedUpElements, this.getClass());
+
+      // Soft cleanup did not suffice ->  hard cleanup based on updateBatches
+      // Oldest batch has heuristically the oldest elements
+      while (cleanedUpElements < cleanupTarget && !updateBatches.isEmpty()) {
+        CacheUpdateBatch cacheUpdateBatch = updateBatches.get(0);
+        for (String identifier : cacheUpdateBatch.batch) {
+          cleanedUpElements++;
+          cacheMap.remove(identifier);
+        }
+      }
+      Logging.logInfo(
+          "[CacheUpdater] Hard Cleanup done. Total removed Elements (soft + hard): " + cleanedUpElements + " - New Cache load after Cleanup: "
+              + cacheMap.size() + " (" + (cacheMap.size() / (double) maxCacheSize) * 100 + "%)", this.getClass());
+    }
+  }
+
 
   /**
    * clears UpdateBatches, stops the thread and scheduler
