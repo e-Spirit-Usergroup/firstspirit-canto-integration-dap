@@ -8,9 +8,15 @@ public class CacheUpdateBatch {
 
   public final HashSet<String> batch = new HashSet<>();
   public final long createdTimestamp;
+  private final long updateTimespan;
 
-  public CacheUpdateBatch(long createdTimestamp) {
-    this.createdTimestamp = createdTimestamp;
+  public CacheUpdateBatch(long updateTimespan) {
+    this.updateTimespan = updateTimespan;
+    this.createdTimestamp = System.currentTimeMillis();
+  }
+
+  public boolean isStale() {
+    return this.createdTimestamp + updateTimespan < System.currentTimeMillis();
   }
 
 }

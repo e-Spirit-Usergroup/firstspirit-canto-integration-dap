@@ -78,7 +78,7 @@ public class CentralCache {
   }
 
   /**
-   * add Element to Cache.
+   * add Element to Cache. Overwrites existing item, hence resetting lastUsed & lastUpdated to now
    *
    * @param element element to add
    */
@@ -90,6 +90,13 @@ public class CentralCache {
     Logging.logDebug("[CentralCache] Added Element [" + cacheId + "]", this.getClass());
   }
 
+  /**
+   * Update Existing Element, create if non-existent.
+   * Does <b>not</b> set lastUsed, hence can be used for internal purposes of CacheUpdater
+   *
+   * @param asset asset to update / create in cache
+   * @return identifier of asset
+   */
   CantoAssetIdentifier updateElement(CantoAsset asset) {
     CantoAssetIdentifier cantoAssetIdentifier = CantoAssetIdentifierFactory.fromCantoAsset(asset);
     String cacheId = cantoAssetIdentifier.getPath();
@@ -97,6 +104,8 @@ public class CentralCache {
     CacheElement cacheElement = cacheMap.computeIfAbsent(cacheId, (key) -> new CacheElement(asset, cacheItemLifespanMs, cacheItemInUseTimespanMs));
     cacheElement.asset = asset;
     cacheElement.lastUpdatedTimestamp = System.currentTimeMillis();
+    cacheUpdater.addToUpdateBatch(cantoAssetIdentifier.getPath());
+
     Logging.logDebug("[CentralCache] Updated Element [" + cacheElement + "]", this.getClass());
 
     return cantoAssetIdentifier;

@@ -38,10 +38,10 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
 
   private Map<Integer, CantoApi> apiConnectionPool;
 
-  private CentralCache centralCache = null;
+  private @Nullable CentralCache centralCache = null;
 
-  private RequestLimiter singleFetchRequestLimiter = null;
-  private RequestLimiter batchFetchRequestLimiter = null;
+  private @Nullable RequestLimiter singleFetchRequestLimiter = null;
+  private @Nullable RequestLimiter batchFetchRequestLimiter = null;
 
   public CantoServiceConnection getServiceConnection(@NotNull final CantoConfiguration config) {
     final CantoServiceConnection connection = CantoServiceConnection.fromConfig(config);
@@ -163,7 +163,10 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
   @Override public void stop() {
     //apiConnectionPool.forEach((key, value) -> value.close());
     apiConnectionPool = null;
-    centralCache.shutdown();
+
+    if (centralCache != null) {
+      centralCache.shutdown();
+    }
     centralCache = null;
 
     batchFetchRequestLimiter = null;

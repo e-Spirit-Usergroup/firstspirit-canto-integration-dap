@@ -14,9 +14,12 @@ import de.espirit.firstspirit.module.ServerEnvironment;
 
 public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvironment> {
 
-  final static long IN_USE_TIMESPAN_MS = 48 * 60 * 60 * 1000;
-  final static long VALIDITY_TIMESPAN_MS = 5 * 60 * 60 * 1000;
-  final static long UPDATE_INTERVAL_MS = 4 * 60 * 60 * 1000;
+  // 48h In use timespan
+  final static long DEFAULT_IN_USE_TIMESPAN_MS = 48 * 60 * 60 * 1000;
+  // 5h Validity timespan
+  final static long DEFAULT_VALIDITY_TIMESPAN_MS = 5 * 60 * 60 * 1000;
+  // 4h Update Interval
+  final static long DEFAULT_UPDATE_INTERVAL_MS = 4 * 60 * 60 * 1000;
 
 
   public static final String PARAM_REQUESTS_WITHOUT_DELAY = "requestsWithoutDelay";
@@ -123,9 +126,9 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
                                                                                       "",
                                                                                       "",
                                                                                       1000,
-                                                                                      VALIDITY_TIMESPAN_MS,
-                                                                                      UPDATE_INTERVAL_MS,
-                                                                                      IN_USE_TIMESPAN_MS);
+                                                                                      DEFAULT_VALIDITY_TIMESPAN_MS,
+                                                                                      DEFAULT_UPDATE_INTERVAL_MS,
+                                                                                      DEFAULT_IN_USE_TIMESPAN_MS);
 
     final boolean useCache;
     final boolean useRequestLimiter;
@@ -171,8 +174,8 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
         Values configValues = CantoSaasServiceConfigurable.values(serverEnvironment);
         return new ServiceConfiguration(configValues.getBoolean(PARAM_USE_CACHE, true),
                                         configValues.getBoolean(PARAM_USE_REQUEST_LIMITER, true),
-                                        Integer.parseInt(configValues.getString(PARAM_REQUESTS_WITHOUT_DELAY, "30")),
                                         Integer.parseInt(configValues.getString(PARAM_MAX_REQUESTS_PER_MINUTE, "200")),
+                                        Integer.parseInt(configValues.getString(PARAM_REQUESTS_WITHOUT_DELAY, "30")),
                                         Long.parseLong(configValues.getString(PARAM_TIME_BUFFER_IN_MS, "1000")),
                                         configValues.getBoolean(PARAM_RESTART_SERVICE_ON_SAVE, true),
                                         configValues.getString(PARAM_TENANT, ""),
@@ -180,10 +183,10 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
                                         configValues.getString(PARAM_APP_ID, ""),
                                         configValues.getString(PARAM_APP_SECRET, ""),
                                         configValues.getString(PARAM_USER_ID, ""),
-                                        Integer.parseInt(configValues.getString(PARAM_CACHE_SIZE, "1000")),
-                                        Long.parseLong(configValues.getString(PARAM_CACHE_ITEM_LIFESPAN_MS, VALIDITY_TIMESPAN_MS + "")),
-                                        Long.parseLong(configValues.getString(PARAM_CACHE_UPDATE_TIMESPAN_MS, UPDATE_INTERVAL_MS + "")),
-                                        Long.parseLong(configValues.getString(PARAM_CACHE_IN_USE_TIMESPAN_MS, IN_USE_TIMESPAN_MS + "")));
+                                        Integer.parseInt(configValues.getString(PARAM_CACHE_SIZE, "10000")),
+                                        Long.parseLong(configValues.getString(PARAM_CACHE_ITEM_LIFESPAN_MS, DEFAULT_VALIDITY_TIMESPAN_MS + "")),
+                                        Long.parseLong(configValues.getString(PARAM_CACHE_UPDATE_TIMESPAN_MS, DEFAULT_UPDATE_INTERVAL_MS + "")),
+                                        Long.parseLong(configValues.getString(PARAM_CACHE_IN_USE_TIMESPAN_MS, DEFAULT_IN_USE_TIMESPAN_MS + "")));
 
 
       } catch (Exception e) {

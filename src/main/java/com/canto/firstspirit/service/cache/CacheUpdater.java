@@ -127,7 +127,7 @@ public class CacheUpdater {
     }
     if (!isInAnyUpdateBatch) {
       Logging.logDebug("[CacheUpdater] Creating new Update Batch", this.getClass());
-      CacheUpdateBatch cacheUpdateBatch = new CacheUpdateBatch(System.currentTimeMillis());
+      CacheUpdateBatch cacheUpdateBatch = new CacheUpdateBatch(cacheUpdateTimespanMs);
       cacheUpdateBatch.batch.add(cacheId);
       updateBatches.add(cacheUpdateBatch);
     }
@@ -136,7 +136,7 @@ public class CacheUpdater {
   private @Nullable CacheUpdateBatch getStaleUpdateBatch() {
     if (!updateBatches.isEmpty()) {
       CacheUpdateBatch cacheUpdateBatch = updateBatches.get(0);
-      if (cacheUpdateBatch.createdTimestamp + cacheUpdateTimespanMs > System.currentTimeMillis()) {
+      if (cacheUpdateBatch.isStale()) {
         updateBatches.remove(0);
         return cacheUpdateBatch;
       }
@@ -240,6 +240,7 @@ public class CacheUpdater {
           cleanedUpElements++;
           cacheMap.remove(identifier);
         }
+        updateBatches.remove(0);
       }
       Logging.logInfo(
           "[CacheUpdater] Hard Cleanup done. Total removed Elements (soft + hard): " + cleanedUpElements + " - New Cache load after Cleanup: "
