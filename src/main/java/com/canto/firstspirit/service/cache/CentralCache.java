@@ -12,8 +12,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Central persistence of cache items
  * Handling of Lifecycle of elements and Cache Load handling is internally delegated to {@link CacheUpdater}.
- * <p>
- * <p>
+ * Configurable via {@link com.canto.firstspirit.service.CantoSaasServiceConfigurable Service Configuration}
+ * <br>
+ * <br>
  * Should <b>not</b> be used directly by Canto Api, instead use the {@link ProjectBoundCacheAccess}!
  */
 public class CentralCache {
@@ -78,7 +79,7 @@ public class CentralCache {
   }
 
   /**
-   * add Element to Cache. Overwrites existing item, hence resetting lastUsed & lastUpdated to now
+   * add Element to Cache. Overwrites existing item, hence resetting lastUsed and lastUpdated to now
    *
    * @param element element to add
    */
@@ -134,7 +135,7 @@ public class CentralCache {
    * Remove all CacheItems
    */
   public void clear() {
-    cacheUpdater.updateBatches.clear();
+    cacheUpdater.clearUpdateBatches();
     cacheMap.clear();
   }
 

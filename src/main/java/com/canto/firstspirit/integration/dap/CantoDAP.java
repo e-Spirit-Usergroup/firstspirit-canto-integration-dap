@@ -67,14 +67,14 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
 
   }
 
-  @Override public Image<?> getReportIcon(final boolean b) {
+  @Override public Image<?> getReportIcon(final boolean active) {
     final ImageAgent imageAgent = context.requireSpecialist(ImageAgent.TYPE);
     if (context.is(BaseContext.Env.WEBEDIT)) {
       return imageAgent.getImageFromUrl(CANTOSAAS_ICONS_PATH + "canto_logo_small.png");
     }
     final MagicIcon magicIcon = MagicIcon.fromResource(getClass(), '/' + CANTOSAAS_ICONS_PATH + "canto_logo.png");
     return ReportIcon.create(magicIcon, context)
-        .getIcon(b);
+        .getIcon(active);
   }
 
 

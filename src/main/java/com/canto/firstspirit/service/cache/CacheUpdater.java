@@ -23,13 +23,18 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The CacheUpdater periodically checks, if elements from CentralCache need revalidation. <br>
+ * The CacheUpdater periodically checks, if elements from CentralCache need revalidation or if the cache exceeds 95% load. <br>
  * Revalidation is done in batches ({@link CacheUpdateBatch}), a batch is re-fetched based on its creation date and configured lifespan. <br><br>
  * Every {@link CacheElement} in a batch is newer than the batch itself. On revalidation, all elements in a batch that are still in use
  * (have been requested recently) are re-fetched with {@link CantoApi} and updated in the {@link CentralCache}.
  * Elements that have not been used recently are removed from the {@link CentralCache}.
  * <br>
- * The timespans for validation, fetching and usage checks can be configured in the
+ * <br>
+ * The cache size is periodically checked. The cache is actively trimmed, if its element count exceed 95% of maxCacheSize.
+ * This maxSize is not strictly enforced, the cache may overflow for ~0-30 seconds.
+ * <br>
+ * <br>
+ * The cachesize and timespans for validation, fetching and usage checks can be configured in the
  * {@link com.canto.firstspirit.service.CantoSaasServiceConfigurable Service Configuration}
  * <br>
  * <br>
@@ -37,17 +42,30 @@ import org.jetbrains.annotations.Nullable;
  */
 public class CacheUpdater {
 
-  protected final List<CacheUpdateBatch> updateBatches = Collections.synchronizedList(new LinkedList<>());
+  private final List<CacheUpdateBatch> updateBatches = Collections.synchronizedList(new LinkedList<>());
   private final int maxCacheSize;
-  ScheduledExecutorService executorService;
+  private ScheduledExecutorService executorService;
 
-  final CentralCache centralCache;
-  final @Nullable CantoApi cantoApi;
+  private final CentralCache centralCache;
+  private final @Nullable CantoApi cantoApi;
   private final long cacheUpdateTimespanMs;
-  ScheduledFuture<?> scheduledUpdateTask;
+  private ScheduledFuture<?> scheduledUpdateTask;
 
 
-  protected CacheUpdater(CentralCache centralCache, @Nullable CantoApi cantoApi, long cacheUpdateTimespanMs, int maxCacheSize) {
+  /**
+   * Create CacheUpdater for given central Cache. Provided CantoApi is used to refresh cache elements accoirding to the cacheUpdateTimespanMs.
+   * periodically checks maxCacheSize.
+   * Daemon Update Thread is started automatically when calling this constructor,
+   * <br>
+   * <br>
+   * <b>remember to call {@link #shutdown} when this CacheUpdater instance is no longer used!</b>
+   *
+   * @param centralCache          central cache bound to this CacheUpdater
+   * @param cantoApi              Api to refresh Cache Elements
+   * @param cacheUpdateTimespanMs Timespan that defines validity time of UpdateBatches
+   * @param maxCacheSize          max count of elements in cache. Not strictly enforced, cache may overflow for a short period of time (~30 seconds)
+   */
+  public CacheUpdater(CentralCache centralCache, @Nullable CantoApi cantoApi, long cacheUpdateTimespanMs, int maxCacheSize) {
     this.centralCache = centralCache;
     this.cantoApi = cantoApi;
     this.cacheUpdateTimespanMs = cacheUpdateTimespanMs;
@@ -112,7 +130,7 @@ public class CacheUpdater {
    *
    * @param cacheId must be valid assetPath, see {@link CantoAssetIdentifier#getPath()}
    */
-  synchronized void addToUpdateBatch(String cacheId) {
+  public synchronized void addToUpdateBatch(String cacheId) {
     boolean isInAnyUpdateBatch = false;
     for (CacheUpdateBatch updateBatch : updateBatches) {
       HashSet<String> batchSet = updateBatch.batch;
@@ -250,10 +268,17 @@ public class CacheUpdater {
 
 
   /**
+   * clear queue of updateBatches
+   */
+  public void clearUpdateBatches() {
+    this.updateBatches.clear();
+  }
+
+  /**
    * clears UpdateBatches, stops the thread and scheduler
    * <b>Must be called, if CentralCache is stopped!</b>
    */
-  void shutdown() {
+  public void shutdown() {
     Logging.logInfo("[CacheUpdater] shutting down...", this.getClass());
     updateBatches.clear();
     scheduledUpdateTask.cancel(false);
