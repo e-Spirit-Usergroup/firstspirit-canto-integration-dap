@@ -48,6 +48,7 @@ public class CantoApi {
   private final @Nullable RequestLimiter batchFetchRequestLimiter;
 
   private final ProjectBoundCacheAccess projectBoundCacheAccess;
+  private final long timeoutInSeconds;
   /**
    * <strong>!! Do not access directly. use {@link #getClient()} instead !! </strong>
    * <br> Using {@link #getClient()} ensures valid Access Token
@@ -86,6 +87,29 @@ public class CantoApi {
   public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId,
       @Nullable RequestLimiter singleFetchRequestLimiter, @Nullable RequestLimiter batchFetchRequestLimiter,
       ProjectBoundCacheAccess projectBoundCacheAccess) {
+
+    this(tenant, oAuthBaseUrl, appId, appSecret, userId, singleFetchRequestLimiter, batchFetchRequestLimiter, projectBoundCacheAccess, 20);
+
+  }
+
+  /**
+   * Creates new CantoApi. Access Token will be generated via appId, appSecret and UserId. Each Api instantiation generates new Access Token.
+   * Instances meant to be managed by {@link com.canto.firstspirit.service.CantoSaasServiceImpl}
+   * <br><strong>Direct Use outside of Service not recommended. </strong>
+   *
+   * @param tenant                    tenant
+   * @param oAuthBaseUrl              url with correct region, matching the tenant
+   * @param appId                     appId
+   * @param appSecret                 appSecret
+   * @param userId                    userId
+   * @param singleFetchRequestLimiter singleFetchRequestLimiter to force Delay between single fetch request
+   * @param batchFetchRequestLimiter  batchFetchRequestLimiter to force Delay between single fetch request
+   * @param projectBoundCacheAccess   access to central cache
+   * @param timeoutInSeconds          request timeout in seconds
+   */
+  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId,
+      @Nullable RequestLimiter singleFetchRequestLimiter, @Nullable RequestLimiter batchFetchRequestLimiter,
+      ProjectBoundCacheAccess projectBoundCacheAccess, long timeoutInSeconds) {
     this.tenant = tenant;
     this.appId = appId;
     this.appSecret = appSecret;
@@ -94,6 +118,7 @@ public class CantoApi {
     this.singleFetchRequestLimiter = singleFetchRequestLimiter;
     this.batchFetchRequestLimiter = batchFetchRequestLimiter;
     this.projectBoundCacheAccess = projectBoundCacheAccess;
+    this.timeoutInSeconds = timeoutInSeconds;
   }
 
   /**
@@ -130,7 +155,7 @@ public class CantoApi {
       Logging.logInfo("[fetchClientWithNewToken] CantoApi Access Token refreshed", this.getClass());
       // Only use 90% of validity Period to ensure we don't get quirks at the end of the validity Period
       this.validUntilTimestamp = System.currentTimeMillis() + Math.round(cantoAccessTokenData.getExpiresInMs() * 0.9);
-      this._client = new OkHttpClient.Builder().callTimeout(20, TimeUnit.SECONDS)
+      this._client = new OkHttpClient.Builder().callTimeout(timeoutInSeconds, TimeUnit.SECONDS)
           .addNetworkInterceptor(new TokenRequestInterceptor(cantoAccessTokenData.getAccessToken()))
           .build();
 
@@ -194,7 +219,7 @@ public class CantoApi {
    * @param assetIdentifiers CantoAssetIdentifier containing scheme and id
    * @return List of CantoAssets in the same order as identifiers. Missing Assets are replaced by null
    */
-  public List<CantoAsset> fetchAssets(@NotNull List<? extends CantoAssetIdentifier> assetIdentifiers) {
+  public @NotNull List<@Nullable CantoAsset> fetchAssets(@NotNull List<? extends CantoAssetIdentifier> assetIdentifiers) {
     Logging.logInfo("[fetchAssets] fetching ids: " + Strings.implode(assetIdentifiers, ","), LOGGER);
     if (assetIdentifiers.size() == 0) {
       Logging.logInfo("[fetchAssets] Identifier List empty, returning empty list", LOGGER);

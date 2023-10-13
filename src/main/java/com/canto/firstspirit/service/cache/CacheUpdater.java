@@ -15,11 +15,13 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -201,8 +203,11 @@ public class CacheUpdater {
         prefilterUpdateBatch(staleUpdateBatch, true);
       } else {
         List<CantoAssetIdentifier> identifiersToFetch = prefilterUpdateBatch(staleUpdateBatch, false);
-        // fetch Assets
-        List<CantoAsset> fetchedAssets = cantoApi.fetchAssets(identifiersToFetch);
+        // fetch Assets, filter Null Values(not found elements)
+        List<CantoAsset> fetchedAssets = cantoApi.fetchAssets(identifiersToFetch)
+            .stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
         // Requested Assets that have been found --> Refresh in Cache
         for (CantoAsset cantoAsset : fetchedAssets) {
