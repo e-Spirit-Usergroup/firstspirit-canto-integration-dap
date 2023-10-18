@@ -341,7 +341,7 @@ public class CantoApi {
         cantoSearchResult.setResults(Collections.emptyList());
         cantoSearchResult.setFound(0L);
       } else {
-        projectBoundCacheAccess.addAllToCache(foundAssets);
+        projectBoundCacheAccess.updateAllInCache(foundAssets);
       }
 
       return cantoSearchResult;

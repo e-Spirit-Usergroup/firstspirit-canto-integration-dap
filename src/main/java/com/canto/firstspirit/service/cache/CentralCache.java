@@ -102,7 +102,13 @@ public class CentralCache {
     CantoAssetIdentifier cantoAssetIdentifier = CantoAssetIdentifierFactory.fromCantoAsset(asset);
     String cacheId = cantoAssetIdentifier.getPath();
 
-    CacheElement cacheElement = cacheMap.computeIfAbsent(cacheId, (key) -> new CacheElement(asset, cacheItemLifespanMs, cacheItemInUseTimespanMs));
+    CacheElement cacheElement = cacheMap.computeIfAbsent(cacheId, (key) -> {
+      // Create Element, but set lastUsedTimestamp to 0, hence mark it as "not in use"
+      CacheElement newElement = new CacheElement(asset, cacheItemLifespanMs, cacheItemInUseTimespanMs);
+      newElement.lastUsedTimestamp = 0;
+      return newElement;
+    });
+    
     cacheElement.asset = asset;
     cacheElement.lastUpdatedTimestamp = System.currentTimeMillis();
     cacheUpdater.addToUpdateBatch(cantoAssetIdentifier.getPath());

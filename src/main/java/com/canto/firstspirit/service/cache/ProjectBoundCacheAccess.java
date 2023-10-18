@@ -85,4 +85,20 @@ public class ProjectBoundCacheAccess {
     }
   }
 
+  /**
+   * update/add elements to central cache. Does *not* set last used.
+   * Also grants access to those elements via {@link #retrieveFromCache(CantoAssetIdentifier)}
+   *
+   * @param cantoAssetCollection collection of elements to add
+   */
+  public void updateAllInCache(Collection<CantoAsset> cantoAssetCollection) {
+    if (this.centralCache != null) {
+      for (CantoAsset cantoAsset : cantoAssetCollection) {
+        if (cantoAsset != null) {
+          centralCache.updateElement(cantoAsset);
+        }
+      }
+    }
+  }
+
 }
