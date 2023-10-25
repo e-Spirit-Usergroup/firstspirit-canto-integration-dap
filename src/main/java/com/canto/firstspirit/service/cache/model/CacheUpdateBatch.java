@@ -4,13 +4,13 @@ import java.util.HashSet;
 
 public class CacheUpdateBatch {
 
-  public final static int BATCH_SIZE = 75;
-
+  public final int batchSize;
   public final HashSet<String> batch = new HashSet<>();
   public final long createdTimestamp;
   private final long updateTimespan;
 
-  public CacheUpdateBatch(long updateTimespan) {
+  public CacheUpdateBatch(int batchSize, long updateTimespan) {
+    this.batchSize = batchSize;
     this.updateTimespan = updateTimespan;
     this.createdTimestamp = System.currentTimeMillis();
   }

@@ -39,6 +39,8 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
   public static final String PARAM_CACHE_ITEM_LIFESPAN_MS = "cacheItemLifeSpan";
   public static final String PARAM_CACHE_UPDATE_TIMESPAN_MS = "cacheAutoUpdateTimespan";
   public static final String PARAM_CACHE_IN_USE_TIMESPAN_MS = "cacheInUseTimespan";
+  public static final String PARAM_BATCH_UPDATE_SIZE = "batchUpdateSize";
+
 
   @Override protected void configure() {
 
@@ -100,6 +102,7 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
               PARAM_CACHE_IN_USE_TIMESPAN_MS,
               String.valueOf(defaultConfiguration.cacheItemInUseTimespanMs),
               "Timespan after which cache elements are removed if not requested")
+        .text("Batch Update Size", PARAM_BATCH_UPDATE_SIZE, String.valueOf(defaultConfiguration.batchUpdateSize), "Batch size for CacheUpdater")
         .text("Tenant (without https://)", PARAM_TENANT, "", "Enter the name of the canto tenant, e.g. my-company.canto.global")
         .text("OAuth Base URL (com,de,global)", PARAM_OAUTH_BASE_URL, "https://oauth.canto.<region>", "region is one of com/de/global")
         .text("App Id", PARAM_APP_ID, "", "App Id")
@@ -128,7 +131,8 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
                                                                                       1000,
                                                                                       DEFAULT_VALIDITY_TIMESPAN_MS,
                                                                                       DEFAULT_UPDATE_INTERVAL_MS,
-                                                                                      DEFAULT_IN_USE_TIMESPAN_MS);
+                                                                                      DEFAULT_IN_USE_TIMESPAN_MS,
+                                                                                      75);
 
     final boolean useCache;
     final boolean useRequestLimiter;
@@ -136,6 +140,8 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
     final int requestsWithoutDelay;
     final int maxRequestsPerMinute;
     final long timeBufferInMs;
+
+    final int batchUpdateSize;
 
     final boolean restartServiceOnSave;
     final String apiTenant;
@@ -150,13 +156,14 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
 
     private ServiceConfiguration(boolean useCache, boolean useRequestLimiter, int maxRequestsPerMinute, int requestsWithoutDelay, long timeBufferInMs,
         boolean restartServiceOnSave, String apiTenant, String apiOAuthBaseUrl, String apiAppId, String apiAppSecret, String apiUserId, int cacheSize,
-        long cacheItemLifespanMs, long cacheUpdateTimespanMs, long cacheItemInUseTimespanMs) {
+        long cacheItemLifespanMs, long cacheUpdateTimespanMs, long cacheItemInUseTimespanMs, int batchUpdateSize) {
 
       this.useCache = useCache;
       this.useRequestLimiter = useRequestLimiter;
       this.requestsWithoutDelay = requestsWithoutDelay;
       this.maxRequestsPerMinute = maxRequestsPerMinute;
       this.timeBufferInMs = timeBufferInMs;
+      this.batchUpdateSize = batchUpdateSize;
       this.restartServiceOnSave = restartServiceOnSave;
       this.apiTenant = apiTenant;
       this.apiOAuthBaseUrl = apiOAuthBaseUrl;
@@ -186,7 +193,8 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
                                         Integer.parseInt(configValues.getString(PARAM_CACHE_SIZE, "10000")),
                                         Long.parseLong(configValues.getString(PARAM_CACHE_ITEM_LIFESPAN_MS, DEFAULT_VALIDITY_TIMESPAN_MS + "")),
                                         Long.parseLong(configValues.getString(PARAM_CACHE_UPDATE_TIMESPAN_MS, DEFAULT_UPDATE_INTERVAL_MS + "")),
-                                        Long.parseLong(configValues.getString(PARAM_CACHE_IN_USE_TIMESPAN_MS, DEFAULT_IN_USE_TIMESPAN_MS + "")));
+                                        Long.parseLong(configValues.getString(PARAM_CACHE_IN_USE_TIMESPAN_MS, DEFAULT_IN_USE_TIMESPAN_MS + "")),
+                                        Integer.parseInt(configValues.getString(PARAM_BATCH_UPDATE_SIZE, "75")));
 
 
       } catch (Exception e) {
@@ -198,10 +206,12 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
 
     @Override public String toString() {
       return "ServiceConfiguration{" + "useCache=" + useCache + ", useRequestLimiter=" + useRequestLimiter + ", requestsWithoutDelay="
-          + requestsWithoutDelay + ", maxRequestsPerMinute=" + maxRequestsPerMinute + ", timeBufferInMs=" + timeBufferInMs + ", restartServiceOnSave="
-          + restartServiceOnSave + '}';
+          + requestsWithoutDelay + ", maxRequestsPerMinute=" + maxRequestsPerMinute + ", timeBufferInMs=" + timeBufferInMs + ", batchUpdateSize="
+          + batchUpdateSize + ", restartServiceOnSave=" + restartServiceOnSave + ", apiTenant='" + apiTenant + '\'' + ", apiOAuthBaseUrl='"
+          + apiOAuthBaseUrl + '\'' + ", apiAppId='" + apiAppId.substring(0, 5) + "..." + '\'' + ", apiAppSecret='" + apiAppSecret.substring(0, 5)
+          + "..." + '\'' + ", apiUserId='" + apiUserId + '\'' + ", cacheItemLifespanMs=" + cacheItemLifespanMs + ", cacheUpdateTimespanMs="
+          + cacheUpdateTimespanMs + ", cacheItemInUseTimespanMs=" + cacheItemInUseTimespanMs + ", cacheSize=" + cacheSize + '}';
     }
-
   }
 
 }

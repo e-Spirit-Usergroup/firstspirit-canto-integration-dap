@@ -118,7 +118,8 @@ public class CantoApi {
     this.singleFetchRequestLimiter = singleFetchRequestLimiter;
     this.batchFetchRequestLimiter = batchFetchRequestLimiter;
     this.projectBoundCacheAccess = projectBoundCacheAccess;
-    this.timeoutInSeconds = timeoutInSeconds;
+    // Do not accept 0 or less timeout, as it would lead to waiting indefinitely.
+    this.timeoutInSeconds = timeoutInSeconds <= 0 ? 20 : timeoutInSeconds;
   }
 
   /**
@@ -156,6 +157,9 @@ public class CantoApi {
       // Only use 90% of validity Period to ensure we don't get quirks at the end of the validity Period
       this.validUntilTimestamp = System.currentTimeMillis() + Math.round(cantoAccessTokenData.getExpiresInMs() * 0.9);
       this._client = new OkHttpClient.Builder().callTimeout(timeoutInSeconds, TimeUnit.SECONDS)
+          .connectTimeout(0, TimeUnit.SECONDS)
+          .readTimeout(0, TimeUnit.SECONDS)
+          .writeTimeout(0, TimeUnit.SECONDS)
           .addNetworkInterceptor(new TokenRequestInterceptor(cantoAccessTokenData.getAccessToken()))
           .build();
 
@@ -485,6 +489,5 @@ public class CantoApi {
 
     return null;
   }
-
 
 }

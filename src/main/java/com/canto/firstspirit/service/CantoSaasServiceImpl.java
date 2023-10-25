@@ -154,7 +154,8 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
                                       serviceConfiguration.cacheSize,
                                       serviceConfiguration.cacheUpdateTimespanMs,
                                       serviceConfiguration.cacheUpdateTimespanMs,
-                                      serviceConfiguration.cacheItemInUseTimespanMs);
+                                      serviceConfiguration.cacheItemInUseTimespanMs,
+                                      serviceConfiguration.batchUpdateSize);
     } else {
       centralCache = null;
     }

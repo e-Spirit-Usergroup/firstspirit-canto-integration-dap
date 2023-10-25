@@ -30,7 +30,7 @@ public class CentralCache {
   CacheUpdater cacheUpdater;
 
   public CentralCache(@Nullable CantoApi cantoApi, int maxCacheSize, long cacheItemLifespanMs, long cacheUpdateTimespanMs,
-      long cacheItemInUseTimespanMs) {
+      long cacheItemInUseTimespanMs, int batchUpdateSize) {
     this.cacheItemLifespanMs = cacheItemLifespanMs;
     this.cacheUpdateTimespanMs = cacheUpdateTimespanMs;
     this.cacheItemInUseTimespanMs = cacheItemInUseTimespanMs;
@@ -39,7 +39,7 @@ public class CentralCache {
       Logging.logInfo("No Api for Cache!", this.getClass());
     }
     this.maxCacheSize = maxCacheSize;
-    cacheUpdater = new CacheUpdater(this, cantoApi, cacheUpdateTimespanMs, maxCacheSize);
+    cacheUpdater = new CacheUpdater(this, cantoApi, cacheUpdateTimespanMs, maxCacheSize, batchUpdateSize);
 
     Logging.logInfo("[CentralCache] created. " + this, this.getClass());
   }
@@ -108,7 +108,7 @@ public class CentralCache {
       newElement.lastUsedTimestamp = 0;
       return newElement;
     });
-    
+
     cacheElement.asset = asset;
     cacheElement.lastUpdatedTimestamp = System.currentTimeMillis();
     cacheUpdater.addToUpdateBatch(cantoAssetIdentifier.getPath());

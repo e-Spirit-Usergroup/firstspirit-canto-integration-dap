@@ -1,7 +1,5 @@
 package com.canto.firstspirit.service.cache;
 
-import static com.canto.firstspirit.service.cache.model.CacheUpdateBatch.BATCH_SIZE;
-
 import com.canto.firstspirit.api.CantoApi;
 import com.canto.firstspirit.api.CantoAssetIdentifierFactory;
 import com.canto.firstspirit.api.model.CantoAsset;
@@ -46,6 +44,7 @@ public class CacheUpdater {
 
   private final List<CacheUpdateBatch> updateBatches = Collections.synchronizedList(new LinkedList<>());
   private final int maxCacheSize;
+  private final int batchUpdateSize;
   private ScheduledExecutorService executorService;
 
   private final CentralCache centralCache;
@@ -67,11 +66,12 @@ public class CacheUpdater {
    * @param cacheUpdateTimespanMs Timespan that defines validity time of UpdateBatches
    * @param maxCacheSize          max count of elements in cache. Not strictly enforced, cache may overflow for a short period of time (~30 seconds)
    */
-  public CacheUpdater(CentralCache centralCache, @Nullable CantoApi cantoApi, long cacheUpdateTimespanMs, int maxCacheSize) {
+  public CacheUpdater(CentralCache centralCache, @Nullable CantoApi cantoApi, long cacheUpdateTimespanMs, int maxCacheSize, int batchUpdateSize) {
     this.centralCache = centralCache;
     this.cantoApi = cantoApi;
     this.cacheUpdateTimespanMs = cacheUpdateTimespanMs;
     this.maxCacheSize = maxCacheSize;
+    this.batchUpdateSize = batchUpdateSize;
     startUpdaterTask();
 
   }
@@ -137,7 +137,7 @@ public class CacheUpdater {
     for (CacheUpdateBatch updateBatch : updateBatches) {
       HashSet<String> batchSet = updateBatch.batch;
       boolean inCurrentUpdateBatch = batchSet.contains(cacheId);
-      if (!inCurrentUpdateBatch && batchSet.size() < BATCH_SIZE) {
+      if (!inCurrentUpdateBatch && batchSet.size() < batchUpdateSize) {
         batchSet.add(cacheId);
         isInAnyUpdateBatch = true;
         Logging.logDebug("[CacheUpdater] add Element to Update Batch [" + cacheId + "]", this.getClass());
@@ -147,7 +147,7 @@ public class CacheUpdater {
     }
     if (!isInAnyUpdateBatch) {
       Logging.logDebug("[CacheUpdater] Creating new Update Batch", this.getClass());
-      CacheUpdateBatch cacheUpdateBatch = new CacheUpdateBatch(cacheUpdateTimespanMs);
+      CacheUpdateBatch cacheUpdateBatch = new CacheUpdateBatch(batchUpdateSize, cacheUpdateTimespanMs);
       cacheUpdateBatch.batch.add(cacheId);
       updateBatches.add(cacheUpdateBatch);
     }
