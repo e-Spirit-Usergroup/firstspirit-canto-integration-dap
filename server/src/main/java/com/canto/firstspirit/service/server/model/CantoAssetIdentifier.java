@@ -16,7 +16,7 @@ public class CantoAssetIdentifier implements Serializable {
   private final String schema;
   private final String id;
 
-  private final Map<String, String> additionalData;
+  private @Nullable Map<String, String> additionalData;
 
   /**
    * Only needed for Moshi Defaults
@@ -26,13 +26,13 @@ public class CantoAssetIdentifier implements Serializable {
   }
 
   public CantoAssetIdentifier(String schema, String id) {
-    this(schema, id, new HashMap<>());
+    this(schema, id, null);
   }
 
-  public CantoAssetIdentifier(String schema, String id, Map<String, String> additionalData) {
+  public CantoAssetIdentifier(String schema, String id, @Nullable Map<String, String> additionalData) {
     this.schema = schema;
     this.id = id;
-    this.additionalData = additionalData != null ? additionalData : new HashMap<>();
+    this.additionalData = additionalData;
   }
 
   public @NotNull String getSchema() {
@@ -49,17 +49,24 @@ public class CantoAssetIdentifier implements Serializable {
 
   public void setAdditionalDataEntry(@NotNull String key, @Nullable String value) {
     if (value != null) {
-      this.additionalData.put(key, value);
+      this.getAdditionalData()
+          .put(key, value);
     } else {
-      this.additionalData.remove(key);
+      this.getAdditionalData()
+          .remove(key);
     }
   }
 
   public @Nullable String getAdditionalDataEntry(@NotNull String key) {
-    return this.additionalData.get(key);
+
+    return this.getAdditionalData()
+        .get(key);
   }
 
   public Map<String, String> getAdditionalData() {
+    if (additionalData == null) {
+      additionalData = new HashMap<>();
+    }
     return additionalData;
   }
 

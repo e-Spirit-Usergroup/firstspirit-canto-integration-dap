@@ -1,8 +1,11 @@
 package com.canto.firstspirit.integration.dap;
 
+import static com.canto.firstspirit.config.CantoProjectAppConfiguration.PARAM_TENANT;
+
 import com.canto.firstspirit.config.CantoProjectApp;
 import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
 import com.espirit.moddev.components.annotations.PublicComponent;
+import com.espirit.ps.psci.genericconfiguration.Values;
 import com.espirit.ps.psci.magicicons.MagicIcon;
 import com.espirit.ps.psci.magicicons.usages.ReportIcon;
 import de.espirit.firstspirit.access.BaseContext;
@@ -30,6 +33,7 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
 
   private final DataAccessAspectMap aspectMap = new DataAccessAspectMap();
   private BaseContext context;
+  private String tenant;
 
   @Override public <A> A getAspect(@NotNull final DataAccessAspectType<A> dataAccessAspectType) {
     return aspectMap.get(dataAccessAspectType);
@@ -53,6 +57,9 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
       aspectMap.put(Reporting.TYPE, this);
       aspectMap.put(ReportItemsProviding.TYPE, this);
 
+      Values config = CantoProjectApp.getConfig(baseContext);
+      this.tenant = config.getString(PARAM_TENANT, "");
+
     }
   }
 
@@ -60,29 +67,33 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
 
   }
 
-  @Override public Image<?> getReportIcon(final boolean b) {
+  @Override public Image<?> getReportIcon(final boolean active) {
     final ImageAgent imageAgent = context.requireSpecialist(ImageAgent.TYPE);
     if (context.is(BaseContext.Env.WEBEDIT)) {
       return imageAgent.getImageFromUrl(CANTOSAAS_ICONS_PATH + "canto_logo_small.png");
     }
     final MagicIcon magicIcon = MagicIcon.fromResource(getClass(), '/' + CANTOSAAS_ICONS_PATH + "canto_logo.png");
     return ReportIcon.create(magicIcon, context)
-        .getIcon(b);
+        .getIcon(active);
   }
 
 
   @Override public ReportItem<CantoDAPAsset> getClickItem() {
-    return new OpenInCantoDialogItem();
+    return new OpenInCantoDialogItem(tenant);
   }
 
   @NotNull @Override public Collection<? extends ReportItem<CantoDAPAsset>> getItems() {
     return Collections.emptyList();
   }
 
-  @SuppressWarnings("unused")
   private static class OpenInCantoDialogItem implements ClientScriptProvidingReportItem<CantoDAPAsset> {
 
     static final String ICON_URL = null; // MagicIcon.fromResource(CantoDAP.class, '/' + CANTOSAAS_ICONS_PATH + "openInNewWindow.png").base64url();
+    private final String tenant;
+
+    private OpenInCantoDialogItem(String tenant) {
+      this.tenant = tenant;
+    }
 
     @Override public boolean isVisible(@NotNull final ReportContext<CantoDAPAsset> reportContext) {
       return true;
@@ -101,9 +112,12 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
     }
 
     @Override public String getScript(final ReportContext<CantoDAPAsset> cantoDAPAssetReportContext) {
-      final CantoDAPAsset cantoDAPAsset = cantoDAPAssetReportContext.getObject();
-      final String url = "https://reply.canto.de/allfiles?column=" + cantoDAPAsset.getSchema() + "&id=" + cantoDAPAsset.getId();
-      return "window.open('" + url + "', '_blank')";
+      if (tenant != null && !tenant.isBlank()) {
+        final CantoDAPAsset cantoDAPAsset = cantoDAPAssetReportContext.getObject();
+        final String url = "https://" + tenant + "/allfiles?column=" + cantoDAPAsset.getSchema() + "&id=" + cantoDAPAsset.getId();
+        return "window.open('" + url + "', '_blank')";
+      }
+      return null;
     }
 
   }

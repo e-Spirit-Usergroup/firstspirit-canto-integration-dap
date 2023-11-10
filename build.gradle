@@ -73,6 +73,10 @@ task aggregatedJavadocs(type: Javadoc, description: 'Generate javadocs from all 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
     testImplementation group: 'de.espirit.firstspirit', name: 'fs-isolated-runtime', version: "${fsRuntimeVersion}"
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.5.0'
+    testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '5.5.0'
+
+
     compileOnly group: 'de.espirit.firstspirit', name: 'fs-isolated-runtime', version: "${fsRuntimeVersion}"
 
     fsServerCompile project(':server')

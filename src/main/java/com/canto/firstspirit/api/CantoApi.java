@@ -4,6 +4,8 @@ import com.canto.firstspirit.api.model.CantoAccessTokenData;
 import com.canto.firstspirit.api.model.CantoAsset;
 import com.canto.firstspirit.api.model.CantoBatchResponse;
 import com.canto.firstspirit.api.model.CantoSearchResult;
+import com.canto.firstspirit.service.RequestLimiter;
+import com.canto.firstspirit.service.cache.ProjectBoundCacheAccess;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import com.canto.firstspirit.service.server.model.CantoSearchParams;
 import com.canto.firstspirit.util.CantoScheme;
@@ -16,7 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import okhttp3.HttpUrl;
@@ -42,7 +44,11 @@ public class CantoApi {
 
   private final String tenant;
   private final String oAuthBaseUrl;
+  private final @Nullable RequestLimiter singleFetchRequestLimiter;
+  private final @Nullable RequestLimiter batchFetchRequestLimiter;
 
+  private final ProjectBoundCacheAccess projectBoundCacheAccess;
+  private final long timeoutInSeconds;
   /**
    * <strong>!! Do not access directly. use {@link #getClient()} instead !! </strong>
    * <br> Using {@link #getClient()} ensures valid Access Token
@@ -69,18 +75,51 @@ public class CantoApi {
    * Instances meant to be managed by {@link com.canto.firstspirit.service.CantoSaasServiceImpl}
    * <br><strong>Direct Use outside of Service not recommended. </strong>
    *
-   * @param tenant       tenant
-   * @param oAuthBaseUrl url with correct region, matching the tenant
-   * @param appId        appId
-   * @param appSecret    appSecret
-   * @param userId       userId
+   * @param tenant                    tenant
+   * @param oAuthBaseUrl              url with correct region, matching the tenant
+   * @param appId                     appId
+   * @param appSecret                 appSecret
+   * @param userId                    userId
+   * @param singleFetchRequestLimiter singleFetchRequestLimiter to force Delay between single fetch request
+   * @param batchFetchRequestLimiter  batchFetchRequestLimiter to force Delay between single fetch request
+   * @param projectBoundCacheAccess   access to central cache
    */
-  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId) {
+  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId,
+      @Nullable RequestLimiter singleFetchRequestLimiter, @Nullable RequestLimiter batchFetchRequestLimiter,
+      ProjectBoundCacheAccess projectBoundCacheAccess) {
+
+    this(tenant, oAuthBaseUrl, appId, appSecret, userId, singleFetchRequestLimiter, batchFetchRequestLimiter, projectBoundCacheAccess, 20);
+
+  }
+
+  /**
+   * Creates new CantoApi. Access Token will be generated via appId, appSecret and UserId. Each Api instantiation generates new Access Token.
+   * Instances meant to be managed by {@link com.canto.firstspirit.service.CantoSaasServiceImpl}
+   * <br><strong>Direct Use outside of Service not recommended. </strong>
+   *
+   * @param tenant                    tenant
+   * @param oAuthBaseUrl              url with correct region, matching the tenant
+   * @param appId                     appId
+   * @param appSecret                 appSecret
+   * @param userId                    userId
+   * @param singleFetchRequestLimiter singleFetchRequestLimiter to force Delay between single fetch request
+   * @param batchFetchRequestLimiter  batchFetchRequestLimiter to force Delay between single fetch request
+   * @param projectBoundCacheAccess   access to central cache
+   * @param timeoutInSeconds          request timeout in seconds
+   */
+  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId,
+      @Nullable RequestLimiter singleFetchRequestLimiter, @Nullable RequestLimiter batchFetchRequestLimiter,
+      ProjectBoundCacheAccess projectBoundCacheAccess, long timeoutInSeconds) {
     this.tenant = tenant;
     this.appId = appId;
     this.appSecret = appSecret;
     this.userId = userId;
     this.oAuthBaseUrl = oAuthBaseUrl;
+    this.singleFetchRequestLimiter = singleFetchRequestLimiter;
+    this.batchFetchRequestLimiter = batchFetchRequestLimiter;
+    this.projectBoundCacheAccess = projectBoundCacheAccess;
+    // Do not accept 0 or less timeout, as it would lead to waiting indefinitely.
+    this.timeoutInSeconds = timeoutInSeconds <= 0 ? 20 : timeoutInSeconds;
   }
 
   /**
@@ -117,7 +156,11 @@ public class CantoApi {
       Logging.logInfo("[fetchClientWithNewToken] CantoApi Access Token refreshed", this.getClass());
       // Only use 90% of validity Period to ensure we don't get quirks at the end of the validity Period
       this.validUntilTimestamp = System.currentTimeMillis() + Math.round(cantoAccessTokenData.getExpiresInMs() * 0.9);
-      this._client = new OkHttpClient.Builder().addNetworkInterceptor(new TokenRequestInterceptor(cantoAccessTokenData.getAccessToken()))
+      this._client = new OkHttpClient.Builder().callTimeout(timeoutInSeconds, TimeUnit.SECONDS)
+          .connectTimeout(0, TimeUnit.SECONDS)
+          .readTimeout(0, TimeUnit.SECONDS)
+          .writeTimeout(0, TimeUnit.SECONDS)
+          .addNetworkInterceptor(new TokenRequestInterceptor(cantoAccessTokenData.getAccessToken()))
           .build();
 
     }
@@ -134,13 +177,20 @@ public class CantoApi {
         .addPathSegments("api/v1");
   }
 
+
   /**
    * fetch single Asset by Identifier
    *
    * @param assetId CantoAssetIdentifier
    * @return Optional of Asset
    */
-  private Optional<CantoAsset> fetchAssetById(CantoAssetIdentifier assetId) {
+  private @Nullable CantoAsset fetchAssetById(CantoAssetIdentifier assetId) {
+
+    // Check cache
+    CantoAsset cachedCantoAsset = projectBoundCacheAccess.retrieveFromCache(assetId);
+    if (cachedCantoAsset != null) {
+      return cachedCantoAsset;
+    }
 
     HttpUrl url = getApiUrl().addPathSegments(assetId.getPath())
         .build();
@@ -148,6 +198,9 @@ public class CantoApi {
     Logging.logInfo("[getAssetById] fetching " + url, LOGGER);
 
     CantoAsset asset = null;
+    if (singleFetchRequestLimiter != null) {
+      singleFetchRequestLimiter.delayRequestIfNecessary();
+    }
 
     try (Response response = executeGetRequest(url)) {
       ResponseBody body = response.body();
@@ -159,7 +212,9 @@ public class CantoApi {
       Logging.logError("[getAssetById] Error occurred", e, LOGGER);
     }
     Logging.logDebug("[getAssetById] returning Asset " + (asset == null ? null : asset.getId()), LOGGER);
-    return Optional.ofNullable(asset);
+
+    projectBoundCacheAccess.addToCache(assetId, asset);
+    return asset;
   }
 
   /**
@@ -168,14 +223,14 @@ public class CantoApi {
    * @param assetIdentifiers CantoAssetIdentifier containing scheme and id
    * @return List of CantoAssets in the same order as identifiers. Missing Assets are replaced by null
    */
-  public List<CantoAsset> fetchAssets(@NotNull List<? extends CantoAssetIdentifier> assetIdentifiers) {
+  public @NotNull List<@Nullable CantoAsset> fetchAssets(@NotNull List<? extends CantoAssetIdentifier> assetIdentifiers) {
     Logging.logInfo("[fetchAssets] fetching ids: " + Strings.implode(assetIdentifiers, ","), LOGGER);
     if (assetIdentifiers.size() == 0) {
       Logging.logInfo("[fetchAssets] Identifier List empty, returning empty list", LOGGER);
       return Collections.emptyList();
     }
     if (assetIdentifiers.size() == 1) {
-      return Collections.singletonList(fetchAssetById(assetIdentifiers.get(0)).orElse(null));
+      return Collections.singletonList(fetchAssetById(assetIdentifiers.get(0)));
     }
 
     List<Map<String, String>> requestList = assetIdentifiers.stream()
@@ -188,8 +243,11 @@ public class CantoApi {
     HttpUrl url = getApiUrl().addPathSegments("batch/content")
         .build();
 
-    Logging.logDebug("[fetchAssets] url:  " + url, LOGGER);
+    if (batchFetchRequestLimiter != null) {
+      batchFetchRequestLimiter.delayRequestIfNecessary();
+    }
 
+    Logging.logDebug("[fetchAssets] url:  " + url, LOGGER);
     try (Response response = executePostRequest(url, stringifiedJsonBody)) {
       ResponseBody body = response.body();
 
@@ -204,7 +262,8 @@ public class CantoApi {
 
       Map<String, CantoAsset> fetchedAssets = cantoBatchResponse.getDocResult()
           .stream()
-          .collect(Collectors.toMap(asset -> new CantoAssetIdentifier(asset.getScheme(), asset.getId()).getPath(), Function.identity()));
+          .collect(Collectors.toMap(asset -> CantoAssetIdentifierFactory.fromCantoAsset(asset)
+              .getPath(), Function.identity()));
 
       Logging.logDebug("[fetchAssets] " + cantoBatchResponse, LOGGER);
 
@@ -276,9 +335,17 @@ public class CantoApi {
 
       Logging.logDebug("searchResult " + cantoSearchResult, getClass());
 
-      if (cantoSearchResult != null && cantoSearchResult.getResults() == null) {
+      if (cantoSearchResult == null) {
+        throw new IllegalStateException("CantoSearchResult was null. Returning empty Result as default");
+      }
+
+      List<CantoAsset> foundAssets = cantoSearchResult.getResults();
+
+      if (foundAssets == null) {
         cantoSearchResult.setResults(Collections.emptyList());
         cantoSearchResult.setFound(0L);
+      } else {
+        projectBoundCacheAccess.updateAllInCache(foundAssets);
       }
 
       return cantoSearchResult;
@@ -297,7 +364,7 @@ public class CantoApi {
    * @return body source code
    * @throws IOException on failed request
    */
-  private Response executeGetRequest(HttpUrl url) throws IOException {
+  Response executeGetRequest(HttpUrl url) throws IOException {
 
     Request request = new Request.Builder().url(url)
         .build();
@@ -422,6 +489,5 @@ public class CantoApi {
 
     return null;
   }
-
 
 }
