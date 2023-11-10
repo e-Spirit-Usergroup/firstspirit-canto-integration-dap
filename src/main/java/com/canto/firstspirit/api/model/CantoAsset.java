@@ -12,6 +12,7 @@ public class CantoAsset {
 
   final static String META_FILE_EXTENSION = "File Type Extension";
   final static String DEFAULT_COPYRIGHT = "Copyright";
+  final static String DEFAULT_DATE_MODIFIED = "Date modified";
   private String name;
 
   private String ownerName;
@@ -125,6 +126,9 @@ public class CantoAsset {
     return mapGetOrDefault(defaultData, DEFAULT_COPYRIGHT, "");
   }
 
+  public String getLastModified() {
+    return mapGetOrDefault(defaultData, DEFAULT_DATE_MODIFIED, "");
+  }
 
   @Override public String toString() {
     return "[CantoAsset: " + this.scheme + "/" + this.id + "]";

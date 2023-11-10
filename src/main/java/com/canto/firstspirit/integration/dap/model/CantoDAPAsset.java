@@ -2,6 +2,7 @@ package com.canto.firstspirit.integration.dap.model;
 
 import static com.canto.firstspirit.util.MapUtils.mapGetOrDefault;
 
+import com.canto.firstspirit.api.CantoAssetIdentifierFactory;
 import com.canto.firstspirit.service.factory.CantoAssetIdentifierSerializer;
 import com.canto.firstspirit.service.server.model.CantoAssetDTO;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
@@ -33,8 +34,7 @@ public class CantoDAPAsset {
   private final String directOriginalUrl;
 
   @NotNull public static CantoDAPAsset fromCantoAssetDTO(@NotNull final CantoAssetDTO cantoAssetDTO) {
-    return new CantoDAPAsset(cantoAssetDTO.getSchema(),
-                             cantoAssetDTO.getId(),
+    return new CantoDAPAsset(CantoAssetIdentifierFactory.fromCantoAssetDTO(cantoAssetDTO),
                              cantoAssetDTO.getName(),
                              cantoAssetDTO.getDirectImagePreviewBaseUrl(),
                              cantoAssetDTO.getDirectOriginalUrl(),
@@ -48,9 +48,9 @@ public class CantoDAPAsset {
   }
 
 
-  private CantoDAPAsset(final String schema, String identifier, String title, String previewBaseUrl, String directOriginalUrl, String description,
+  private CantoDAPAsset(final CantoAssetIdentifier assetIdentifier, String title, String previewBaseUrl, String directOriginalUrl, String description,
       Long width, Long height, Long byteSize, String copyright, String fileExtension, @Nullable Map<String, Object> additionalInfo) {
-    this.assetIdentifier = new CantoAssetIdentifier(schema, identifier);
+    this.assetIdentifier = assetIdentifier;
     this.title = title;
     this.imagePreviewBaseUrl = previewBaseUrl;
     this.directOriginalUrl = directOriginalUrl;
