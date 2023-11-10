@@ -24,7 +24,7 @@ public class UrlHelper {
 
     final HttpUrl parsedUrl = HttpUrl.parse(url);
     if (parsedUrl == null) {
-      throw new IllegalStateException("Unable to parse URL " + url);
+      throw new IllegalStateException("Unable to parse URL [" + url + "]");
     }
 
     String baseUrl = parsedUrl.newBuilder()

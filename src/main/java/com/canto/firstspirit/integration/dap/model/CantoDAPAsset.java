@@ -155,16 +155,22 @@ public class CantoDAPAsset {
    * @return MDC Url with appended Parameters if passed.
    */
   public String getMDCImageUrl(@Nullable String mdcParameters) {
+    try {
 
-    // Retrieve MDC Url. Remove -FJPG default Parameter
-    String mdcBaseUrl = mapGetOrDefault(this.additionalInfo, MDC_IMAGE_URL, "");
-    String cleanMdcUrl = UrlHelper.removeLastUrlPathPart(mdcBaseUrl);
+      // Retrieve MDC Url. Remove -FJPG default Parameter
+      String mdcBaseUrl = mapGetOrDefault(this.additionalInfo, MDC_IMAGE_URL, "");
 
-    if (cleanMdcUrl.isBlank()) {
-      Logging.logWarning(this + "Requested MDCUrl not available.", this.getClass());
-      return "";
+      String cleanMdcUrl = UrlHelper.removeLastUrlPathPart(mdcBaseUrl);
+
+      if (cleanMdcUrl.isBlank()) {
+        Logging.logWarning(this + "Requested MDCUrl not available.", this.getClass());
+        return "";
+      }
+      return mdcParameters != null ? cleanMdcUrl + mdcParameters : cleanMdcUrl;
+    } catch (Exception e) {
+      Logging.logError("Unable to retrieve MDCImageUrl for " + this, e, this.getClass());
     }
-    return mdcParameters != null ? cleanMdcUrl + mdcParameters : cleanMdcUrl;
+    return "";
   }
 
   /**
