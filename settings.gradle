@@ -1,0 +1,18 @@
+pluginManagement {
+    repositories {
+        maven {
+            url = 'https://artifactory.e-spirit.hosting/artifactory/repo/'
+            credentials {
+                username = artifactory_hosting_username
+                password = artifactory_hosting_password
+            }
+        }
+        gradlePluginPortal()
+    }
+}
+
+if (!rootProjectName) {
+    throw new GradleException("Property 'rootProjectName' in gradle.properties must not be empty!")
+}
+rootProject.name = rootProjectName
+include 'server'

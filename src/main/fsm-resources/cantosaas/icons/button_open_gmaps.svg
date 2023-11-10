@@ -1,0 +1,9 @@
+<svg id="Ebene_1" data-name="Ebene 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <defs>
+    <style>.cls-1{fill:none;stroke:#FFFFFF;stroke-miterlimit:10;}</style>
+  </defs>
+  <circle class="cls-1" cx="11.75" cy="11.75" r="5.25"/>
+  <ellipse class="cls-1" cx="11.96" cy="11.75" rx="2.1" ry="5.25"/>
+  <line class="cls-1" x1="6.5" y1="11.6" x2="17" y2="11.6"/>
+  <line class="cls-1" x1="6.5" y1="11.75" x2="17" y2="11.75"/>
+</svg>
