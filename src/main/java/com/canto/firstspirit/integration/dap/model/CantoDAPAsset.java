@@ -160,6 +160,14 @@ public class CantoDAPAsset {
       // Retrieve MDC Url. Remove -FJPG default Parameter
       String mdcBaseUrl = mapGetOrDefault(this.additionalInfo, MDC_IMAGE_URL, "");
 
+      // If Asset is not published via MDC, Canto injects this magic String as URL
+      if ("Rendition-is-not-published-to-MDC".equals(mdcBaseUrl)) {
+        Logging.logError("Requested MDC URL for an Asset, that is not published via MDC. "
+                             + "This error can be fixed in Canto Asset Management by activating public via MDC for asset: " + assetIdentifier,
+                         this.getClass());
+        mdcBaseUrl = null;
+      }
+
       String cleanMdcUrl = UrlHelper.removeLastUrlPathPart(mdcBaseUrl);
 
       if (cleanMdcUrl.isBlank()) {
