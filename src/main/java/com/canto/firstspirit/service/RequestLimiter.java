@@ -25,7 +25,9 @@ public class RequestLimiter {
 
     this.waitTimeInMillisBetweenCalls = (MINUTE_IN_MILLISECONDS + timeBufferInMilliSeconds) / (maxRequestsPerMinute - requestsWithoutDelay);
 
-    this.requestTimestampsList = Collections.synchronizedList(new ArrayList<>(Collections.nCopies(maxRequestsPerMinute, 0L)));
+    long currentTimestamp = System.currentTimeMillis();
+
+    this.requestTimestampsList = Collections.synchronizedList(new ArrayList<>(Collections.nCopies(maxRequestsPerMinute, currentTimestamp)));
     this.listIterator = requestTimestampsList.listIterator();
   }
 
