@@ -65,6 +65,7 @@ public class CacheUpdater {
    * @param cantoApi              Api to refresh Cache Elements
    * @param cacheUpdateTimespanMs Timespan that defines validity time of UpdateBatches
    * @param maxCacheSize          max count of elements in cache. Not strictly enforced, cache may overflow for a short period of time (~30 seconds)
+   * @param batchUpdateSize       Size for BatchUpdates. Large Batches are quite slow!
    */
   public CacheUpdater(CentralCache centralCache, @Nullable CantoApi cantoApi, long cacheUpdateTimespanMs, int maxCacheSize, int batchUpdateSize) {
     this.centralCache = centralCache;

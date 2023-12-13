@@ -155,16 +155,30 @@ public class CantoDAPAsset {
    * @return MDC Url with appended Parameters if passed.
    */
   public String getMDCImageUrl(@Nullable String mdcParameters) {
+    try {
 
-    // Retrieve MDC Url. Remove -FJPG default Parameter
-    String mdcBaseUrl = mapGetOrDefault(this.additionalInfo, MDC_IMAGE_URL, "");
-    String cleanMdcUrl = UrlHelper.removeLastUrlPathPart(mdcBaseUrl);
+      // Retrieve MDC Url. Remove -FJPG default Parameter
+      String mdcBaseUrl = mapGetOrDefault(this.additionalInfo, MDC_IMAGE_URL, "");
 
-    if (cleanMdcUrl.isBlank()) {
-      Logging.logWarning(this + "Requested MDCUrl not available.", this.getClass());
-      return "";
+      // If Asset is not published via MDC, Canto injects this magic String as URL
+      if ("Rendition-is-not-published-to-MDC".equals(mdcBaseUrl)) {
+        Logging.logError("Requested MDC URL for an Asset, that is not published via MDC. "
+                             + "This error can be fixed in Canto Asset Management by activating public via MDC for asset: " + assetIdentifier,
+                         this.getClass());
+        mdcBaseUrl = null;
+      }
+
+      String cleanMdcUrl = UrlHelper.removeLastUrlPathPart(mdcBaseUrl);
+
+      if (cleanMdcUrl.isBlank()) {
+        Logging.logWarning(this + "Requested MDCUrl not available.", this.getClass());
+        return "";
+      }
+      return mdcParameters != null ? cleanMdcUrl + mdcParameters : cleanMdcUrl;
+    } catch (Exception e) {
+      Logging.logError("Unable to retrieve MDCImageUrl for " + this, e, this.getClass());
     }
-    return mdcParameters != null ? cleanMdcUrl + mdcParameters : cleanMdcUrl;
+    return "";
   }
 
   /**

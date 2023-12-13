@@ -30,6 +30,6 @@ public class CantoDAPSnippetProvider implements DataSnippetProvider<CantoDAPAsse
   }
 
   @Override public String getExtract(@NotNull CantoDAPAsset cantoDAPAsset, Language language) {
-    return null;
+    return cantoDAPAsset.getPath();
   }
 }
