@@ -208,9 +208,10 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
       return "ServiceConfiguration{" + "useCache=" + useCache + ", useRequestLimiter=" + useRequestLimiter + ", requestsWithoutDelay="
           + requestsWithoutDelay + ", maxRequestsPerMinute=" + maxRequestsPerMinute + ", timeBufferInMs=" + timeBufferInMs + ", batchUpdateSize="
           + batchUpdateSize + ", restartServiceOnSave=" + restartServiceOnSave + ", apiTenant='" + apiTenant + '\'' + ", apiOAuthBaseUrl='"
-          + apiOAuthBaseUrl + '\'' + ", apiAppId='" + apiAppId.substring(0, 5) + "..." + '\'' + ", apiAppSecret='" + apiAppSecret.substring(0, 5)
-          + "..." + '\'' + ", apiUserId='" + apiUserId + '\'' + ", cacheItemLifespanMs=" + cacheItemLifespanMs + ", cacheUpdateTimespanMs="
-          + cacheUpdateTimespanMs + ", cacheItemInUseTimespanMs=" + cacheItemInUseTimespanMs + ", cacheSize=" + cacheSize + '}';
+          + apiOAuthBaseUrl + '\'' + ", apiAppId='" + (apiAppId.length() < 5 ? "EMPTY" : (apiAppId.substring(0, 5) + "...")) + '\''
+          + ", apiAppSecret='" + (apiAppSecret.length() < 5 ? "EMPTY" : (apiAppSecret.substring(0, 5) + "...")) + '\'' + ", apiUserId='" + apiUserId
+          + '\'' + ", cacheItemLifespanMs=" + cacheItemLifespanMs + ", cacheUpdateTimespanMs=" + cacheUpdateTimespanMs + ", cacheItemInUseTimespanMs="
+          + cacheItemInUseTimespanMs + ", cacheSize=" + cacheSize + '}';
     }
   }
 
