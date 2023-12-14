@@ -7,6 +7,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class CantoAssetDTOFactory {
 
+  private CantoAssetDTOFactory() {
+  }
+
   public static @Nullable CantoAssetDTO fromAsset(@Nullable CantoAsset asset) {
     if (asset == null) {
       return null;
@@ -14,10 +17,8 @@ public class CantoAssetDTOFactory {
     try {
       return new CantoAssetDTO(asset.getId(),
                                asset.getName(),
-                               UrlHelper.removeLastUrlPathPart(asset.getCantoUrls()
-                                                                   .getDirectUrlPreview()),
-                               asset.getCantoUrls()
-                                   .getDirectUrlOriginal(),
+                               UrlHelper.removeLastUrlPathPart(asset.getCantoUrls().getDirectUrlPreview()),
+                               asset.getCantoUrls().getDirectUrlOriginal(),
                                asset.getScheme(),
                                asset.getDescription(),
                                asset.getWidth(),
@@ -25,7 +26,9 @@ public class CantoAssetDTOFactory {
                                asset.getSize(),
                                asset.getCopyright(),
                                asset.getFileExtension(),
-                               asset.getAdditional());
+                               asset.getAdditional(),
+                               asset.getApprovalStatus());
+
     } catch (Exception e) {
       throw new RuntimeException("Unable to create DTO Object for " + asset, e);
     }
