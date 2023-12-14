@@ -62,7 +62,7 @@ public class CantoApi {
 
   private long validUntilTimestamp;
 
-  static private final Moshi moshi = new Moshi.Builder().build();
+  private static final Moshi moshi = new Moshi.Builder().build();
   private final JsonAdapter<CantoSearchResult> cantoSearchResultJsonAdapter = moshi.adapter(CantoSearchResult.class);
   private final JsonAdapter<CantoAsset> cantoAssetJsonAdapter = moshi.adapter(CantoAsset.class);
   private final JsonAdapter<CantoBatchResponse> cantoBatchResponseJsonAdapter = moshi.adapter(CantoBatchResponse.class);

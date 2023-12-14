@@ -10,6 +10,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class CantoDAPSnippetProvider implements DataSnippetProvider<CantoDAPAsset> {
 
+  private static final String CANTOSAAS_RESOURCES_PATH = "cantosaas/";
+  private static final String CANTOSAAS_ICONS_PATH = CANTOSAAS_RESOURCES_PATH + "icons/";
   private final BaseContext context;
 
   public CantoDAPSnippetProvider(BaseContext context) {
@@ -17,12 +19,14 @@ public class CantoDAPSnippetProvider implements DataSnippetProvider<CantoDAPAsse
   }
 
   @Override public Image<?> getIcon(@NotNull CantoDAPAsset cantoDAPAsset) {
-    return null;
+    ImageAgent imageAgent = context.requireSpecialist(ImageAgent.TYPE);
+    boolean approvalStatue = "Approved".equals(cantoDAPAsset.getApprovalStatus());
+    String imageName = approvalStatue ? "approved.png" : "not_approved.png";
+    return imageAgent.getImageFromUrl(CANTOSAAS_ICONS_PATH + imageName);
   }
 
   @Override public Image<?> getThumbnail(CantoDAPAsset cantoDAPAsset, Language language) {
-    return context.requireSpecialist(ImageAgent.TYPE)
-        .getImageFromUrl(cantoDAPAsset.getThumbnailUrl());
+    return context.requireSpecialist(ImageAgent.TYPE).getImageFromUrl(cantoDAPAsset.getThumbnailUrl());
   }
 
   @NotNull @Override public String getHeader(CantoDAPAsset cantoDAPAsset, Language language) {
