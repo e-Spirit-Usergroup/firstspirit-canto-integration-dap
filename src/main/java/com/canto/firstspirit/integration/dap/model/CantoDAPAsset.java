@@ -32,6 +32,7 @@ public class CantoDAPAsset {
   @Nullable
   private final Map<String, Object> additionalInfo;
   private final String directOriginalUrl;
+  private final String approvalStatus;
 
   @NotNull public static CantoDAPAsset fromCantoAssetDTO(@NotNull final CantoAssetDTO cantoAssetDTO) {
     return new CantoDAPAsset(CantoAssetIdentifierFactory.fromCantoAssetDTO(cantoAssetDTO),
@@ -44,12 +45,14 @@ public class CantoDAPAsset {
                              cantoAssetDTO.getByteSize(),
                              cantoAssetDTO.getCopyright(),
                              cantoAssetDTO.getFileExtension(),
-                             cantoAssetDTO.getAdditionalInfo());
+                             cantoAssetDTO.getAdditionalInfo(),
+                             cantoAssetDTO.getApprovalStatus());
   }
 
 
   private CantoDAPAsset(final CantoAssetIdentifier assetIdentifier, String title, String previewBaseUrl, String directOriginalUrl, String description,
-      Long width, Long height, Long byteSize, String copyright, String fileExtension, @Nullable Map<String, Object> additionalInfo) {
+      Long width, Long height, Long byteSize, String copyright, String fileExtension, @Nullable Map<String, Object> additionalInfo,
+      String approvalStatus) {
     this.assetIdentifier = assetIdentifier;
     this.title = title;
     this.imagePreviewBaseUrl = previewBaseUrl;
@@ -61,6 +64,7 @@ public class CantoDAPAsset {
     this.byteSize = byteSize;
     this.copyright = copyright;
     this.fileExtension = fileExtension;
+    this.approvalStatus = approvalStatus;
   }
 
   public String getDescription() {
@@ -302,6 +306,10 @@ public class CantoDAPAsset {
    */
   public @Nullable Map<String, Object> getAdditionalInfo() {
     return additionalInfo;
+  }
+
+  public String getApprovalStatus() {
+    return approvalStatus;
   }
 
   /**

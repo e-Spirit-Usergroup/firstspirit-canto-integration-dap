@@ -10,9 +10,9 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("unused")
 public class CantoAsset {
 
-  final static String META_FILE_EXTENSION = "File Type Extension";
-  final static String DEFAULT_COPYRIGHT = "Copyright";
-  final static String DEFAULT_DATE_MODIFIED = "Date modified";
+  static final String META_FILE_EXTENSION = "File Type Extension";
+  static final String DEFAULT_COPYRIGHT = "Copyright";
+  static final String DEFAULT_DATE_MODIFIED = "Date modified";
   private String name;
 
   private String ownerName;
@@ -46,6 +46,7 @@ public class CantoAsset {
   @Nullable
   private Map<String, Object> metadata;
 
+  private String approvalStatus;
 
   @Nullable
   @Json(name = "default")
@@ -97,6 +98,9 @@ public class CantoAsset {
     return description;
   }
 
+  public String getApprovalStatus() {
+    return approvalStatus;
+  }
 
   public Long getSize() {
     return size;
