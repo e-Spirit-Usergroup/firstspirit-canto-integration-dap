@@ -1,7 +1,9 @@
 package com.canto.firstspirit.integration.dap;
 
 import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
+import com.espirit.ps.psci.magicicons.MagicIcon;
 import de.espirit.firstspirit.access.BaseContext;
+import de.espirit.firstspirit.access.BaseContext.Env;
 import de.espirit.firstspirit.access.Language;
 import de.espirit.firstspirit.agency.Image;
 import de.espirit.firstspirit.agency.ImageAgent;
@@ -22,7 +24,11 @@ public class CantoDAPSnippetProvider implements DataSnippetProvider<CantoDAPAsse
     ImageAgent imageAgent = context.requireSpecialist(ImageAgent.TYPE);
     boolean approvalStatue = "Approved".equals(cantoDAPAsset.getApprovalStatus());
     String imageName = approvalStatue ? "approved.png" : "not_approved.png";
-    return imageAgent.getImageFromUrl(CANTOSAAS_ICONS_PATH + imageName);
+    if (context.is(Env.WEBEDIT)) {
+      return imageAgent.getImageFromUrl(CANTOSAAS_ICONS_PATH + imageName);
+    }
+    MagicIcon magicIcon = MagicIcon.fromResource(getClass(), "/" + CANTOSAAS_ICONS_PATH + imageName);
+    return magicIcon.getImage(context);
   }
 
   @Override public Image<?> getThumbnail(CantoDAPAsset cantoDAPAsset, Language language) {
