@@ -3,7 +3,7 @@ buildscript {
         fsRuntimeVersion = '5.2.230212'
         fsIsolationCheckVersion = '5.2.230212' // update regularly to test against newest FirstSpirit release
         magicIconsVersion = '2.1.0'
-        okhttpVersion = '4.11.0'
+        okhttpVersion = '4.12.0'
         moshiVersion = '1.14.0'
         genericConfigVersion = '2.8.0'
     }
@@ -12,7 +12,7 @@ buildscript {
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'de.espirit.firstspirit-module' version '4.1.1'
+    id 'de.espirit.firstspirit-module' version '4.7.0'
     id 'net.researchgate.release' version '3.0.2'
 }
 
