@@ -8,8 +8,9 @@ import de.espirit.firstspirit.module.descriptor.WebAppDescriptor;
 
 
 @SuppressWarnings("unused")
-@WebAppComponent(name = "Canto SaaS WebApp", description = "Web component for Canto SaaS Connector", webXml = "WEB-INF/web.xml", webResources = {@WebResource(name = "", version = "", targetPath = "/", path = "cantosaas/"),
-                                                                                                                                                 @WebResource(name = "${project.group}:${project.name}-cantosaas", version = "${project.version}", path = "cantosaas")})
+@WebAppComponent(name = "Canto SaaS WebApp", description = "Web component for Canto SaaS Connector", webXml = "WEB-INF/web.xml", xmlSchemaVersion = "6.0", webResources = {
+    @WebResource(name = "", version = "", targetPath = "/", path = "cantosaas/"),
+    @WebResource(name = "${project.group}:${project.name}-cantosaas", version = "${project.version}", path = "cantosaas")})
 public class CantoSaasWebApp implements WebApp {
 
   @Override public void createWar() {
