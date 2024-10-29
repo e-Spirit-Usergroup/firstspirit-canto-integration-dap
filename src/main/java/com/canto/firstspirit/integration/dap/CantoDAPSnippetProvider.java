@@ -32,7 +32,8 @@ public class CantoDAPSnippetProvider implements DataSnippetProvider<CantoDAPAsse
   }
 
   @Override public Image<?> getThumbnail(CantoDAPAsset cantoDAPAsset, Language language) {
-    return context.requireSpecialist(ImageAgent.TYPE).getImageFromUrl(cantoDAPAsset.getThumbnailUrl());
+    return context.requireSpecialist(ImageAgent.TYPE)
+        .getImageFromUrl(cantoDAPAsset.getThumbnailUrl());
   }
 
   @NotNull @Override public String getHeader(CantoDAPAsset cantoDAPAsset, Language language) {

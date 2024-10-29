@@ -14,15 +14,13 @@ import org.jetbrains.annotations.Nullable;
 public interface CantoSaasService {
 
   /**
-   * Fetches Assets via Canto Api and returns result Preserves Order of Incoming Ids and matching identifiers If Assets have not been found, null
-   * values are inserted in their place
+   * Fetches Assets via Canto Api and returns result Preserves Order of Incoming Ids and matching identifiers If Assets have not been found, null values are inserted in their place
    *
    * @param connection  Project Specific Connection to fetch Data with
    * @param identifiers List of Identifiers to fetch of form {scheme}/{cantoId}
    * @return List of AssetDTOs, may contain null Values. Null Response indicates invalid connection
    */
-  @Nullable List<@Nullable CantoAssetDTO> fetchAssetsByIdentifiers(@NotNull final CantoServiceConnection connection,
-      @NotNull final List<CantoAssetIdentifier> identifiers);
+  @Nullable List<@Nullable CantoAssetDTO> fetchAssetsByIdentifiers(@NotNull final CantoServiceConnection connection, @NotNull final List<CantoAssetIdentifier> identifiers);
 
   /**
    * Searches for Assets based on passed SearchParams
@@ -37,8 +35,7 @@ public interface CantoSaasService {
    * get a Connection for fetching Assets and performing searches. the passed CantoConfig defines the cantoApi bound to this connection.
    *
    * @param config CantoConfig
-   * @return cantoServiceConnetion to be used with {@link #fetchAssetsByIdentifiers(CantoServiceConnection, List)} and
-   * {@link #fetchSearch(CantoServiceConnection, CantoSearchParams)}
+   * @return cantoServiceConnetion to be used with {@link #fetchAssetsByIdentifiers(CantoServiceConnection, List)} and {@link #fetchSearch(CantoServiceConnection, CantoSearchParams)}
    */
   CantoServiceConnection getServiceConnection(@NotNull final CantoConfiguration config);
 
@@ -49,5 +46,5 @@ public interface CantoSaasService {
    */
   void removeServiceConnection(@NotNull final CantoServiceConnection connection);
 
-
+  @Nullable String fetchUserScope(CantoServiceConnection connection, String userId);
 }

@@ -50,8 +50,7 @@ public class CantoDAPAsset {
   }
 
 
-  private CantoDAPAsset(final CantoAssetIdentifier assetIdentifier, String title, String previewBaseUrl, String directOriginalUrl, String description,
-      Long width, Long height, Long byteSize, String copyright, String fileExtension, @Nullable Map<String, Object> additionalInfo,
+  private CantoDAPAsset(final CantoAssetIdentifier assetIdentifier, String title, String previewBaseUrl, String directOriginalUrl, String description, Long width, Long height, Long byteSize, String copyright, String fileExtension, @Nullable Map<String, Object> additionalInfo,
       String approvalStatus) {
     this.assetIdentifier = assetIdentifier;
     this.title = title;
@@ -84,9 +83,7 @@ public class CantoDAPAsset {
   }
 
   /**
-   * returns Image PreviewURL. Default size 800. <br>
-   * If available it's recommended to use MDC Urls instead, because direct URLs count towards your Canto-Api Limit. <br>
-   * See {@link #getMDCImageUrl()}
+   * returns Image PreviewURL. Default size 800. <br> If available it's recommended to use MDC Urls instead, because direct URLs count towards your Canto-Api Limit. <br> See {@link #getMDCImageUrl()}
    *
    * @return url with trailing slash as String without scaling parameter
    */
@@ -95,9 +92,7 @@ public class CantoDAPAsset {
   }
 
   /**
-   * returns Image PreviewURL with specified size. <br>
-   * If available, it's recommended to use MDC Urls.
-   * See {@link #getMDCImageUrl()}
+   * returns Image PreviewURL with specified size. <br> If available, it's recommended to use MDC Urls. See {@link #getMDCImageUrl()}
    * <p>
    * See <a href="https://api.canto.com/#112d6ca4-f22c-4e13-b4b3-ff72bd999b35">Canto Api Documentation</a> for valid Scaling parameters.
    *
@@ -124,9 +119,7 @@ public class CantoDAPAsset {
 
 
   /**
-   * returns AssetURL for Download. <br>
-   * If available, it's recommended to use MDC Urls.
-   * See {@link #getMDCAssetUrl(String)}
+   * returns AssetURL for Download. <br> If available, it's recommended to use MDC Urls. See {@link #getMDCAssetUrl(String)}
    * <p>
    *
    * @return url as String
@@ -136,9 +129,7 @@ public class CantoDAPAsset {
   }
 
   /**
-   * get MDC Url if available. <br>
-   * Logs Warning if MDC is not available. <br>
-   * You can check availability via {@link #isMDCAvailable()}
+   * get MDC Url if available. <br> Logs Warning if MDC is not available. <br> You can check availability via {@link #isMDCAvailable()}
    *
    * @return MDC Url or empty String if not available.
    */
@@ -147,9 +138,7 @@ public class CantoDAPAsset {
   }
 
   /**
-   * Returns MDC Url with given Parameters.
-   * MDC Parameters are not validated!
-   * See <a href="https://doc.canto.solutions/mdc/index.html#_url_format">MDC Documentation</a> as reference <br>
+   * Returns MDC Url with given Parameters. MDC Parameters are not validated! See <a href="https://doc.canto.solutions/mdc/index.html#_url_format">MDC Documentation</a> as reference <br>
    * <b>Important Note</b>: You must specify/append at least one Parameter for the URL to be valid!
    * e.g. specify the format (e.g. -FPNG) or a scale/crop (e.g. -S200x200).
    * <p>
@@ -166,9 +155,7 @@ public class CantoDAPAsset {
 
       // If Asset is not published via MDC, Canto injects this magic String as URL
       if ("Rendition-is-not-published-to-MDC".equals(mdcBaseUrl)) {
-        Logging.logError("Requested MDC URL for an Asset, that is not published via MDC. "
-                             + "This error can be fixed in Canto Asset Management by activating public via MDC for asset: " + assetIdentifier,
-                         this.getClass());
+        Logging.logError("Requested MDC URL for an Asset, that is not published via MDC. " + "This error can be fixed in Canto Asset Management by activating public via MDC for asset: " + assetIdentifier, this.getClass());
         mdcBaseUrl = null;
       }
 
@@ -248,8 +235,7 @@ public class CantoDAPAsset {
   }
 
   /**
-   * @return file extension without dot e.g. <br>
-   * pdf
+   * @return file extension without dot e.g. <br> pdf
    */
   public String getFileExtension() {
     return fileExtension;
@@ -270,9 +256,7 @@ public class CantoDAPAsset {
   }
 
   /**
-   * Adds AdditionalData to the Assets identifier. This data will be serialized in the DAP. AdditionalData is a String key-value Map. Setting the
-   * value to null removes the key from the Map
-   * To serialize the data, the asset as to be readded to the index with the manipulated identifier
+   * Adds AdditionalData to the Assets identifier. This data will be serialized in the DAP. AdditionalData is a String key-value Map. Setting the value to null removes the key from the Map To serialize the data, the asset as to be readded to the index with the manipulated identifier
    *
    * @param key   key for Map
    * @param value String to save

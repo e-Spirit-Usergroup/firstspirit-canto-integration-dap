@@ -7,8 +7,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 /**
- * Thread Safe implementation.
- * Makes sure, that Api Limits are retained via {@link #delayRequestIfNecessary()}
+ * Thread Safe implementation. Makes sure, that Api Limits are retained via {@link #delayRequestIfNecessary()}
  */
 public class RequestLimiter {
 
@@ -51,15 +50,12 @@ public class RequestLimiter {
   }
 
   /**
-   * This function performs Thread.sleep if necessary to ensure
-   * to stay within Api Call limits.
-   * Synchronized to make sure all calls wait subsequent and not parallel
+   * This function performs Thread.sleep if necessary to ensure to stay within Api Call limits. Synchronized to make sure all calls wait subsequent and not parallel
    */
   synchronized public void delayRequestIfNecessary() {
     int requestWithinLastMinute = calculateApiCallsWithinLastMinute();
     if (requestWithinLastMinute > requestsWithoutDelay) {
-      Logging.logInfo("[delayRequestIfNecessary] Many Requests within last Minute. Wait for " + waitTimeInMillisBetweenCalls
-                          + "ms between api calls to stay within defined API Limits. Num Calls: " + requestWithinLastMinute, this.getClass());
+      Logging.logInfo("[delayRequestIfNecessary] Many Requests within last Minute. Wait for " + waitTimeInMillisBetweenCalls + "ms between api calls to stay within defined API Limits. Num Calls: " + requestWithinLastMinute, this.getClass());
 
       try {
         Thread.sleep(waitTimeInMillisBetweenCalls);

@@ -23,19 +23,14 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The CacheUpdater periodically checks, if elements from CentralCache need revalidation or if the cache exceeds 95% load. <br>
- * Revalidation is done in batches ({@link CacheUpdateBatch}), a batch is re-fetched based on its creation date and configured lifespan. <br><br>
- * Every {@link CacheElement} in a batch is newer than the batch itself. On revalidation, all elements in a batch that are still in use
- * (have been requested recently) are re-fetched with {@link CantoApi} and updated in the {@link CentralCache}.
- * Elements that have not been used recently are removed from the {@link CentralCache}.
+ * The CacheUpdater periodically checks, if elements from CentralCache need revalidation or if the cache exceeds 95% load. <br> Revalidation is done in batches ({@link CacheUpdateBatch}), a batch is re-fetched based on its creation date and configured lifespan. <br><br> Every {@link CacheElement} in
+ * a batch is newer than the batch itself. On revalidation, all elements in a batch that are still in use (have been requested recently) are re-fetched with {@link CantoApi} and updated in the {@link CentralCache}. Elements that have not been used recently are removed from the {@link CentralCache}.
  * <br>
  * <br>
- * The cache size is periodically checked. The cache is actively trimmed, if its element count exceed 95% of maxCacheSize.
- * This maxSize is not strictly enforced, the cache may overflow for ~0-30 seconds.
+ * The cache size is periodically checked. The cache is actively trimmed, if its element count exceed 95% of maxCacheSize. This maxSize is not strictly enforced, the cache may overflow for ~0-30 seconds.
  * <br>
  * <br>
- * The cachesize and timespans for validation, fetching and usage checks can be configured in the
- * {@link com.canto.firstspirit.service.CantoSaasServiceConfigurable Service Configuration}
+ * The cachesize and timespans for validation, fetching and usage checks can be configured in the {@link com.canto.firstspirit.service.CantoSaasServiceConfigurable Service Configuration}
  * <br>
  * <br>
  * <b>The CacheUpdater manages a Thread for periodic checks. Remember to call {@link #shutdown()}, to ensure the Thread is stopped.</b>
@@ -54,9 +49,7 @@ public class CacheUpdater {
 
 
   /**
-   * Create CacheUpdater for given central Cache. Provided CantoApi is used to refresh cache elements accoirding to the cacheUpdateTimespanMs.
-   * periodically checks maxCacheSize.
-   * Daemon Update Thread is started automatically when calling this constructor,
+   * Create CacheUpdater for given central Cache. Provided CantoApi is used to refresh cache elements accoirding to the cacheUpdateTimespanMs. periodically checks maxCacheSize. Daemon Update Thread is started automatically when calling this constructor,
    * <br>
    * <br>
    * <b>remember to call {@link #shutdown} when this CacheUpdater instance is no longer used!</b>
@@ -79,8 +72,7 @@ public class CacheUpdater {
 
 
   /**
-   * starts the periodic update thread. Restarts it if necessary
-   * Main entry method to start the CacheUpdater
+   * starts the periodic update thread. Restarts it if necessary Main entry method to start the CacheUpdater
    */
   void startUpdaterTask() {
     startExecutorServiceIfNeeded();
@@ -126,10 +118,7 @@ public class CacheUpdater {
   }
 
   /**
-   * Add the cacheId to the updateBatches.<br>
-   * If the id is not yet present, it's appended to the last (newest) updateBatch, that is not full.<br>
-   * Nothing is done, if it is part of some batch already. <br>
-   * Automatically creates new batches if needed.
+   * Add the cacheId to the updateBatches.<br> If the id is not yet present, it's appended to the last (newest) updateBatch, that is not full.<br> Nothing is done, if it is part of some batch already. <br> Automatically creates new batches if needed.
    *
    * @param cacheId must be valid assetPath, see {@link CantoAssetIdentifier#getPath()}
    */
@@ -220,8 +209,7 @@ public class CacheUpdater {
         for (String cantoAssetPath : staleUpdateBatch.batch) {
           this.centralCache.removeElement(cantoAssetPath);
         }
-        Logging.logInfo("[CacheUpdater] update done. updated Items: " + fetchedAssets.size() + " - removed Items: " + staleUpdateBatch.batch.size(),
-                        this.getClass());
+        Logging.logInfo("[CacheUpdater] update done. updated Items: " + fetchedAssets.size() + " - removed Items: " + staleUpdateBatch.batch.size(), this.getClass());
       }
     } else {
       Logging.logInfo("[CacheUpdater] updateBatches fresh", this.getClass());
@@ -266,9 +254,7 @@ public class CacheUpdater {
         }
         updateBatches.remove(0);
       }
-      Logging.logInfo(
-          "[CacheUpdater] Hard Cleanup done. Total removed Elements (soft + hard): " + cleanedUpElements + " - New Cache load after Cleanup: "
-              + cacheMap.size() + " (" + (cacheMap.size() / (double) maxCacheSize) * 100 + "%)", this.getClass());
+      Logging.logInfo("[CacheUpdater] Hard Cleanup done. Total removed Elements (soft + hard): " + cleanedUpElements + " - New Cache load after Cleanup: " + cacheMap.size() + " (" + (cacheMap.size() / (double) maxCacheSize) * 100 + "%)", this.getClass());
     }
   }
 

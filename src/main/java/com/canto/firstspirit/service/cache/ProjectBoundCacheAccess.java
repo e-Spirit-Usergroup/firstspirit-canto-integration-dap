@@ -12,8 +12,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * ProjectBoundCacheAccess offers access to the central cache, based on Project Specific access restrictions.<br>
  * <p>
- * This class Does not  persist cached data itself. Only works as a "gate" to make sure,
- * projects only access Cache Objects they have access to with regards to Canto Access Authorization
+ * This class Does not  persist cached data itself. Only works as a "gate" to make sure, projects only access Cache Objects they have access to with regards to Canto Access Authorization
  */
 public class ProjectBoundCacheAccess {
 
@@ -86,8 +85,7 @@ public class ProjectBoundCacheAccess {
   }
 
   /**
-   * update/add elements to central cache. Does *not* set last used.
-   * Also grants access to those elements via {@link #retrieveFromCache(CantoAssetIdentifier)}
+   * update/add elements to central cache. Does *not* set last used. Also grants access to those elements via {@link #retrieveFromCache(CantoAssetIdentifier)}
    *
    * @param cantoAssetCollection collection of elements to add
    */

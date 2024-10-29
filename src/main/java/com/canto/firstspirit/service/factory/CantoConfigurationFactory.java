@@ -29,9 +29,7 @@ public class CantoConfigurationFactory {
 
     if (tenant.isBlank() || appId.isBlank() || appSecret.isBlank() || userId.isBlank() || oAuthBaseUrl.isBlank()) {
 
-      throw new IllegalStateException(
-          "ProjectApp Configuration not correct. Please provide tenant, appId, appSecret and UserId Project: ['" + projectName + "', "
-              + projectAgent.getId() + "]");
+      throw new IllegalStateException("ProjectApp Configuration not correct. Please provide tenant, appId, appSecret and UserId Project: ['" + projectName + "', " + projectAgent.getId() + "]");
     }
 
     return new CantoConfiguration(tenant, oAuthBaseUrl, appId, appSecret, userId, projectName);

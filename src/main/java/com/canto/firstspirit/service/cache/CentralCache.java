@@ -10,9 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Central persistence of cache items
- * Handling of Lifecycle of elements and Cache Load handling is internally delegated to {@link CacheUpdater}.
- * Configurable via {@link com.canto.firstspirit.service.CantoSaasServiceConfigurable Service Configuration}
+ * Central persistence of cache items Handling of Lifecycle of elements and Cache Load handling is internally delegated to {@link CacheUpdater}. Configurable via {@link com.canto.firstspirit.service.CantoSaasServiceConfigurable Service Configuration}
  * <br>
  * <br>
  * Should <b>not</b> be used directly by Canto Api, instead use the {@link ProjectBoundCacheAccess}!
@@ -25,18 +23,21 @@ public class CentralCache {
 
   final int maxCacheSize;
 
+  private CantoApi cantoApi;
+
   protected final ConcurrentHashMap<String, CacheElement> cacheMap;
 
   CacheUpdater cacheUpdater;
 
-  public CentralCache(@Nullable CantoApi cantoApi, int maxCacheSize, long cacheItemLifespanMs, long cacheUpdateTimespanMs,
-      long cacheItemInUseTimespanMs, int batchUpdateSize) {
+  public CentralCache(@Nullable CantoApi cantoApi, int maxCacheSize, long cacheItemLifespanMs, long cacheUpdateTimespanMs, long cacheItemInUseTimespanMs, int batchUpdateSize) {
     this.cacheItemLifespanMs = cacheItemLifespanMs;
     this.cacheUpdateTimespanMs = cacheUpdateTimespanMs;
     this.cacheItemInUseTimespanMs = cacheItemInUseTimespanMs;
     this.cacheMap = new ConcurrentHashMap<>(maxCacheSize);
     if (cantoApi == null) {
       Logging.logInfo("No Api for Cache!", this.getClass());
+    } else {
+      this.cantoApi = cantoApi;
     }
     this.maxCacheSize = maxCacheSize;
     cacheUpdater = new CacheUpdater(this, cantoApi, cacheUpdateTimespanMs, maxCacheSize, batchUpdateSize);
@@ -68,8 +69,7 @@ public class CentralCache {
   }
 
   /**
-   * get CacheItem Wrapper. Using this method does not modifiy lastUsed Timestamp.
-   * Hence, it can be used for internal handling of cache e.g. by CacheUpdater
+   * get CacheItem Wrapper. Using this method does not modifiy lastUsed Timestamp. Hence, it can be used for internal handling of cache e.g. by CacheUpdater
    *
    * @param assetPath assetPath
    * @return CacheElement wrapper
@@ -92,8 +92,7 @@ public class CentralCache {
   }
 
   /**
-   * Update Existing Element, create if non-existent.
-   * Does <b>not</b> set lastUsed, hence can be used for internal purposes of CacheUpdater
+   * Update Existing Element, create if non-existent. Does <b>not</b> set lastUsed, hence can be used for internal purposes of CacheUpdater
    *
    * @param asset asset to update / create in cache
    * @return identifier of asset
@@ -151,8 +150,11 @@ public class CentralCache {
     cacheUpdater.shutdown();
   }
 
+  public CantoApi getCantoApi() {
+    return cantoApi;
+  }
+
   @Override public String toString() {
-    return "CentralCache{" + "cacheItemLifespanMs=" + cacheItemLifespanMs + ", cacheUpdateTimespanMs=" + cacheUpdateTimespanMs
-        + ", cacheItemInUseTimespanMs=" + cacheItemInUseTimespanMs + ", maxCacheSize=" + maxCacheSize + '}';
+    return "CentralCache{" + "cacheItemLifespanMs=" + cacheItemLifespanMs + ", cacheUpdateTimespanMs=" + cacheUpdateTimespanMs + ", cacheItemInUseTimespanMs=" + cacheItemInUseTimespanMs + ", maxCacheSize=" + maxCacheSize + '}';
   }
 }

@@ -7,9 +7,7 @@ import org.jetbrains.annotations.Nullable;
 public class UrlHelper {
 
   /**
-   * returns url without last path part <br>
-   * Returned URL always contains trailing slash. Example: <br>
-   * "https://dummy.com/some/path" --&gt; "https://dummy.com/some/
+   * returns url without last path part <br> Returned URL always contains trailing slash. Example: <br> "https://dummy.com/some/path" --&gt; "https://dummy.com/some/
    * <p>
    * Does not modify input url
    *

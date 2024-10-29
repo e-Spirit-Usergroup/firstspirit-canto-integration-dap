@@ -72,67 +72,28 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
 
     addListener(restartServiceAfterStoreListener);
 
-    builder().checkbox("Use Request Limiter (recommended)",
-                       PARAM_USE_REQUEST_LIMITER,
-                       defaultConfiguration.useRequestLimiter,
-                       "Limits requests per Minute to set bounds, ensuring availability of api")
-        .text("[RequestLimiter] Max Requests per Minute",
-              PARAM_MAX_REQUESTS_PER_MINUTE,
-              String.valueOf(defaultConfiguration.maxRequestsPerMinute),
-              "use Canto Api Limit")
-        .text("[RequestLimiter] Requests per Minute without delay",
-              PARAM_REQUESTS_WITHOUT_DELAY,
-              String.valueOf(defaultConfiguration.requestsWithoutDelay),
-              "The first x requests are not delayed. All remaining requests are delayed as long as needed, to ensure staying within Max Requests per Minute")
+    builder().checkbox("Use Request Limiter (recommended)", PARAM_USE_REQUEST_LIMITER, defaultConfiguration.useRequestLimiter, "Limits requests per Minute to set bounds, ensuring availability of api")
+        .text("[RequestLimiter] Max Requests per Minute", PARAM_MAX_REQUESTS_PER_MINUTE, String.valueOf(defaultConfiguration.maxRequestsPerMinute), "use Canto Api Limit")
+        .text("[RequestLimiter] Requests per Minute without delay", PARAM_REQUESTS_WITHOUT_DELAY, String.valueOf(defaultConfiguration.requestsWithoutDelay), "The first x requests are not delayed. All remaining requests are delayed as long as needed, to ensure staying within Max Requests per Minute")
         .hiddenString(PARAM_TIME_BUFFER_IN_MS, String.valueOf(defaultConfiguration.timeBufferInMs))
         .checkbox("Use Cache (recommended)", PARAM_USE_CACHE, defaultConfiguration.useCache, "Caching is crucial for performance")
-        .text("Cache Element Size",
-              PARAM_CACHE_SIZE,
-              String.valueOf(defaultConfiguration.cacheSize),
-              "Soft size limit for Cache, not strictly enforced.")
-        .text("Cache Item Lifespan in ms",
-              PARAM_CACHE_ITEM_LIFESPAN_MS,
-              String.valueOf(defaultConfiguration.cacheItemLifespanMs),
-              "Time until Cache Item is revalidated on use")
-        .text("Cache auto-update timespan in ms",
-              PARAM_CACHE_UPDATE_TIMESPAN_MS,
-              String.valueOf(defaultConfiguration.cacheUpdateTimespanMs),
-              "Timespan after which cache automatically revalidates Item")
-        .text("Cache Item In use Timespan in ms",
-              PARAM_CACHE_IN_USE_TIMESPAN_MS,
-              String.valueOf(defaultConfiguration.cacheItemInUseTimespanMs),
-              "Timespan after which cache elements are removed if not requested")
+        .text("Cache Element Size", PARAM_CACHE_SIZE, String.valueOf(defaultConfiguration.cacheSize), "Soft size limit for Cache, not strictly enforced.")
+        .text("Cache Item Lifespan in ms", PARAM_CACHE_ITEM_LIFESPAN_MS, String.valueOf(defaultConfiguration.cacheItemLifespanMs), "Time until Cache Item is revalidated on use")
+        .text("Cache auto-update timespan in ms", PARAM_CACHE_UPDATE_TIMESPAN_MS, String.valueOf(defaultConfiguration.cacheUpdateTimespanMs), "Timespan after which cache automatically revalidates Item")
+        .text("Cache Item In use Timespan in ms", PARAM_CACHE_IN_USE_TIMESPAN_MS, String.valueOf(defaultConfiguration.cacheItemInUseTimespanMs), "Timespan after which cache elements are removed if not requested")
         .text("Batch Update Size", PARAM_BATCH_UPDATE_SIZE, String.valueOf(defaultConfiguration.batchUpdateSize), "Batch size for CacheUpdater")
         .text("Tenant (without https://)", PARAM_TENANT, "", "Enter the name of the canto tenant, e.g. my-company.canto.global")
         .text("OAuth Base URL (com,de,global)", PARAM_OAUTH_BASE_URL, "https://oauth.canto.<region>", "region is one of com/de/global")
         .text("App Id", PARAM_APP_ID, "", "App Id")
         .text("App Secret", PARAM_APP_SECRET, "", "App Secret")
         .text("User", PARAM_USER_ID, "", "User Id bound to generated Access Token")
-        .checkbox("Restart Service on Config Save",
-                  PARAM_RESTART_SERVICE_ON_SAVE,
-                  defaultConfiguration.restartServiceOnSave,
-                  "When activated, the Canto Service restarts after closing this window with 'OK'");
+        .checkbox("Restart Service on Config Save", PARAM_RESTART_SERVICE_ON_SAVE, defaultConfiguration.restartServiceOnSave, "When activated, the Canto Service restarts after closing this window with 'OK'");
 
   }
 
   static class ServiceConfiguration {
 
-    static final ServiceConfiguration defaultConfiguration = new ServiceConfiguration(true,
-                                                                                      true,
-                                                                                      200,
-                                                                                      30,
-                                                                                      1000,
-                                                                                      true,
-                                                                                      "",
-                                                                                      "",
-                                                                                      "",
-                                                                                      "",
-                                                                                      "",
-                                                                                      1000,
-                                                                                      DEFAULT_VALIDITY_TIMESPAN_MS,
-                                                                                      DEFAULT_UPDATE_INTERVAL_MS,
-                                                                                      DEFAULT_IN_USE_TIMESPAN_MS,
-                                                                                      75);
+    static final ServiceConfiguration defaultConfiguration = new ServiceConfiguration(true, true, 200, 30, 1000, true, "", "", "", "", "", 1000, DEFAULT_VALIDITY_TIMESPAN_MS, DEFAULT_UPDATE_INTERVAL_MS, DEFAULT_IN_USE_TIMESPAN_MS, 75);
 
     final boolean useCache;
     final boolean useRequestLimiter;
@@ -154,8 +115,7 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
     final long cacheItemInUseTimespanMs;
     final int cacheSize;
 
-    private ServiceConfiguration(boolean useCache, boolean useRequestLimiter, int maxRequestsPerMinute, int requestsWithoutDelay, long timeBufferInMs,
-        boolean restartServiceOnSave, String apiTenant, String apiOAuthBaseUrl, String apiAppId, String apiAppSecret, String apiUserId, int cacheSize,
+    private ServiceConfiguration(boolean useCache, boolean useRequestLimiter, int maxRequestsPerMinute, int requestsWithoutDelay, long timeBufferInMs, boolean restartServiceOnSave, String apiTenant, String apiOAuthBaseUrl, String apiAppId, String apiAppSecret, String apiUserId, int cacheSize,
         long cacheItemLifespanMs, long cacheUpdateTimespanMs, long cacheItemInUseTimespanMs, int batchUpdateSize) {
 
       this.useCache = useCache;
@@ -205,13 +165,10 @@ public class CantoSaasServiceConfigurable extends GenericConfigPanel<ServerEnvir
     }
 
     @Override public String toString() {
-      return "ServiceConfiguration{" + "useCache=" + useCache + ", useRequestLimiter=" + useRequestLimiter + ", requestsWithoutDelay="
-          + requestsWithoutDelay + ", maxRequestsPerMinute=" + maxRequestsPerMinute + ", timeBufferInMs=" + timeBufferInMs + ", batchUpdateSize="
-          + batchUpdateSize + ", restartServiceOnSave=" + restartServiceOnSave + ", apiTenant='" + apiTenant + '\'' + ", apiOAuthBaseUrl='"
-          + apiOAuthBaseUrl + '\'' + ", apiAppId='" + (apiAppId.length() < 5 ? "EMPTY" : (apiAppId.substring(0, 5) + "...")) + '\''
-          + ", apiAppSecret='" + (apiAppSecret.length() < 5 ? "EMPTY" : (apiAppSecret.substring(0, 5) + "...")) + '\'' + ", apiUserId='" + apiUserId
-          + '\'' + ", cacheItemLifespanMs=" + cacheItemLifespanMs + ", cacheUpdateTimespanMs=" + cacheUpdateTimespanMs + ", cacheItemInUseTimespanMs="
-          + cacheItemInUseTimespanMs + ", cacheSize=" + cacheSize + '}';
+      return "ServiceConfiguration{" + "useCache=" + useCache + ", useRequestLimiter=" + useRequestLimiter + ", requestsWithoutDelay=" + requestsWithoutDelay + ", maxRequestsPerMinute=" + maxRequestsPerMinute + ", timeBufferInMs=" + timeBufferInMs + ", batchUpdateSize=" + batchUpdateSize
+          + ", restartServiceOnSave=" + restartServiceOnSave + ", apiTenant='" + apiTenant + '\'' + ", apiOAuthBaseUrl='" + apiOAuthBaseUrl + '\'' + ", apiAppId='" + (apiAppId.length() < 5 ? "EMPTY" : (apiAppId.substring(0, 5) + "...")) + '\'' + ", apiAppSecret='" + (apiAppSecret.length() < 5
+          ? "EMPTY" : (apiAppSecret.substring(0, 5) + "...")) + '\'' + ", apiUserId='" + apiUserId + '\'' + ", cacheItemLifespanMs=" + cacheItemLifespanMs + ", cacheUpdateTimespanMs=" + cacheUpdateTimespanMs + ", cacheItemInUseTimespanMs=" + cacheItemInUseTimespanMs + ", cacheSize=" + cacheSize
+          + '}';
     }
   }
 

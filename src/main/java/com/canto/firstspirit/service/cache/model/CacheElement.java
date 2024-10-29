@@ -50,7 +50,6 @@ public class CacheElement {
   }
 
   @Override public String toString() {
-    return "CacheElement{" + "asset=" + asset.getScheme() + "/" + asset.getId() + ", lastUsedTimestamp=" + lastUsedTimestamp
-        + ", lastUpdatedTimestamp=" + lastUpdatedTimestamp + '}';
+    return "CacheElement{" + "asset=" + asset.getScheme() + "/" + asset.getId() + ", lastUsedTimestamp=" + lastUsedTimestamp + ", lastUpdatedTimestamp=" + lastUpdatedTimestamp + '}';
   }
 }

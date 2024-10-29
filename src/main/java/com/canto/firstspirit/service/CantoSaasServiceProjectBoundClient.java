@@ -31,8 +31,7 @@ public class CantoSaasServiceProjectBoundClient {
   private final SpecialistsBroker broker;
 
   /**
-   * Create ProjectBound Proxy to CantoServer Service,
-   * that manages the configuration from the ProjectApp
+   * Create ProjectBound Proxy to CantoServer Service, that manages the configuration from the ProjectApp
    *
    * @param broker project bound broker
    */
@@ -78,6 +77,18 @@ public class CantoSaasServiceProjectBoundClient {
       cantoSearchResultDTO = service.fetchSearch(connection, cantoSearchParams);
     }
     return cantoSearchResultDTO;
+
+  }
+
+  public String fetchUserScope(String userId) {
+    String userScopeString = service.fetchUserScope(connection, userId);
+
+    if (userScopeString == null) {
+      // null Result indicates invalid connection. Revalidate and try again once
+      this.connection = getOrCreateConnection(true);
+      userScopeString = service.fetchUserScope(connection, userId);
+    }
+    return userScopeString;
 
   }
 

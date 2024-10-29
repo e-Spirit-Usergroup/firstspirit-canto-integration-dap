@@ -37,8 +37,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, TransferHandling<CantoDAPAsset>, TransferSupplying<CantoDAPAsset>,
-    DataTemplating<CantoDAPAsset>, JsonSupporting<CantoDAPAsset> {
+public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, TransferHandling<CantoDAPAsset>, TransferSupplying<CantoDAPAsset>, DataTemplating<CantoDAPAsset>, JsonSupporting<CantoDAPAsset> {
 
   private final BaseContext context;
   private final CantoDAPFilter filter;
@@ -77,9 +76,9 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
   @NotNull @Override public List<CantoDAPAsset> getData(@NotNull final Collection<String> identifiers) {
     Logging.logInfo("[getData] Multi: [" + Strings.implode(identifiers, ", ") + "]", getClass());
     final List<CantoAssetIdentifier> assetIdentifiers = identifiers.stream()
-                                                                   .map(CantoAssetIdentifierSerializer::fromJsonIdentifier)
-                                                                   .filter(Objects::nonNull)
-                                                                   .collect(Collectors.toList());
+        .map(CantoAssetIdentifierSerializer::fromJsonIdentifier)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
 
     if (assetIdentifiers.isEmpty()) {
       Logging.logInfo("[getData] Empty Identifierlist. Returning empty List", getClass());
@@ -87,9 +86,9 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     }
 
     return cantoSaasServiceClient.fetchAssetDTOs(assetIdentifiers)
-                                 .stream()
-                                 .map(cantoAssetDTO -> cantoAssetDTO != null ? CantoDAPAsset.fromCantoAssetDTO(cantoAssetDTO) : null)
-                                 .collect(Collectors.toList());
+        .stream()
+        .map(cantoAssetDTO -> cantoAssetDTO != null ? CantoDAPAsset.fromCantoAssetDTO(cantoAssetDTO) : null)
+        .collect(Collectors.toList());
   }
 
   @NotNull @Override public String getIdentifier(@NotNull final CantoDAPAsset cantoDAPAsset) throws NoSuchElementException {
@@ -135,7 +134,7 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
   }
 
   @NotNull @Override public DataStreamBuilder<CantoDAPAsset> createDataStreamBuilder() {
-    return new CantoDAPStreamBuilder(cantoSaasServiceClient, filter);
+    return new CantoDAPStreamBuilder(cantoSaasServiceClient, filter, context);
   }
 
   @Override public void registerHandlers(HandlerHost<CantoDAPAsset> handlerHost) {
@@ -144,7 +143,10 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
 
     Logging.logInfo("Registering Transferhandler", this.getClass());
     // Apply Filter to given assetList
-    handlerHost.registerHandler(rawValueType, list -> list.stream().filter(filter::isValid).collect(Collectors.toList()));
+    handlerHost.registerHandler(rawValueType,
+                                list -> list.stream()
+                                    .filter(filter::isValid)
+                                    .collect(Collectors.toList()));
   }
 
   @Override public void registerSuppliers(SupplierHost<CantoDAPAsset> supplierHost) {

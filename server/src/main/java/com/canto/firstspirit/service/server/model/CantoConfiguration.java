@@ -63,9 +63,7 @@ public class CantoConfiguration implements Serializable {
   }
 
   @Override public String toString() {
-    return "CantoConfiguration[" + projectName + "]" + "{tenant='" + tenant + "', oAuthBaseUrl='" + oAuthBaseUrl + "', appId='" + appId.substring(0,
-                                                                                                                                                  5)
-        + "...', appSecret='" + appSecret.substring(0, 5) + "...', userId='" + userId + "'}";
+    return "CantoConfiguration[" + projectName + "]" + "{tenant='" + tenant + "', oAuthBaseUrl='" + oAuthBaseUrl + "', appId='" + appId.substring(0, 5) + "...', appSecret='" + appSecret.substring(0, 5) + "...', userId='" + userId + "'}";
   }
 
 }

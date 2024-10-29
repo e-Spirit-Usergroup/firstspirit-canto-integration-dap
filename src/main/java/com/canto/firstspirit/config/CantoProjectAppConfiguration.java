@@ -55,10 +55,7 @@ public class CantoProjectAppConfiguration extends GenericConfigPanel<ProjectEnvi
         .text("App Id", PARAM_APP_ID, "", "App Id")
         .text("App Secret", PARAM_APP_SECRET, "", "App Secret")
         .text("User", PARAM_USER_ID, "", "User Id bound to generated Access Token")
-        .checkbox("Restart Service on Config Save",
-                  PARAM_RESTART_SERVICE_ON_SAVE,
-                  false,
-                  "When activated, the Canto Service restarts after closing this window with 'OK'");
+        .checkbox("Restart Service on Config Save", PARAM_RESTART_SERVICE_ON_SAVE, false, "When activated, the Canto Service restarts after closing this window with 'OK'");
 
   }
 

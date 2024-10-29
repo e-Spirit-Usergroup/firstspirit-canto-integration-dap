@@ -24,6 +24,14 @@ public class CantoSearchParams implements Serializable {
     this.approvalStatus = approvalStatus;
   }
 
+  public CantoSearchParams(int start, int limit, String keyword, @Nullable String scheme) {
+    this.start = start;
+    this.limit = limit;
+    this.keyword = keyword;
+    this.scheme = scheme;
+    this.approvalStatus = null;
+  }
+
   public String getKeyword() {
     return keyword;
   }

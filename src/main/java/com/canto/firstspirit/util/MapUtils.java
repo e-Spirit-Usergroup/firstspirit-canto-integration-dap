@@ -6,8 +6,7 @@ import org.jetbrains.annotations.Nullable;
 public class MapUtils {
 
   /**
-   * Retrieves a key from given map with default Value. Map may be null.
-   * If retrieved value is null or nonexistent, default Value is returned
+   * Retrieves a key from given map with default Value. Map may be null. If retrieved value is null or nonexistent, default Value is returned
    *
    * @param map          map
    * @param key          key to retrieve from map
@@ -19,8 +18,7 @@ public class MapUtils {
   }
 
   /**
-   * Retrieves a key from given map with default Value. Map may be null.
-   * If retrieved value is null or nonexistent or not a String, default Value is returned
+   * Retrieves a key from given map with default Value. Map may be null. If retrieved value is null or nonexistent or not a String, default Value is returned
    *
    * @param map          map
    * @param key          key to retrieve from map

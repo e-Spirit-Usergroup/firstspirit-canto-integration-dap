@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 public class CantoDAPFilter {
 
   private final @Nullable CantoScheme validScheme;
-  
+
   CantoDAPFilter(@Nullable CantoScheme scheme) {
     this.validScheme = scheme;
   }

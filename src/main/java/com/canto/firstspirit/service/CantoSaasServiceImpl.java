@@ -52,14 +52,15 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
                                              config.getAppId(),
                                              config.getAppSecret(),
                                              config.getUserId(),
+                                             centralCache.getCantoApi()
+                                                 .fetchUserScope(config.getUserId()),
                                              singleFetchRequestLimiter,
                                              batchFetchRequestLimiter,
                                              new ProjectBoundCacheAccess(centralCache));
 
       apiConnectionPool.put(connection.getConnectionId(), cantoApi);
 
-      Logging.logInfo("[getServiceConnection] New Connection for Configuration: " + config + ". Created ConnectionId: " + connection.getConnectionId()
-                          + ". ApiPoolSize=" + apiConnectionPool.size(), this.getClass());
+      Logging.logInfo("[getServiceConnection] New Connection for Configuration: " + config + ". Created ConnectionId: " + connection.getConnectionId() + ". ApiPoolSize=" + apiConnectionPool.size(), this.getClass());
     }
 
     return connection;
@@ -71,20 +72,29 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
     }
   }
 
+  @Override public @Nullable String fetchUserScope(CantoServiceConnection connection, String userId) {
+    CantoApi cantoApi = getApiInstance(connection);
+
+    if (cantoApi == null) {
+      // Connection is invalid. Return null, caller can try to revalidate Connection
+      return null;
+    }
+
+    return cantoApi.fetchUserScope(userId);
+  }
+
   @Nullable private CantoApi getApiInstance(final CantoServiceConnection connection) {
     if (connection == null) {
       throw new IllegalArgumentException("Requested Api Instance with null Connection");
     }
     CantoApi cantoApi = apiConnectionPool.get(connection.getConnectionId());
     if (cantoApi == null) {
-      Logging.logWarning("Requested Api Instance not found for ConnectionId: " + connection.getConnectionId() + "\n"
-                             + "This issue may be resolved by restarting your clients and Service", this.getClass());
+      Logging.logWarning("Requested Api Instance not found for ConnectionId: " + connection.getConnectionId() + "\n" + "This issue may be resolved by restarting your clients and Service", this.getClass());
     }
     return cantoApi;
   }
 
-  @Nullable @Override public List<@Nullable CantoAssetDTO> fetchAssetsByIdentifiers(@NotNull final CantoServiceConnection connection,
-      @NotNull final List<CantoAssetIdentifier> identifiers) {
+  @Nullable @Override public List<@Nullable CantoAssetDTO> fetchAssetsByIdentifiers(@NotNull final CantoServiceConnection connection, @NotNull final List<CantoAssetIdentifier> identifiers) {
 
     Logging.logInfo("[fetchAssetsByIdentifiers] " + Strings.implode(identifiers, ", "), getClass());
     final CantoApi cantoApi = getApiInstance(connection);
@@ -101,8 +111,7 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
   }
 
 
-  @Nullable @Override
-  public CantoSearchResultDTO fetchSearch(@NotNull final CantoServiceConnection connection, @NotNull final CantoSearchParams params) {
+  @Nullable @Override public CantoSearchResultDTO fetchSearch(@NotNull final CantoServiceConnection connection, @NotNull final CantoSearchParams params) {
     Logging.logInfo("[fetchSearch] " + params, getClass());
     final CantoApi cantoApi = getApiInstance(connection);
 
@@ -121,13 +130,9 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
     ServiceConfiguration serviceConfiguration = ServiceConfiguration.fromServerEnvironment(serverEnvironment);
 
     if (serviceConfiguration.useRequestLimiter) {
-      singleFetchRequestLimiter = new RequestLimiter(serviceConfiguration.maxRequestsPerMinute,
-                                                     serviceConfiguration.requestsWithoutDelay,
-                                                     serviceConfiguration.timeBufferInMs);
+      singleFetchRequestLimiter = new RequestLimiter(serviceConfiguration.maxRequestsPerMinute, serviceConfiguration.requestsWithoutDelay, serviceConfiguration.timeBufferInMs);
 
-      batchFetchRequestLimiter = new RequestLimiter(serviceConfiguration.maxRequestsPerMinute,
-                                                    serviceConfiguration.requestsWithoutDelay,
-                                                    serviceConfiguration.timeBufferInMs);
+      batchFetchRequestLimiter = new RequestLimiter(serviceConfiguration.maxRequestsPerMinute, serviceConfiguration.requestsWithoutDelay, serviceConfiguration.timeBufferInMs);
     } else {
       singleFetchRequestLimiter = null;
       batchFetchRequestLimiter = null;
@@ -135,27 +140,15 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
 
     if (serviceConfiguration.useCache) {
       CantoApi cantoApi = null;
-      if (!serviceConfiguration.apiTenant.isBlank() && !serviceConfiguration.apiOAuthBaseUrl.isBlank() && !serviceConfiguration.apiAppId.isBlank()
-          && !serviceConfiguration.apiAppSecret.isBlank() && !serviceConfiguration.apiUserId.isBlank()) {
+      if (!serviceConfiguration.apiTenant.isBlank() && !serviceConfiguration.apiOAuthBaseUrl.isBlank() && !serviceConfiguration.apiAppId.isBlank() && !serviceConfiguration.apiAppSecret.isBlank() && !serviceConfiguration.apiUserId.isBlank()) {
 
-        cantoApi = new CantoApi(serviceConfiguration.apiTenant,
-                                serviceConfiguration.apiOAuthBaseUrl,
-                                serviceConfiguration.apiAppId,
-                                serviceConfiguration.apiAppSecret,
-                                serviceConfiguration.apiUserId,
-                                singleFetchRequestLimiter,
-                                batchFetchRequestLimiter,
+        cantoApi = new CantoApi(serviceConfiguration.apiTenant, serviceConfiguration.apiOAuthBaseUrl, serviceConfiguration.apiAppId, serviceConfiguration.apiAppSecret, serviceConfiguration.apiUserId, "admin", singleFetchRequestLimiter, batchFetchRequestLimiter,
                                 // cantoApi of Cache must not use the cache itself
                                 new ProjectBoundCacheAccess(null),
                                 // We need a very long Timeout, since batch fetches on Canto Side are very slow atm
                                 50);
       }
-      centralCache = new CentralCache(cantoApi,
-                                      serviceConfiguration.cacheSize,
-                                      serviceConfiguration.cacheUpdateTimespanMs,
-                                      serviceConfiguration.cacheUpdateTimespanMs,
-                                      serviceConfiguration.cacheItemInUseTimespanMs,
-                                      serviceConfiguration.batchUpdateSize);
+      centralCache = new CentralCache(cantoApi, serviceConfiguration.cacheSize, serviceConfiguration.cacheUpdateTimespanMs, serviceConfiguration.cacheUpdateTimespanMs, serviceConfiguration.cacheItemInUseTimespanMs, serviceConfiguration.batchUpdateSize);
     } else {
       centralCache = null;
     }

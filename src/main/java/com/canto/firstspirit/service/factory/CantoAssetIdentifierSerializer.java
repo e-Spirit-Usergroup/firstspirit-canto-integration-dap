@@ -8,8 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 
 /**
- * Handles Serialization and Deserialization of {@link CantoAssetIdentifier} from and to JSON. Identifiers must include schema and id to fetch asset
- * from Canto Identifiers may include additionalData, that is saved within a key-value String Map The
+ * Handles Serialization and Deserialization of {@link CantoAssetIdentifier} from and to JSON. Identifiers must include schema and id to fetch asset from Canto Identifiers may include additionalData, that is saved within a key-value String Map The
  * {@link com.canto.firstspirit.integration.dap.CantoDAP} uses the stringified JSON as id for its FS_INDEX Elements
  */
 public class CantoAssetIdentifierSerializer implements Serializable {
@@ -28,8 +27,7 @@ public class CantoAssetIdentifierSerializer implements Serializable {
   }
 
   /**
-   * Verifies that id and schema are Set for a CantoAsset Identifier. Used after parsing JSON to CantoAssetIdentifier to ensure validity. Throws
-   * IllegalStateException if invalid
+   * Verifies that id and schema are Set for a CantoAsset Identifier. Used after parsing JSON to CantoAssetIdentifier to ensure validity. Throws IllegalStateException if invalid
    *
    * @param cantoAssetIdentifier identifier to check
    */
@@ -38,15 +36,12 @@ public class CantoAssetIdentifierSerializer implements Serializable {
     if (cantoAssetIdentifier == null || cantoAssetIdentifier.getId() == null || cantoAssetIdentifier.getId()
         .isBlank() || cantoAssetIdentifier.getSchema() == null || cantoAssetIdentifier.getSchema()
         .isBlank()) {
-      throw new IllegalStateException(
-          "Identifier not correctly Initialized." + (cantoAssetIdentifier == null ? "CantoDAPAssetIdentifier itself is null"
-              : "Id: [" + cantoAssetIdentifier.getId() + "], schema: [" + cantoAssetIdentifier.getSchema() + "]"));
+      throw new IllegalStateException("Identifier not correctly Initialized." + (cantoAssetIdentifier == null ? "CantoDAPAssetIdentifier itself is null" : "Id: [" + cantoAssetIdentifier.getId() + "], schema: [" + cantoAssetIdentifier.getSchema() + "]"));
     }
   }
 
   /**
-   * Creates CantoAssetIdentifier based on stringified JSON. JSON must include the JSON must include schema and id JSON may include additionalData
-   * Object If schema or id is missing in created AssetId, IllegalStateException is thrown
+   * Creates CantoAssetIdentifier based on stringified JSON. JSON must include the JSON must include schema and id JSON may include additionalData Object If schema or id is missing in created AssetId, IllegalStateException is thrown
    *
    * @param identifier json string with schema, id and optional additionalData
    * @return CantoAssetIdentifier created based on JSON

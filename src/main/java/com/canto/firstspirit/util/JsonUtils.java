@@ -15,10 +15,7 @@ import java.util.Map.Entry;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Util class to transform Basic Java Classes to FirstSpirit JSON Elements <br>
- * Supported Types: Number, String, Map&lt;String, ?&gt; Collection&lt;?&gt; <br>
- * Values and Elements of Map and Collection must be one of the supported Types. <br>
- * Map keys must always be Strings.
+ * Util class to transform Basic Java Classes to FirstSpirit JSON Elements <br> Supported Types: Number, String, Map&lt;String, ?&gt; Collection&lt;?&gt; <br> Values and Elements of Map and Collection must be one of the supported Types. <br> Map keys must always be Strings.
  */
 public class JsonUtils {
 
@@ -26,8 +23,7 @@ public class JsonUtils {
   /**
    * Get JsonElement for Number. passed number may be null
    * <p>
-   * Detects Circles, but Logs a Warning, as FirstSpirit JSON does not support Circles itself.
-   * Circles are replaced with String Value '[~circle]' on revisit.
+   * Detects Circles, but Logs a Warning, as FirstSpirit JSON does not support Circles itself. Circles are replaced with String Value '[~circle]' on revisit.
    *
    * @param value Number, e.g. Long, Integer, Double
    * @return JsonElement Representing the number or JsonNull
@@ -42,8 +38,7 @@ public class JsonUtils {
   /**
    * recursively transform Map to JsonObject.
    * <p>
-   * Detects Circles, but Logs a Warning, as FirstSpirit JSON does not support Circles itself.
-   * Circles are replaced with String Value '[~circle]' on revisit.
+   * Detects Circles, but Logs a Warning, as FirstSpirit JSON does not support Circles itself. Circles are replaced with String Value '[~circle]' on revisit.
    *
    * @param map keys must be String, values may be String, Number, Collections or Maps
    * @return Nested JsonObject representing the map
