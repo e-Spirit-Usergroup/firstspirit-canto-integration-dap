@@ -11,14 +11,13 @@ import de.espirit.common.base.Logging;
 import de.espirit.common.tools.Strings;
 import de.espirit.firstspirit.access.BaseContext;
 import de.espirit.firstspirit.access.Language;
+import de.espirit.firstspirit.access.editor.ValueIndexer;
+import de.espirit.firstspirit.agency.ProjectReferencesAgent;
 import de.espirit.firstspirit.agency.TransferAgent;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataAccessSession;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataSnippetProvider;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataStreamBuilder;
-import de.espirit.firstspirit.client.plugin.dataaccess.aspects.DataTemplating;
-import de.espirit.firstspirit.client.plugin.dataaccess.aspects.JsonSupporting;
-import de.espirit.firstspirit.client.plugin.dataaccess.aspects.SessionAspectMap;
-import de.espirit.firstspirit.client.plugin.dataaccess.aspects.SessionAspectType;
+import de.espirit.firstspirit.client.plugin.dataaccess.aspects.*;
 import de.espirit.firstspirit.client.plugin.dataaccess.aspects.transfer.HandlerHost;
 import de.espirit.firstspirit.client.plugin.dataaccess.aspects.transfer.SupplierHost;
 import de.espirit.firstspirit.client.plugin.dataaccess.aspects.transfer.TransferHandling;
@@ -29,15 +28,15 @@ import de.espirit.firstspirit.json.JsonObject;
 import de.espirit.firstspirit.json.JsonPair;
 import de.espirit.firstspirit.json.values.JsonStringValue;
 import de.espirit.firstspirit.ui.gadgets.aspects.transfer.TransferType;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, TransferHandling<CantoDAPAsset>, TransferSupplying<CantoDAPAsset>, DataTemplating<CantoDAPAsset>, JsonSupporting<CantoDAPAsset> {
+import static com.canto.firstspirit.util.JsonUtils.getMapAsJsonObject;
+import static com.canto.firstspirit.util.JsonUtils.getNullOrNumberJsonValue;
+
+public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, TransferHandling<CantoDAPAsset>, TransferSupplying<CantoDAPAsset>, DataTemplating<CantoDAPAsset>, JsonSupporting<CantoDAPAsset>, ReferencesReporting, ValueIndexing {
 
   private final BaseContext context;
   private final CantoDAPFilter filter;
@@ -57,7 +56,8 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
     sessionAspectMap.put(TransferSupplying.TYPE, this);
     sessionAspectMap.put(DataTemplating.TYPE, this);
     sessionAspectMap.put(JsonSupporting.TYPE, this);
-
+    sessionAspectMap.put(ValueIndexing.TYPE, this);
+    sessionAspectMap.put(ReferencesReporting.TYPE, this);
   }
 
   @Override public <A> A getAspect(@NotNull SessionAspectType<A> sessionAspectType) {
@@ -162,5 +162,29 @@ public class CantoDAPSession implements DataAccessSession<CantoDAPAsset>, Transf
   @Override public void registerParameters(ParameterSet parameterSet, CantoDAPAsset cantoDAPAsset, @NotNull Language language) {
     parameterSet.addText("title", cantoDAPAsset.getTitle());
     parameterSet.addText("image", cantoDAPAsset.getMDCImageUrl("-FPNG-S300"));
+  }
+
+  @Override public void reportValueReferences(@NotNull ValueReferencesJournal journal, @NotNull Set<String> identifiers) {
+
+    Logging.logInfo("Append valueReferences for " +identifiers, getClass());
+
+    for (String identifier : identifiers) {
+      journal.addReferenceToExternal("canto", identifier);
+    }
+
+    ReferencesReporting.super.reportValueReferences(journal, identifiers);
+
+    ProjectReferencesAgent projectReferencesAgent = context.requireSpecialist(ProjectReferencesAgent.TYPE);
+    projectReferencesAgent.rebuildReferences();
+  }
+
+  @Override public void appendIndexData(String identifier, Language language, boolean recursive, ValueIndexer indexer) {
+    Logging.logInfo("Append Index Data: " + identifier, getClass());
+    indexer.append(ValueIndexer.KEY_FIELD, identifier);
+    indexer.append(ValueIndexer.VALUE_FIELD, identifier);
+  }
+
+  @Override public void reportModelReferences(@NotNull ModelReferencesJournal journal) {
+    ReferencesReporting.super.reportModelReferences(journal);
   }
 }

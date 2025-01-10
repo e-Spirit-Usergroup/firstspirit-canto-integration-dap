@@ -23,8 +23,6 @@ public class CentralCache {
 
   final int maxCacheSize;
 
-  private CantoApi cantoApi;
-
   protected final ConcurrentHashMap<String, CacheElement> cacheMap;
 
   CacheUpdater cacheUpdater;
@@ -36,8 +34,6 @@ public class CentralCache {
     this.cacheMap = new ConcurrentHashMap<>(maxCacheSize);
     if (cantoApi == null) {
       Logging.logInfo("No Api for Cache!", this.getClass());
-    } else {
-      this.cantoApi = cantoApi;
     }
     this.maxCacheSize = maxCacheSize;
     cacheUpdater = new CacheUpdater(this, cantoApi, cacheUpdateTimespanMs, maxCacheSize, batchUpdateSize);
@@ -148,10 +144,6 @@ public class CentralCache {
     Logging.logInfo("[CentralCache] shutting down.", this.getClass());
     clear();
     cacheUpdater.shutdown();
-  }
-
-  public CantoApi getCantoApi() {
-    return cantoApi;
   }
 
   @Override public String toString() {

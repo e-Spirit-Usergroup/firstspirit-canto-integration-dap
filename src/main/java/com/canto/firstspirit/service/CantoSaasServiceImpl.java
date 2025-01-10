@@ -47,16 +47,9 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
     final CantoServiceConnection connection = CantoServiceConnection.fromConfig(config);
     if (!apiConnectionPool.containsKey(connection.getConnectionId())) {
 
-      final CantoApi cantoApi = new CantoApi(config.getTenant(),
-                                             config.getOAuthBaseUrl(),
-                                             config.getAppId(),
-                                             config.getAppSecret(),
-                                             config.getUserId(),
-                                             centralCache.getCantoApi()
-                                                 .fetchUserScope(config.getUserId()),
-                                             singleFetchRequestLimiter,
-                                             batchFetchRequestLimiter,
-                                             new ProjectBoundCacheAccess(centralCache));
+      String scope = getServerApi().fetchUserScope(config.getUserId());
+
+      final CantoApi cantoApi = new CantoApi(config.getTenant(), config.getOAuthBaseUrl(), config.getAppId(), config.getAppSecret(), config.getUserId(), scope, singleFetchRequestLimiter, batchFetchRequestLimiter, new ProjectBoundCacheAccess(centralCache));
 
       apiConnectionPool.put(connection.getConnectionId(), cantoApi);
 
@@ -66,13 +59,22 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
     return connection;
   }
 
+  private CantoApi getServerApi() {
+    ServiceConfiguration serviceConfiguration = ServiceConfiguration.fromServerEnvironment(serverEnvironment);
+    return new CantoApi(serviceConfiguration.apiTenant, serviceConfiguration.apiOAuthBaseUrl, serviceConfiguration.apiAppId, serviceConfiguration.apiAppSecret, serviceConfiguration.apiUserId, "admin", singleFetchRequestLimiter, batchFetchRequestLimiter,
+                        // cantoApi of Cache must not use the cache itself
+                        new ProjectBoundCacheAccess(null),
+                        // We need a very long Timeout, since batch fetches on Canto Side are very slow atm
+                        50);
+  }
+
   @Override public void removeServiceConnection(@Nullable CantoServiceConnection connection) {
     if (connection != null) {
       apiConnectionPool.remove(connection.getConnectionId());
     }
   }
 
-  @Override public @Nullable String fetchUserScope(CantoServiceConnection connection, String userId) {
+  @Override public @Nullable String getUserScope(CantoServiceConnection connection) {
     CantoApi cantoApi = getApiInstance(connection);
 
     if (cantoApi == null) {
@@ -80,7 +82,7 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
       return null;
     }
 
-    return cantoApi.fetchUserScope(userId);
+    return cantoApi.getScope();
   }
 
   @Nullable private CantoApi getApiInstance(final CantoServiceConnection connection) {
@@ -122,6 +124,17 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
 
     final CantoSearchResult cantoSearchResult = cantoApi.fetchSearch(params);
     return CantoSearchResultDTOFactory.fromCantoSearchResult(params, cantoSearchResult);
+  }
+
+  @Nullable public String fetchFolderStructure(@NotNull final CantoServiceConnection connection) {
+    final CantoApi cantoApi = getApiInstance(connection);
+
+    if (cantoApi == null) {
+      // Connection is invalid. Return null, caller can try to revalidate Connection
+      return null;
+    }
+
+    return cantoApi.fetchFolderStructure();
   }
 
   @Override public void start() {

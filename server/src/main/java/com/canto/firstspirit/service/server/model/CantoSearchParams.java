@@ -15,21 +15,16 @@ public class CantoSearchParams implements Serializable {
   private final String scheme;
   @Nullable
   private final String approvalStatus;
+  @Nullable
+  private final String album;
 
-  public CantoSearchParams(int start, int limit, String keyword, @Nullable String scheme, @Nullable String approvalStatus) {
+  public CantoSearchParams(int start, int limit, String keyword, @Nullable String scheme, @Nullable String approvalStatus, @Nullable String album) {
     this.start = start;
     this.limit = limit;
     this.keyword = keyword;
     this.scheme = scheme;
     this.approvalStatus = approvalStatus;
-  }
-
-  public CantoSearchParams(int start, int limit, String keyword, @Nullable String scheme) {
-    this.start = start;
-    this.limit = limit;
-    this.keyword = keyword;
-    this.scheme = scheme;
-    this.approvalStatus = null;
+    this.album = album;
   }
 
   public String getKeyword() {
@@ -49,11 +44,15 @@ public class CantoSearchParams implements Serializable {
   }
 
   @Override public String toString() {
-    return "CantoSearchParams {" + "start=" + start + ", limit=" + limit + ", keyword='" + keyword + "', scheme=" + scheme + '}';
+    return "CantoSearchParams {" + "start=" + start + ", limit=" + limit + ", keyword=" + keyword + ", scheme=" + scheme + ", album=" + album + " }";
   }
 
   public @Nullable String getApprovalStatus() {
     return approvalStatus;
+  }
+
+  public @Nullable String getAlbum() {
+    return album;
   }
 }
 

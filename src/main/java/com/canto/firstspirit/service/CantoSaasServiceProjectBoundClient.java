@@ -80,16 +80,26 @@ public class CantoSaasServiceProjectBoundClient {
 
   }
 
-  public String fetchUserScope(String userId) {
-    String userScopeString = service.fetchUserScope(connection, userId);
+  public String getUserScope() {
+    String userScopeString = service.getUserScope(connection);
 
     if (userScopeString == null) {
       // null Result indicates invalid connection. Revalidate and try again once
       this.connection = getOrCreateConnection(true);
-      userScopeString = service.fetchUserScope(connection, userId);
+      userScopeString = service.getUserScope(connection);
     }
     return userScopeString;
+  }
 
+  public String fetchFolderStructure() {
+    String folderStructureString = service.fetchFolderStructure(connection);
+
+    if (folderStructureString == null) {
+      // null Result indicates invalid connection. Revalidate and try again once
+      this.connection = getOrCreateConnection(true);
+      folderStructureString = service.fetchFolderStructure(connection);
+    }
+    return folderStructureString;
   }
 
 }

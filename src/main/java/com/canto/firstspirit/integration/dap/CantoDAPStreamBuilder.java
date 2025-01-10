@@ -8,6 +8,7 @@ import com.canto.firstspirit.service.server.model.CantoConfiguration;
 import com.canto.firstspirit.service.server.model.CantoSearchParams;
 import com.canto.firstspirit.service.server.model.CantoSearchResultDTO;
 import com.canto.firstspirit.util.CantoScheme;
+import com.canto.firstspirit.util.FolderStructure;
 import de.espirit.common.base.Logging;
 import de.espirit.firstspirit.agency.SpecialistsBroker;
 import de.espirit.firstspirit.client.plugin.dataaccess.DataStream;
@@ -41,6 +42,8 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
   private ParameterSelect paramApprovalStatus;
   private boolean isConsumer;
 
+  private ParameterSelect paramFolderStructure;
+
   private ParameterMap parameterMap;
 
   public CantoDAPStreamBuilder(CantoSaasServiceProjectBoundClient cantoSaasServiceClient, CantoDAPFilter filter, SpecialistsBroker broker) {
@@ -48,8 +51,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
     this.filter = filter;
     this.cantoSaasServiceClient = cantoSaasServiceClient;
     this.paramApprovalStatus = null;
-    CantoConfiguration cantoConfiguration = CantoConfigurationFactory.fromProjectBroker(broker);
-    String scope = cantoSaasServiceClient.fetchUserScope(cantoConfiguration.getUserId());
+    String scope = cantoSaasServiceClient.getUserScope();
     isConsumer = "consumer".equals(scope.toLowerCase());
 
     aspects.put(Filterable.TYPE, this);
@@ -75,6 +77,10 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
       List<SelectItem> approvalStatus = List.of(Factory.createSelectItem("-", ""), Factory.createSelectItem("Approved", "Approved"), Factory.createSelectItem("Pending", "Pending"));
 
       paramApprovalStatus = Parameter.Factory.createSelect("approvalStatus", approvalStatus, "");
+
+      List<SelectItem> folderStructure = new FolderStructure(cantoSaasServiceClient).getFolderStructure();
+      paramFolderStructure = Factory.createSelect("folderStructure", folderStructure, "--Folder--");
+
     }
 
 
@@ -90,7 +96,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
 
   @NotNull @Override public List<Parameter<?>> getDefinedParameters() {
     // Parameters may be set to null to hide them in UI
-    return Stream.of(paramKeyword, paramScheme, paramApprovalStatus)
+    return Stream.of(paramKeyword, paramScheme, paramApprovalStatus, paramFolderStructure)
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
@@ -113,7 +119,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
                                            parameterMap.get(paramKeyword),
                                            filter.getValidScheme() != null ? filter.getValidScheme()
                                                .toString() : parameterMap.get(paramScheme),
-                                           paramApprovalStatus != null ? parameterMap.get(paramApprovalStatus) : null);
+                                           paramApprovalStatus != null ? parameterMap.get(paramApprovalStatus) : null, null);
 
       fetchedAssets = null;
     }
@@ -134,14 +140,16 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
                                              parameterMap.get(paramKeyword),
                                              filter.getValidScheme() != null ? filter.getValidScheme()
                                                  .toString() : parameterMap.get(paramScheme),
-                                             parameterMap.get(paramApprovalStatus));
+                                             parameterMap.get(paramApprovalStatus),
+                                             parameterMap.get(paramFolderStructure));
       } else {
         searchParams = new CantoSearchParams(searchParams.getStart() + searchParams.getLimit(),
                                              pageSize,
                                              parameterMap.get(paramKeyword),
                                              filter.getValidScheme() != null ? filter.getValidScheme()
                                                  .toString() : parameterMap.get(paramScheme),
-                                             null);
+                                             null,
+                                             parameterMap.get(paramFolderStructure));
       }
 
       if (searchParams.getStart() <= total) {

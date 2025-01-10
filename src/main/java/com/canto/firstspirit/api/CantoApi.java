@@ -283,7 +283,7 @@ public class CantoApi {
    * @return Wrapper with a list of fetched CantoAssets including some MetaData about the search
    */
   public CantoSearchResult fetchSearch(CantoSearchParams searchParams) {
-    return fetchSearch(searchParams.getKeyword(), searchParams.getScheme(), searchParams.getStart(), searchParams.getLimit(), searchParams.getApprovalStatus());
+    return fetchSearch(searchParams.getKeyword(), searchParams.getScheme(), searchParams.getAlbum(), searchParams.getStart(), searchParams.getLimit(), searchParams.getApprovalStatus());
   }
 
   /**
@@ -295,10 +295,18 @@ public class CantoApi {
    * @param limit   max elements to return
    * @return Wrapper with a list of fetched CantoAssets including some MetaData about the search
    */
-  public CantoSearchResult fetchSearch(String keyword, @Nullable String scheme, int start, int limit, @Nullable String approvalStatus) {
+  public CantoSearchResult fetchSearch(String keyword, @Nullable String scheme, @Nullable String albumId, int start, int limit, @Nullable String approvalStatus) {
 
-    Builder urlBuilder = getApiUrl().addPathSegments("search")
-        .addQueryParameter("keyword", keyword)
+    Builder urlBuilder = getApiUrl();
+
+    if (albumId != null && !albumId.equals("--Folder--")) {
+      urlBuilder.addPathSegments("album")
+          .addPathSegments(albumId);
+    } else {
+      urlBuilder.addPathSegments("search");
+    }
+
+    urlBuilder.addQueryParameter("keyword", keyword)
         .addQueryParameter("start", String.valueOf(start))
         .addQueryParameter("limit", String.valueOf(limit));
 
@@ -482,6 +490,10 @@ public class CantoApi {
     return null;
   }
 
+  public String getScope() {
+    return scope;
+  }
+
   public String fetchUserScope(String userId) {
     // Build the URL to fetch the user info
     HttpUrl url = getApiUrl().addPathSegments("users?role=0&name=" + userId)
@@ -518,5 +530,43 @@ public class CantoApi {
       }
     }
     return "consumer";
+  }
+
+  /**
+   * Fetches the folder structure from the API endpoint.
+   *
+   * @return A string representing the folder structure in JSON format as String, or null if an error occurs.
+   */
+  public @Nullable String fetchFolderStructure() {
+    // Build the URL to fetch the folder structure
+    HttpUrl url = getApiUrl().addPathSegments("tree?layer=-1")
+        .build();
+
+    // Log the URL being fetched
+    Logging.logInfo("[fetchFolderStructure] fetching " + url, LOGGER);
+
+    // Initialize folderStructureJsonString to null
+    String folderStructureJsonString = null;
+
+    // If rate limiting is enabled, delay the request if necessary
+    if (singleFetchRequestLimiter != null) {
+      singleFetchRequestLimiter.delayRequestIfNecessary();
+    }
+
+    try (Response response = executeGetRequest(url)) {
+      ResponseBody body = response.body();
+      // Check if response body is null
+      if (body == null) {
+        throw new IllegalStateException("Response Body was null for url " + url);
+      }
+      // Read the response body as a string
+      folderStructureJsonString = body.string();
+    } catch (Exception e) {
+      // Log any errors that occur during the request
+      Logging.logError("[fetchFolderStructure] Error occurred", e, LOGGER);
+    }
+
+    // Return the folder structure JSON string, or null if an error occurred
+    return folderStructureJsonString;
   }
 }

@@ -17,8 +17,10 @@ public class CantoAssetDTOFactory {
     try {
       return new CantoAssetDTO(asset.getId(),
                                asset.getName(),
-                               UrlHelper.removeLastUrlPathPart(asset.getCantoUrls().getDirectUrlPreview()),
-                               asset.getCantoUrls().getDirectUrlOriginal(),
+                               UrlHelper.removeLastUrlPathPart(asset.getCantoUrls()
+                                                                   .getDirectUrlPreview()),
+                               asset.getCantoUrls()
+                                   .getDirectUrlOriginal(),
                                asset.getScheme(),
                                asset.getDescription(),
                                asset.getWidth(),

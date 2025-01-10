@@ -46,5 +46,13 @@ public interface CantoSaasService {
    */
   void removeServiceConnection(@NotNull final CantoServiceConnection connection);
 
-  @Nullable String fetchUserScope(CantoServiceConnection connection, String userId);
+  @Nullable String getUserScope(CantoServiceConnection connection);
+
+  /**
+   * Fetches the folder structure using the provided CantoServiceConnection.
+   *
+   * @param connection Project Specific Connection to fetch Data with
+   * @return A string representing the folder structure in JSON format, or null if an error occurs.
+   */
+  @Nullable String fetchFolderStructure(@NotNull final CantoServiceConnection connection);
 }
