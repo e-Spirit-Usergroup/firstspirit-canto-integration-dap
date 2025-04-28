@@ -55,7 +55,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
     isConsumer = "consumer".equals(scope.toLowerCase());
 
     aspects.put(Filterable.TYPE, this);
-    paramKeyword = Parameter.Factory.createText("keyword", "Keyword", "");
+    paramKeyword = Factory.createText("keyword", "Keyword", "");
 
     // Only show Scheme Selection in UI if no fixed Scheme is set
     List<SelectItem> schemeSelectList = Arrays.stream(CantoScheme.values())
@@ -64,10 +64,10 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
         .map(cantoScheme -> Factory.createSelectItem(cantoScheme.getDisplayName(), cantoScheme.toString()))
         .collect(Collectors.toList());
     if (filter.getValidScheme() == null) {
-      schemeSelectList.add(0, Parameter.Factory.createSelectItem("-", ""));
-      paramScheme = Parameter.Factory.createSelect("scheme", schemeSelectList, "");
+      schemeSelectList.add(0, Factory.createSelectItem("-", ""));
+      paramScheme = Factory.createSelect("scheme", schemeSelectList, "");
     } else {
-      paramScheme = Parameter.Factory.createSelect("scheme",
+      paramScheme = Factory.createSelect("scheme",
                                                    schemeSelectList,
                                                    filter.getValidScheme()
                                                        .toString());
@@ -76,7 +76,7 @@ public class CantoDAPStreamBuilder implements DataStreamBuilder<CantoDAPAsset>, 
     if (!isConsumer) {
       List<SelectItem> approvalStatus = List.of(Factory.createSelectItem("-", ""), Factory.createSelectItem("Approved", "Approved"), Factory.createSelectItem("Pending", "Pending"));
 
-      paramApprovalStatus = Parameter.Factory.createSelect("approvalStatus", approvalStatus, "");
+      paramApprovalStatus = Factory.createSelect("approvalStatus", approvalStatus, "");
 
       List<SelectItem> folderStructure = new FolderStructure(cantoSaasServiceClient).getFolderStructure();
       paramFolderStructure = Factory.createSelect("folderStructure", folderStructure, "--Folder--");

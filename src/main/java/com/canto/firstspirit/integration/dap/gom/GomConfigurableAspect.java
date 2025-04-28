@@ -57,7 +57,7 @@ public class GomConfigurableAspect implements GomConfigurable {
     public void verify() throws IllegalStateException {
     }
 
-    public void validate(GomCheckable.Context context) throws GomValidationError {
+    public void validate(Context context) throws GomValidationError {
       Logging.logInfo("[VALIDATE]" + context.getElement() + context.getProvider(), this.getClass());
       this.verify();
     }

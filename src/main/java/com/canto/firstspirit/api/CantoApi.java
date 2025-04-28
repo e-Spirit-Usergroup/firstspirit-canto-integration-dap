@@ -13,6 +13,13 @@ import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import de.espirit.common.base.Logging;
 import de.espirit.common.tools.Strings;
+import okhttp3.*;
+import okhttp3.HttpUrl.Builder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,18 +28,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import okhttp3.HttpUrl;
-import okhttp3.HttpUrl.Builder;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 /**
  * Offers Access to the CantoApi. Meant to be used and managed through {@link com.canto.firstspirit.service.CantoSaasServiceImpl}.
@@ -163,8 +158,8 @@ public class CantoApi {
    *
    * @return URL Builder with base URL
    */
-  private HttpUrl.Builder getApiUrl() {
-    return new HttpUrl.Builder().scheme("https")
+  private Builder getApiUrl() {
+    return new Builder().scheme("https")
         .host(this.tenant)
         .addPathSegments("api/v1");
   }
@@ -455,7 +450,6 @@ public class CantoApi {
         .addQueryParameter("app_secret", appSecret)
         .addQueryParameter("grant_type", "client_credentials")
         .addQueryParameter("user_id", userId)
-        .addQueryParameter("scope", scope)
         .toString();
 
     OkHttpClient client = new OkHttpClient.Builder().build();

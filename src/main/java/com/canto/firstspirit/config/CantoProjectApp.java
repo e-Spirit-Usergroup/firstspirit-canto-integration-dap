@@ -7,7 +7,7 @@ import de.espirit.firstspirit.module.ProjectApp;
 import de.espirit.firstspirit.module.ProjectEnvironment;
 import de.espirit.firstspirit.module.descriptor.ProjectAppDescriptor;
 
-@ProjectAppComponent(name = "CantoSaasConfiguration", displayName = "Canto Project Configuration", configurable = com.canto.firstspirit.config.CantoProjectAppConfiguration.class)
+@ProjectAppComponent(name = "CantoSaasConfiguration", displayName = "Canto Project Configuration", configurable = CantoProjectAppConfiguration.class)
 public class CantoProjectApp implements ProjectApp {
 
   @Override public void init(final ProjectAppDescriptor projectAppDescriptor, final ProjectEnvironment projectEnvironment) {
