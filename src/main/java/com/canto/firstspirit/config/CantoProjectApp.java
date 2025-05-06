@@ -10,12 +10,20 @@ import de.espirit.firstspirit.module.descriptor.ProjectAppDescriptor;
 @ProjectAppComponent(name = "CantoSaasConfiguration", displayName = "Canto Project Configuration", configurable = CantoProjectAppConfiguration.class)
 public class CantoProjectApp implements ProjectApp {
 
+  private ProjectAppDescriptor projectAppDescriptor;
+  private ProjectEnvironment projectEnvironment;
+
   @Override public void init(final ProjectAppDescriptor projectAppDescriptor, final ProjectEnvironment projectEnvironment) {
-    // stub
+    this.projectEnvironment = projectEnvironment;
+    this.projectAppDescriptor = projectAppDescriptor;
   }
 
   @Override public void installed() {
-    // stub
+    // load default settings
+    CantoProjectAppConfiguration appConfig = new CantoProjectAppConfiguration();
+    appConfig.init(projectAppDescriptor.getModuleName(), projectAppDescriptor.getName(), projectEnvironment);
+    appConfig.load();
+    appConfig.store();
   }
 
   @Override public void uninstalling() {
@@ -23,7 +31,7 @@ public class CantoProjectApp implements ProjectApp {
   }
 
   @Override public void updated(final String s) {
-
+    installed();
   }
 
   public static boolean isInstalled(final SpecialistsBroker broker) {

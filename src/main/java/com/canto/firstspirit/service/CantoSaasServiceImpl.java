@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaasService> {
 
   private ServerEnvironment serverEnvironment;
+  private ServiceDescriptor serviceDescriptor;
   public static final String SERVICE_NAME = "CantoSaasService";
 
   private Map<Integer, CantoApi> apiConnectionPool;
@@ -198,10 +199,15 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
 
   @Override public void init(final ServiceDescriptor serviceDescriptor, final ServerEnvironment serverEnvironment) {
     this.serverEnvironment = serverEnvironment;
+    this.serviceDescriptor = serviceDescriptor;
   }
 
   @Override public void installed() {
-    // stub
+    // load default settings
+    CantoSaasServiceConfigurable cantoSaasServiceConfigurable = new CantoSaasServiceConfigurable();
+    cantoSaasServiceConfigurable.init(serviceDescriptor.getModuleName(), serviceDescriptor.getName(), serverEnvironment);
+    cantoSaasServiceConfigurable.load();
+    cantoSaasServiceConfigurable.store();
   }
 
   @Override public void uninstalling() {
@@ -209,6 +215,6 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
   }
 
   @Override public void updated(final String s) {
-    // stub
+    installed();
   }
 }
