@@ -13,26 +13,27 @@ public class CantoConfigurationFactory {
   /**
    * Get a configuration from a broker with project binding
    *
-   * @param broker project bound broker
+   * @param broker          project bound broker
+   * @param apiTenant
+   * @param apiOAuthBaseUrl
+   * @param apiAppId
+   * @param apiAppSecret
    * @return Canto Configuration based on ProjectApp Config
    */
-  @NotNull public static CantoConfiguration fromProjectBroker(SpecialistsBroker broker) {
+  @NotNull public static CantoConfiguration fromProjectBroker(SpecialistsBroker broker, String apiTenant, String apiOAuthBaseUrl, String apiAppId, String apiAppSecret) {
     Values config = CantoProjectApp.getConfig(broker);
-    String tenant = config.getString(CantoProjectAppConfiguration.PARAM_TENANT);
-    String oAuthBaseUrl = config.getString(CantoProjectAppConfiguration.PARAM_OAUTH_BASE_URL);
-    String appId = config.getString(CantoProjectAppConfiguration.PARAM_APP_ID);
-    String appSecret = config.getString(CantoProjectAppConfiguration.PARAM_APP_SECRET);
+
     String userId = config.getString(CantoProjectAppConfiguration.PARAM_USER_ID);
 
     ProjectAgent projectAgent = broker.requireSpecialist(ProjectAgent.TYPE);
     String projectName = projectAgent.getName();
 
-    if (tenant.isBlank() || appId.isBlank() || appSecret.isBlank() || userId.isBlank() || oAuthBaseUrl.isBlank()) {
+    if (apiTenant.isBlank() || apiAppId.isBlank() || apiAppSecret.isBlank() || userId.isBlank() || apiOAuthBaseUrl.isBlank()) {
 
       throw new IllegalStateException("ProjectApp Configuration not correct. Please provide tenant, appId, appSecret and UserId Project: ['" + projectName + "', " + projectAgent.getId() + "]");
     }
 
-    return new CantoConfiguration(tenant, oAuthBaseUrl, appId, appSecret, userId, projectName);
+    return new CantoConfiguration(apiTenant, apiOAuthBaseUrl, apiAppId, apiAppSecret, userId, projectName);
   }
 
 

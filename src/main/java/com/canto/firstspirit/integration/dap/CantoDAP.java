@@ -1,9 +1,9 @@
 package com.canto.firstspirit.integration.dap;
-
-import static com.canto.firstspirit.config.CantoProjectAppConfiguration.PARAM_TENANT;
+import static com.canto.firstspirit.service.CantoSaasServiceConfigurable.PARAM_TENANT;
 
 import com.canto.firstspirit.config.CantoProjectApp;
 import com.canto.firstspirit.integration.dap.model.CantoDAPAsset;
+import com.canto.firstspirit.service.CantoSaasServiceConfigurable;
 import com.espirit.moddev.components.annotations.PublicComponent;
 import com.espirit.ps.psci.genericconfiguration.Values;
 import com.espirit.ps.psci.magicicons.MagicIcon;
@@ -57,8 +57,7 @@ public class CantoDAP implements DataAccessPlugin<CantoDAPAsset>, Reporting, Rep
       aspectMap.put(Reporting.TYPE, this);
       aspectMap.put(ReportItemsProviding.TYPE, this);
 
-      Values config = CantoProjectApp.getConfig(baseContext);
-      this.tenant = config.getString(PARAM_TENANT, "");
+      this.tenant = CantoSaasServiceConfigurable.PARAM_TENANT;
 
     }
   }

@@ -7,20 +7,11 @@ import com.canto.firstspirit.service.cache.model.CacheElement;
 import com.canto.firstspirit.service.cache.model.CacheUpdateBatch;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import de.espirit.common.base.Logging;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * The CacheUpdater periodically checks, if elements from CentralCache need revalidation or if the cache exceeds 95% load. <br> Revalidation is done in batches ({@link CacheUpdateBatch}), a batch is re-fetched based on its creation date and configured lifespan. <br><br> Every {@link CacheElement} in
@@ -84,19 +75,19 @@ public class CacheUpdater {
         // Check if Thread was interrupted while waiting
         if (Thread.currentThread()
             .isInterrupted()) {
-          Logging.logInfo("[CacheUpdater] interrupted!", this.getClass());
+          Logging.logDebug("[CacheUpdater] interrupted!", this.getClass());
           Thread.currentThread()
               .interrupt();
         }
 
-        Logging.logInfo("[CacheUpdater] running...", this.getClass());
+        Logging.logDebug("[CacheUpdater] running...", this.getClass());
 
         // Process Update Batch if needed
         processUpdateBatch();
         // perform cache Cleanup if needed
         performCacheCleanUp();
 
-        Logging.logInfo("[CacheUpdater] finished. ", this.getClass());
+        Logging.logDebug("[CacheUpdater] finished. ", this.getClass());
 
       } catch (Exception e) {
         Logging.logError("[CacheUpdater] Error during CacheUpdater Run", e, this.getClass());
@@ -151,13 +142,13 @@ public class CacheUpdater {
         return cacheUpdateBatch;
       }
     } else {
-      Logging.logInfo("[CacheUpdater] no updateBatches queued", this.getClass());
+      Logging.logDebug("[CacheUpdater] no updateBatches queued", this.getClass());
     }
     return null;
   }
 
   private List<CantoAssetIdentifier> prefilterUpdateBatch(CacheUpdateBatch cacheUpdateBatch, boolean filterForElementLifeSpan) {
-    Logging.logInfo("[CacheUpdater] prefilter UpdateBatch. filterForElementLifeSpan=" + filterForElementLifeSpan, this.getClass());
+    Logging.logDebug("[CacheUpdater] prefilter UpdateBatch. filterForElementLifeSpan=" + filterForElementLifeSpan, this.getClass());
 
     // Filter unused assets from Batch, create List of assets to fetch
     List<CantoAssetIdentifier> remainingElements = new ArrayList<>(cacheUpdateBatch.batch.size());
@@ -186,7 +177,7 @@ public class CacheUpdater {
   private void processUpdateBatch() {
     CacheUpdateBatch staleUpdateBatch = getStaleUpdateBatch();
     if (staleUpdateBatch != null) {
-      Logging.logInfo("[CacheUpdater] UpdateBatch stale. Updating...", this.getClass());
+      Logging.logDebug("[CacheUpdater] UpdateBatch stale. Updating...", this.getClass());
 
       if (cantoApi == null) {
         Logging.logWarning("[CacheUpdater] No CantoApi available => Cannot re-fetch Items.", this.getClass());
@@ -209,10 +200,10 @@ public class CacheUpdater {
         for (String cantoAssetPath : staleUpdateBatch.batch) {
           this.centralCache.removeElement(cantoAssetPath);
         }
-        Logging.logInfo("[CacheUpdater] update done. updated Items: " + fetchedAssets.size() + " - removed Items: " + staleUpdateBatch.batch.size(), this.getClass());
+        Logging.logDebug("[CacheUpdater] update done. updated Items: " + fetchedAssets.size() + " - removed Items: " + staleUpdateBatch.batch.size(), this.getClass());
       }
     } else {
-      Logging.logInfo("[CacheUpdater] updateBatches fresh", this.getClass());
+      Logging.logDebug("[CacheUpdater] updateBatches fresh", this.getClass());
     }
 
   }
@@ -223,12 +214,12 @@ public class CacheUpdater {
   private void performCacheCleanUp() {
 
     double cacheLoad = (centralCache.cacheMap.size() / (double) maxCacheSize);
-    Logging.logInfo("[CacheUpdater] Cache load " + cacheLoad * 100 + "%", this.getClass());
+    Logging.logDebug("[CacheUpdater] Cache load " + cacheLoad * 100 + "%", this.getClass());
 
     if (cacheLoad > 0.95) {
       // Cache is close to full, start soft cleanup, then hard cleanup
       ConcurrentHashMap<String, CacheElement> cacheMap = centralCache.cacheMap;
-      Logging.logInfo("[CacheUpdater] Cache load high. Start Cleanup", this.getClass());
+      Logging.logDebug("[CacheUpdater] Cache load high. Start Cleanup", this.getClass());
       // we want to bring the cache load down to 85%
       int cleanupTarget = centralCache.cacheMap.size() - (int) (0.85 * maxCacheSize);
       int cleanedUpElements = 0;
@@ -242,7 +233,7 @@ public class CacheUpdater {
           cacheMap.remove(identifier);
         }
       }
-      Logging.logInfo("[CacheUpdater] Soft Cleanup done. removed Elements: " + cleanedUpElements, this.getClass());
+      Logging.logDebug("[CacheUpdater] Soft Cleanup done. removed Elements: " + cleanedUpElements, this.getClass());
 
       // Soft cleanup did not suffice ->  hard cleanup based on updateBatches
       // Oldest batch has heuristically the oldest elements
@@ -254,7 +245,7 @@ public class CacheUpdater {
         }
         updateBatches.remove(0);
       }
-      Logging.logInfo("[CacheUpdater] Hard Cleanup done. Total removed Elements (soft + hard): " + cleanedUpElements + " - New Cache load after Cleanup: " + cacheMap.size() + " (" + (cacheMap.size() / (double) maxCacheSize) * 100 + "%)", this.getClass());
+      Logging.logDebug("[CacheUpdater] Hard Cleanup done. Total removed Elements (soft + hard): " + cleanedUpElements + " - New Cache load after Cleanup: " + cacheMap.size() + " (" + (cacheMap.size() / (double) maxCacheSize) * 100 + "%)", this.getClass());
     }
   }
 

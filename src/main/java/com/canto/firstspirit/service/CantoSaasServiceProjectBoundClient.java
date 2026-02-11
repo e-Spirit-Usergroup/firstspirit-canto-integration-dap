@@ -1,6 +1,5 @@
 package com.canto.firstspirit.service;
 
-import com.canto.firstspirit.service.factory.CantoConfigurationFactory;
 import com.canto.firstspirit.service.server.CantoSaasService;
 import com.canto.firstspirit.service.server.model.CantoAssetDTO;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
@@ -10,6 +9,7 @@ import com.canto.firstspirit.service.server.model.CantoSearchResultDTO;
 import com.canto.firstspirit.service.server.model.CantoServiceConnection;
 import de.espirit.common.base.Logging;
 import de.espirit.firstspirit.access.ServicesBroker;
+import de.espirit.firstspirit.agency.ProjectAgent;
 import de.espirit.firstspirit.agency.SpecialistsBroker;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +47,8 @@ public class CantoSaasServiceProjectBoundClient {
   }
 
   private CantoServiceConnection getOrCreateConnection(boolean forceNewConnection) {
-    CantoConfiguration cantoConfiguration = CantoConfigurationFactory.fromProjectBroker(broker);
+    long projectId = broker.requireSpecialist(ProjectAgent.TYPE).getId();
+    CantoConfiguration cantoConfiguration = service.getConfiguration(projectId);
 
     if (forceNewConnection) {
       service.removeServiceConnection(connection);
@@ -78,17 +79,6 @@ public class CantoSaasServiceProjectBoundClient {
     }
     return cantoSearchResultDTO;
 
-  }
-
-  public String getUserScope() {
-    String userScopeString = service.getUserScope(connection);
-
-    if (userScopeString == null) {
-      // null Result indicates invalid connection. Revalidate and try again once
-      this.connection = getOrCreateConnection(true);
-      userScopeString = service.getUserScope(connection);
-    }
-    return userScopeString;
   }
 
   public String fetchFolderStructure() {

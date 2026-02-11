@@ -5,9 +5,10 @@ import com.canto.firstspirit.api.CantoAssetIdentifierFactory;
 import com.canto.firstspirit.api.model.CantoAsset;
 import com.canto.firstspirit.service.server.model.CantoAssetIdentifier;
 import de.espirit.common.base.Logging;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * ProjectBoundCacheAccess offers access to the central cache, based on Project Specific access restrictions.<br>
@@ -36,11 +37,12 @@ public class ProjectBoundCacheAccess {
     if (centralCache != null) {
       CantoAsset cachedAsset = centralCache.getCantoAsset(assetIdentifier);
       // If asset is in cache, make sure we have access to it by verifying modified date.
-      // If it was changed since last access, deny cache and force refetch
-      if (cachedAsset != null && cachedAsset.getLastModified()
-          .equals(allowedCacheIds.get(assetIdentifier.getPath()))) {
+      if (cachedAsset != null) {
+        String allowedLastModified = allowedCacheIds.get(assetIdentifier.getPath());
+        if (allowedLastModified == null || cachedAsset.getLastModified().equals(allowedLastModified)) {
         Logging.logDebug("[ProjectBoundCacheAccess] Cache hit: [" + assetIdentifier + "]", this.getClass());
         return cachedAsset;
+        }
       }
     }
     Logging.logDebug("[ProjectBoundCacheAccess] Cache miss: [" + assetIdentifier + "]", this.getClass());
@@ -93,6 +95,8 @@ public class ProjectBoundCacheAccess {
     if (this.centralCache != null) {
       for (CantoAsset cantoAsset : cantoAssetCollection) {
         if (cantoAsset != null) {
+          CantoAssetIdentifier assetIdentifier = CantoAssetIdentifierFactory.fromCantoAsset(cantoAsset);
+          this.allowedCacheIds.put(assetIdentifier.getPath(), cantoAsset.getLastModified());
           centralCache.updateElement(cantoAsset);
         }
       }

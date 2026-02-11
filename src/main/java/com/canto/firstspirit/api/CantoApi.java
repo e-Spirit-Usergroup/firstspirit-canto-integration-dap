@@ -17,14 +17,9 @@ import okhttp3.*;
 import okhttp3.HttpUrl.Builder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -51,7 +46,6 @@ public class CantoApi {
   private final String appId;
   private final String appSecret;
   private final String userId;
-  private final String scope;
   private final JsonAdapter<CantoSearchResult> cantoSearchResultJsonAdapter = moshi.adapter(CantoSearchResult.class);
   private final JsonAdapter<CantoAsset> cantoAssetJsonAdapter = moshi.adapter(CantoAsset.class);
   private final JsonAdapter<CantoBatchResponse> cantoBatchResponseJsonAdapter = moshi.adapter(CantoBatchResponse.class);
@@ -76,9 +70,9 @@ public class CantoApi {
    * @param batchFetchRequestLimiter  batchFetchRequestLimiter to force Delay between single fetch request
    * @param projectBoundCacheAccess   access to central cache
    */
-  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId, String scope, @Nullable RequestLimiter singleFetchRequestLimiter, @Nullable RequestLimiter batchFetchRequestLimiter, ProjectBoundCacheAccess projectBoundCacheAccess) {
+  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId, @Nullable RequestLimiter singleFetchRequestLimiter, @Nullable RequestLimiter batchFetchRequestLimiter, ProjectBoundCacheAccess projectBoundCacheAccess) {
 
-    this(tenant, oAuthBaseUrl, appId, appSecret, userId, scope, singleFetchRequestLimiter, batchFetchRequestLimiter, projectBoundCacheAccess, 20);
+    this(tenant, oAuthBaseUrl, appId, appSecret, userId, singleFetchRequestLimiter, batchFetchRequestLimiter, projectBoundCacheAccess, 20);
 
   }
 
@@ -96,12 +90,11 @@ public class CantoApi {
    * @param projectBoundCacheAccess   access to central cache
    * @param timeoutInSeconds          request timeout in seconds
    */
-  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId, String scope, @Nullable RequestLimiter singleFetchRequestLimiter, @Nullable RequestLimiter batchFetchRequestLimiter, ProjectBoundCacheAccess projectBoundCacheAccess, long timeoutInSeconds) {
+  public CantoApi(String tenant, String oAuthBaseUrl, String appId, String appSecret, String userId, @Nullable RequestLimiter singleFetchRequestLimiter, @Nullable RequestLimiter batchFetchRequestLimiter, ProjectBoundCacheAccess projectBoundCacheAccess, long timeoutInSeconds) {
     this.tenant = tenant;
     this.appId = appId;
     this.appSecret = appSecret;
     this.userId = userId;
-    this.scope = scope;
     this.oAuthBaseUrl = oAuthBaseUrl;
     this.singleFetchRequestLimiter = singleFetchRequestLimiter;
     this.batchFetchRequestLimiter = batchFetchRequestLimiter;
@@ -158,8 +151,8 @@ public class CantoApi {
    *
    * @return URL Builder with base URL
    */
-  private Builder getApiUrl() {
-    return new Builder().scheme("https")
+  private HttpUrl.Builder getApiUrl() {
+    return new HttpUrl.Builder().scheme("https")
         .host(this.tenant)
         .addPathSegments("api/v1");
   }
@@ -175,8 +168,10 @@ public class CantoApi {
 
     // Check cache
     CantoAsset cachedCantoAsset = projectBoundCacheAccess.retrieveFromCache(assetId);
-    if (cachedCantoAsset != null) {
+    if (cachedCantoAsset != null && cachedCantoAsset.getMetadata() != null && !cachedCantoAsset.getMetadata().isEmpty()) {
       return cachedCantoAsset;
+    } else {
+      Logging.logDebug("[fetchAssetById] cache miss for asset: "+ assetId, LOGGER);
     }
 
     HttpUrl url = getApiUrl().addPathSegments(assetId.getPath())
@@ -212,7 +207,7 @@ public class CantoApi {
    */
   public @NotNull List<@Nullable CantoAsset> fetchAssets(@NotNull List<? extends CantoAssetIdentifier> assetIdentifiers) {
     Logging.logInfo("[fetchAssets] fetching ids: " + Strings.implode(assetIdentifiers, ","), LOGGER);
-    if (assetIdentifiers.size() == 0) {
+    if (assetIdentifiers.isEmpty()) {
       Logging.logInfo("[fetchAssets] Identifier List empty, returning empty list", LOGGER);
       return Collections.emptyList();
     }
@@ -220,7 +215,27 @@ public class CantoApi {
       return Collections.singletonList(fetchAssetById(assetIdentifiers.get(0)));
     }
 
-    List<Map<String, String>> requestList = assetIdentifiers.stream()
+    // Try to retrieve from Cache first
+    Map<Integer, CantoAsset> cachedAssetsMap = new HashMap<>();
+    List<CantoAssetIdentifier> identifiersToFetch = new ArrayList<>();
+
+    for (int i = 0; i < assetIdentifiers.size(); i++) {
+      CantoAssetIdentifier identifier = assetIdentifiers.get(i);
+      CantoAsset cachedAsset = projectBoundCacheAccess.retrieveFromCache(identifier);
+      if (cachedAsset != null) {
+        cachedAssetsMap.put(i, cachedAsset);
+      } else {
+        identifiersToFetch.add(identifier);
+        Logging.logDebug("[fetchAssets BULK] cache miss for asset: "+ identifier, LOGGER);
+      }
+    }
+
+    if (identifiersToFetch.isEmpty()) {
+      // all items in cache!
+      return new ArrayList<>(cachedAssetsMap.values());
+    }
+
+    List<Map<String, String>> requestList = identifiersToFetch.stream()
         .map(cantoAssetIdentifier -> Map.of("id", cantoAssetIdentifier.getId(), "scheme", cantoAssetIdentifier.getSchema()))
         .collect(Collectors.toList());
 
@@ -247,18 +262,32 @@ public class CantoApi {
         throw new IllegalStateException("Unable to parse Result to CantoBatchResponse for url " + url);
       }
 
-      Map<String, CantoAsset> fetchedAssets = cantoBatchResponse.getDocResult()
-          .stream()
-          .collect(Collectors.toMap(asset -> CantoAssetIdentifierFactory.fromCantoAsset(asset)
+      List<CantoAsset> docResult = cantoBatchResponse.getDocResult();
+      Map<String, CantoAsset> newlyFetchedAssets = docResult.stream()
+              .filter(Objects::nonNull)
+              .collect(Collectors.toMap(asset -> CantoAssetIdentifierFactory.fromCantoAsset(asset)
               .getPath(), Function.identity()));
+
+      // Add newly fetched assets to cache
+      projectBoundCacheAccess.addAllToCache(docResult.stream().filter(Objects::nonNull).collect(Collectors.toList()));
 
       Logging.logDebug("[fetchAssets] " + cantoBatchResponse, LOGGER);
 
       // Ensure correct Order and replace missing Values with null
-      return assetIdentifiers.stream()
-          .map(identifier -> fetchedAssets.get(identifier.getPath()))
-          .collect(Collectors.toList());
+      List<CantoAsset> resultList = new ArrayList<>(Collections.nCopies(assetIdentifiers.size(), null));
+      // fill in cached ones
+      for (Map.Entry<Integer, CantoAsset> entry : cachedAssetsMap.entrySet()) {
+        resultList.set(entry.getKey(), entry.getValue());
+      }
+      // fill in newly fetched ones
+      for (int i = 0; i < assetIdentifiers.size(); i++) {
+        if (!cachedAssetsMap.containsKey(i)) {
+          CantoAssetIdentifier identifier = assetIdentifiers.get(i);
+          resultList.set(i, newlyFetchedAssets.get(identifier.getPath()));
+        }
+      }
 
+      return resultList;
 
     } catch (Exception e) {
       Logging.logError("Error during bulk fetch of Ids" + Strings.implode(assetIdentifiers, ","), e, this.getClass());
@@ -482,48 +511,6 @@ public class CantoApi {
     }
 
     return null;
-  }
-
-  public String getScope() {
-    return scope;
-  }
-
-  public String fetchUserScope(String userId) {
-    // Build the URL to fetch the user info
-    HttpUrl url = getApiUrl().addPathSegments("users?role=0&name=" + userId)
-        .build();
-    // Log the URL being fetched
-    Logging.logInfo("[fetchUserScope] fetching " + url, LOGGER);
-    // Initialize folderStructureJsonString to null
-    String userInfoJsonString = null;
-    // If rate limiting is enabled, delay the request if necessary
-    if (singleFetchRequestLimiter != null) {
-      singleFetchRequestLimiter.delayRequestIfNecessary();
-    }
-    try (Response response = executeGetRequest(url)) {
-      ResponseBody body = response.body();
-      // Check if response body is null
-      if (body == null) {
-        throw new IllegalStateException("Response Body was null for url " + url);
-      }
-      // Read the response body as a string
-      userInfoJsonString = body.string();
-    } catch (Exception e) {
-      // Log any errors that occur during the request
-      Logging.logError("[fetchUserInfo] Error occurred", e, LOGGER);
-    }
-    if (userInfoJsonString != null) {
-      // Convert user info string to JSONObject
-      JSONObject jsonObject = new JSONObject(userInfoJsonString);
-      // Return the folder structure JSON string, or null if an error occurred
-      JSONArray dataArray = jsonObject.getJSONArray("data");
-      // Iterate through results array
-      for (Object object : dataArray) {
-        JSONObject dataObject = (JSONObject) object;
-        return dataObject.getString("role");
-      }
-    }
-    return "consumer";
   }
 
   /**

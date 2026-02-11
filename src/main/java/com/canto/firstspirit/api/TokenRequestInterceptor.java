@@ -18,7 +18,7 @@ final class TokenRequestInterceptor implements Interceptor {
     this.token = token;
   }
 
-  @NotNull @Override public Response intercept(Chain chain) throws IOException {
+  @NotNull @Override public Response intercept(Interceptor.Chain chain) throws IOException {
     Request originalRequest = chain.request();
     Request authorizedRequest = originalRequest.newBuilder()
         .header("Authorization", "Bearer " + this.token)

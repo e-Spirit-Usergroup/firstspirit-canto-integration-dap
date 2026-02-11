@@ -46,8 +46,6 @@ public interface CantoSaasService {
    */
   void removeServiceConnection(@NotNull final CantoServiceConnection connection);
 
-  @Nullable String getUserScope(CantoServiceConnection connection);
-
   /**
    * Fetches the folder structure using the provided CantoServiceConnection.
    *
@@ -55,4 +53,12 @@ public interface CantoSaasService {
    * @return A string representing the folder structure in JSON format, or null if an error occurs.
    */
   @Nullable String fetchFolderStructure(@NotNull final CantoServiceConnection connection);
+
+  /**
+   * Creates a CantoConfiguration from the project-bound configuration associated with the given broker.
+   *
+   * @return CantoConfiguration based on the project's Canto ProjectApp configuration
+   * @throws IllegalStateException if required configuration values are missing or invalid
+   */
+  @NotNull CantoConfiguration getConfiguration( final long projectId);
 }

@@ -1,20 +1,20 @@
 buildscript {
     ext {
-        fsRuntimeVersion = '5.2.241009'
-        fsIsolationCheckVersion = '5.2.241009' // update regularly to test against newest FirstSpirit release
+        fsRuntimeVersion = '5.2.260212'
+        fsIsolationCheckVersion = '5.2.260212' // update regularly to test against newest FirstSpirit release
         magicIconsVersion = '2.1.0'
-        okhttpVersion = '4.12.0'
-        moshiVersion = '1.14.0'
+        okhttpVersion = '5.3.2'
+        moshiVersion = '1.15.2'
         genericConfigVersion = '2.8.0'
-        jsonOrgVersion = '20231013'
+        jsonOrgVersion = '20251224'
     }
 }
 
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'de.espirit.firstspirit-module' version '6.4.0'
-    id 'net.researchgate.release' version '3.0.2'
+    id 'de.espirit.firstspirit-module' version '7.0.0'
+    id 'net.researchgate.release' version '3.1.0'
 }
 
 
@@ -37,28 +37,23 @@ allprojects {
 
 
         dependencies {
-            compileOnly group: 'org.jetbrains', name: 'annotations', version: '24.0.1'
+            compileOnly group: 'org.jetbrains', name: 'annotations', version: '26.0.2-1'
         }
 
 
         tasks.withType(JavaCompile).configureEach {
             options.encoding = 'UTF-8'
-            options.release.set(11)
+            options.release.set(17)
         }
 
-        compileJava.options.encoding = 'UTF-8'
-        compileTestJava.options.encoding = 'UTF-8'
-
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
 }
 
 configurations {
     fsLicense
 }
 
-task aggregatedJavadocs(type: Javadoc, description: 'Generate javadocs from all projects as if it was a single project', group: 'Documentation') {
-    destinationDir = file("$buildDir/docs/javadoc")
+tasks.register('aggregatedJavadocs', Javadoc) {
+    destinationDir = file(getLayout().getBuildDirectory()+"/docs/javadoc")
     title = "$project.name - $version API Docs"
 
     allprojects.each { proj ->
@@ -72,10 +67,10 @@ task aggregatedJavadocs(type: Javadoc, description: 'Generate javadocs from all 
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.2'
     testImplementation group: 'de.espirit.firstspirit', name: 'fs-isolated-runtime', version: "${fsRuntimeVersion}"
-    testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.5.0'
-    testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '5.5.0'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '5.21.0'
+    testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '5.21.0'
 
 
     compileOnly group: 'de.espirit.firstspirit', name: 'fs-isolated-runtime', version: "${fsRuntimeVersion}"
