@@ -170,7 +170,7 @@ public class CantoSaasServiceImpl implements CantoSaasService, Service<CantoSaas
 
     if (serviceConfiguration.useCache) {
       CantoApi cantoApi = getCantoApi();
-      centralCache = new CentralCache(cantoApi, serviceConfiguration.cacheSize, serviceConfiguration.cacheUpdateTimespanMs, serviceConfiguration.cacheUpdateTimespanMs, serviceConfiguration.cacheItemInUseTimespanMs, serviceConfiguration.batchUpdateSize);
+      centralCache = new CentralCache(cantoApi, serviceConfiguration.cacheSize, serviceConfiguration.cacheItemLifespanMs, serviceConfiguration.cacheUpdateTimespanMs, serviceConfiguration.cacheItemInUseTimespanMs, serviceConfiguration.batchUpdateSize);
       loadPersistedCache();
     } else {
       centralCache = null;
